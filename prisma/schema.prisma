@@ -14,3 +14,194 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum Role {
+  USER
+  ADMIN
+}
+
+enum CodeSolutionStatus {
+  PENDING
+  SUBMITTED
+  GRADED
+}
+
+model User {
+  id        String  @id @default(cuid())
+  email     String  @unique
+  firstName String?
+  lastName  String?
+  password  String
+  role      Role    @default(USER)
+
+  organizationId String?
+  organization   Organization? @relation("OrganizationUsers", fields: [organizationId], references: [id])
+
+  orgAdminOf Organization? @relation("OrganizationAdmin")
+
+  quizResults   QuizResult[]   @relation("UserResult")
+  codeSolutions CodeSolution[] @relation("UserCodeSolutions")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email], name: "idx_user_email")
+}
+
+model Organization {
+  id          String  @id @default(cuid())
+  name        String  @unique
+  description String?
+  logoUrl     String?
+  websiteUrl  String?
+  address     String?
+  phone       String?
+  email       String?
+
+  orgAdminId String? @unique
+  orgAdmin   User?   @relation("OrganizationAdmin", fields: [orgAdminId], references: [id])
+
+  users   User[]   @relation("OrganizationUsers")
+  courses Course[] @relation("OrganizationCourses")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Course {
+  id           String  @id @default(cuid())
+  name         String
+  description  String?
+  thumbnailUrl String?
+
+  organizationId String
+  organization   Organization @relation("OrganizationCourses", fields: [organizationId], references: [id])
+
+  modules         Lesson[]         @relation("CourseLessons")
+  quizzes         Quiz[]           @relation("CourseQuizzes")
+  codeAssessments CodeAssessment[] @relation("CourseCodeAssessments")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Lesson {
+  id      String @id @default(cuid())
+  title   String
+  content String
+
+  courseId String
+  course   Course @relation("CourseLessons", fields: [courseId], references: [id])
+
+  modules Module[] @relation("LessonModules")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Module {
+  id      String @id @default(cuid())
+  title   String
+  content String
+
+  code       String?
+  languageId Int?
+
+  lessonId String
+  lesson   Lesson @relation("LessonModules", fields: [lessonId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Quiz {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+
+  courseId String
+  course   Course @relation("CourseQuizzes", fields: [courseId], references: [id])
+
+  questions   Question[]   @relation("QuizQuestions")
+  quizResults QuizResult[] @relation("QuizResult")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Question {
+  id          String   @id @default(cuid())
+  text        String
+  options     String[]
+  answer      Int
+  explanation String?
+
+  quizId String
+  quiz   Quiz   @relation("QuizQuestions", fields: [quizId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model QuizResult {
+  id    String @id @default(cuid())
+  score Int
+
+  userId String
+  user   User   @relation("UserResult", fields: [userId], references: [id])
+
+  quizId String
+  quiz   Quiz   @relation("QuizResult", fields: [quizId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CodeAssessment {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+
+  instructions String?
+  starterCode  String?
+  languageId   Int?
+
+  courseId String
+  course   Course @relation("CourseCodeAssessments", fields: [courseId], references: [id])
+
+  codeSolutions CodeSolution[] @relation("CodeAssessmentSolutions")
+  testCases     TestCase[]     @relation("CodeAssessmentTestCases")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model TestCase {
+  id          String  @id @default(cuid())
+  input       String
+  expected    String
+  description String?
+
+  assessmentId String
+  assessment   CodeAssessment @relation("CodeAssessmentTestCases", fields: [assessmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model CodeSolution {
+  id     String             @id @default(cuid())
+  code   String
+  status CodeSolutionStatus @default(PENDING)
+  score  Int?
+
+  userId String
+  user   User   @relation("UserCodeSolutions", fields: [userId], references: [id])
+
+  assessmentId String
+  assessment   CodeAssessment @relation("CodeAssessmentSolutions", fields: [assessmentId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, assessmentId])
+}
