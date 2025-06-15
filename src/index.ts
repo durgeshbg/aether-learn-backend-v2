@@ -6,7 +6,7 @@ import { useRateLimit } from './middlewares/rateLimit';
 import { useCompression } from './middlewares/compression';
 import { useJsonParse } from './middlewares/jsonParse';
 import { useSwagger } from './middlewares/swagger';
-import userRouter from './modules/user';
+import indexRouter from './indexRouter';
 
 const PORT = process.env.PORT || 3000;
 
@@ -24,7 +24,7 @@ app.get('/health-check', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Server is healthy' });
 });
 
-app.use('/api/v1', userRouter);
+app.use('/api/v1', indexRouter);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
