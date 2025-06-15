@@ -1,6 +1,10 @@
 import express from 'express';
 import { UserController } from './user.controller';
-import { authMiddleware, orgAdminMiddleware } from '../../middlewares/auth';
+import {
+  adminMiddleware,
+  authMiddleware,
+  orgAdminMiddleware,
+} from '../../middlewares/auth';
 import { validate, validateParams } from '../../middlewares/validate';
 import {
   CreateUserSchema,
@@ -30,6 +34,7 @@ router.put(
 
 router.put(
   '/:id/organization',
+  adminMiddleware,
   validateParams(UserIdParamSchema),
   UserController.updateOrganization
 );

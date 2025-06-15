@@ -38,8 +38,10 @@ export const UserController = {
 
   create: async (req: Request, res: Response) => {
     try {
-      const data: CreateUserType = req.body;
+      const data: CreateUserType & { organizationId?: string | null } =
+        req.body;
       data.password = await hash(data.password, 10);
+      data.organizationId = req.user?.orgAdmin;
       const user = await UserService.create(data);
       user.password = '';
       res.status(201).json(user);
@@ -112,10 +114,18 @@ export const UserController = {
         res.status(403).json({ error: 'You cannot delete your own account' });
         return;
       }
-      await UserService.delete(id!);
-      res.status(204).json({
-        message: 'User deleted successfully',
-      });
+      const user = await UserService.findById(id!);
+      if (
+        req.user?.role === 'ADMIN' ||
+        req.user?.orgAdmin === user?.organizationId
+      ) {
+        await UserService.delete(id!);
+        res.status(204).json({
+          message: 'User deleted successfully',
+        });
+      } else {
+        res.status(403).json({ error: 'Forbidden' });
+      }
       return;
     } catch (error: any) {
       res.status(400).json({ error: error.message });
