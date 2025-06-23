@@ -11,6 +11,7 @@ import {
   UserIdParamSchema,
   UserLoginSchema,
   UserUpdateSchema,
+  UserRoleUpdateSchema,
 } from './user.schema';
 
 const router = express.Router();
@@ -19,7 +20,7 @@ router.post('/login', validate(UserLoginSchema), UserController.login);
 
 router.use(authMiddleware, orgAdminMiddleware);
 
-router.get('/', authMiddleware, orgAdminMiddleware, UserController.findAll);
+router.get('/', UserController.findAll);
 
 router.get('/:id', validateParams(UserIdParamSchema), UserController.findById);
 
@@ -37,6 +38,14 @@ router.put(
   adminMiddleware,
   validateParams(UserIdParamSchema),
   UserController.updateOrganization
+);
+
+router.put(
+  '/:id/role',
+  adminMiddleware,
+  validateParams(UserIdParamSchema),
+  validate(UserRoleUpdateSchema),
+  UserController.updateRole
 );
 
 router.delete('/:id', validateParams(UserIdParamSchema), UserController.delete);

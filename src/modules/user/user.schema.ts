@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { Role } from '../../generated/prisma';
 
 export const CreateUserSchema = z.object({
   email: z.string().email(),
@@ -23,6 +24,14 @@ export const UserLoginSchema = z.object({
 
 export const UserIdParamSchema = z.object({
   id: z.string().cuid('Invalid user ID format'),
+});
+
+export const UserRoleUpdateSchema = z.object({
+  role: z.enum([Role.ADMIN, Role.USER], {
+    errorMap: () => ({
+      message: 'Role must be either ADMIN or USER',
+    }),
+  }),
 });
 
 export type CreateUserType = z.infer<typeof CreateUserSchema>;

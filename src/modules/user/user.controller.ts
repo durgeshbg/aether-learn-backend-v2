@@ -7,6 +7,8 @@ import type {
   UserIdParamType,
 } from './user.schema';
 import { hash } from 'bcrypt-ts';
+import { UserErrors } from './user.errors';
+import { Role } from '../../generated/prisma';
 
 export const UserController = {
   findAll: async (req: Request, res: Response) => {
@@ -15,7 +17,7 @@ export const UserController = {
       res.status(200).json(users);
       return;
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: UserErrors.USERS_NOT_FOUND });
       return;
     }
   },
@@ -25,13 +27,13 @@ export const UserController = {
       const { id } = req.params as UserIdParamType;
       const user = await UserService.findById(id!);
       if (!user) {
-        res.status(404).json({ error: 'User not found' });
+        res.status(404).json({ error: UserErrors.USER_NOT_FOUND });
         return;
       }
       res.status(200).json(user);
       return;
     } catch (error: any) {
-      res.status(500).json({ error: error.message });
+      res.status(500).json({ error: UserErrors.USER_NOT_FOUND });
       return;
     }
   },
@@ -47,7 +49,7 @@ export const UserController = {
       res.status(201).json(user);
       return;
     } catch (error: any) {
-      res.status(400).json({ error: 'User Email already exists' });
+      res.status(400).json({ error: UserErrors.USER_EMAIL_EXISTS });
       return;
     }
   },
@@ -57,7 +59,7 @@ export const UserController = {
       const { email, password }: UserLoginType = req.body;
       const user = await UserService.login(email, password);
       if (!user) {
-        res.status(401).json({ error: 'Invalid email or password' });
+        res.status(401).json({ error: UserErrors.USER_INVALID_CREDENTIALS });
         return;
       }
       const orgAdmin = user.orgAdminOf?.id;
@@ -76,7 +78,7 @@ export const UserController = {
       res.status(200).json({ token });
       return;
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: UserErrors.USER_INVALID_CREDENTIALS });
       return;
     }
   },
@@ -89,7 +91,7 @@ export const UserController = {
       res.status(200).json(user);
       return;
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: UserErrors.USER_UPDATE_FAILED });
       return;
     }
   },
@@ -102,7 +104,20 @@ export const UserController = {
       res.status(200).json(user);
       return;
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: UserErrors.USER_INVALID_ORGANIZATION });
+      return;
+    }
+  },
+
+  updateRole: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params as UserIdParamType;
+      const { role } = req.body;
+      const user = await UserService.updateRole(id!, role);
+      res.status(200).json(user);
+      return;
+    } catch (error: any) {
+      res.status(400).json({ error: UserErrors.USER_UPDATE_FAILED });
       return;
     }
   },
@@ -111,12 +126,12 @@ export const UserController = {
     try {
       const { id } = req.params as UserIdParamType;
       if (id === req.user?.id) {
-        res.status(403).json({ error: 'You cannot delete your own account' });
+        res.status(403).json({ error: UserErrors.USER_OWN_ACCOUNT_DELETION });
         return;
       }
       const user = await UserService.findById(id!);
       if (
-        req.user?.role === 'ADMIN' ||
+        req.user?.role === Role.ADMIN ||
         req.user?.orgAdmin === user?.organizationId
       ) {
         await UserService.delete(id!);
@@ -124,11 +139,11 @@ export const UserController = {
           message: 'User deleted successfully',
         });
       } else {
-        res.status(403).json({ error: 'Forbidden' });
+        res.status(403).json({ error: UserErrors.USER_FORBIDDEN });
       }
       return;
     } catch (error: any) {
-      res.status(400).json({ error: error.message });
+      res.status(400).json({ error: UserErrors.USER_DELETE_FAILED });
       return;
     }
   },

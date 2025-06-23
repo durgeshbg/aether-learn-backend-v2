@@ -1,5 +1,5 @@
 import type { CreateUserType, UserUpdateType } from './user.schema';
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient, Role } from '../../generated/prisma';
 import { compare } from 'bcrypt-ts';
 
 const prisma = new PrismaClient();
@@ -33,6 +33,13 @@ export const UserService = {
 
   update: async (id: string, data: UserUpdateType) => {
     return await prisma.user.update({ where: { id }, data });
+  },
+
+  updateRole: async (id: string, role: Role) => {
+    return await prisma.user.update({
+      where: { id },
+      data: { role },
+    });
   },
 
   updateOrganization: async (userId: string, organizationId: string) => {

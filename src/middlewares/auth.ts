@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import * as jwt from 'jsonwebtoken';
+import { Role } from '../generated/prisma';
 
 type User = {
   id: string;
@@ -16,6 +17,12 @@ declare global {
   }
 }
 
+export const AuthErrors = {
+  UNAUTHORIZED: 'Unauthorized',
+  INVALID_TOKEN: 'Invalid token',
+  FORBIDDEN: 'Forbidden',
+};
+
 export const authMiddleware = (
   req: Request,
   res: Response,
@@ -24,13 +31,13 @@ export const authMiddleware = (
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
-    res.status(401).json({ message: 'Unauthorized' });
+    res.status(401).json({ error: AuthErrors.UNAUTHORIZED });
     return;
   }
 
   jwt.verify(token, process.env.JWT_SECRET!, (err, decoded) => {
     if (err) {
-      res.status(401).json({ message: 'Invalid token' });
+      res.status(401).json({ error: AuthErrors.INVALID_TOKEN });
       return;
     }
     req.user = decoded as User;
@@ -45,7 +52,7 @@ export const adminMiddleware = (
   next: NextFunction
 ) => {
   if (req.user?.role !== 'ADMIN') {
-    res.status(403).json({ message: 'Forbidden' });
+    res.status(403).json({ error: AuthErrors.FORBIDDEN });
     return;
   }
   next();
@@ -58,7 +65,7 @@ export const userMiddleware = (
   next: NextFunction
 ) => {
   if (req.user?.role !== 'USER') {
-    res.status(403).json({ message: 'Forbidden' });
+    res.status(403).json({ error: AuthErrors.FORBIDDEN });
     return;
   }
   next();
@@ -70,10 +77,10 @@ export const orgAdminMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  if (!req.user?.orgAdmin) {
-    res.status(403).json({ message: 'Forbidden' });
+  if (req.user?.role === Role.ADMIN || req.user?.orgAdmin) {
+    next();
     return;
   }
-  next();
+  res.status(403).json({ error: AuthErrors.FORBIDDEN });
   return;
 };
