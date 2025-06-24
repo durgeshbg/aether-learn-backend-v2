@@ -34,7 +34,7 @@ model User {
   role      Role    @default(USER)
 
   organizationId String?
-  organization   Organization? @relation("OrganizationUsers", fields: [organizationId], references: [id])
+  organization   Organization? @relation("OrganizationUsers", fields: [organizationId], references: [id], onDelete: Cascade)
 
   orgAdminOf Organization? @relation("OrganizationAdmin")
 
@@ -61,7 +61,7 @@ model Organization {
   orgAdmin   User?   @relation("OrganizationAdmin", fields: [orgAdminId], references: [id])
 
   users   User[]   @relation("OrganizationUsers")
-  courses Course[] @relation("OrganizationCourses")
+  courses Course[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -73,12 +73,10 @@ model Course {
   description  String?
   thumbnailUrl String?
 
-  organizationId String
-  organization   Organization @relation("OrganizationCourses", fields: [organizationId], references: [id])
-
   modules         Lesson[]         @relation("CourseLessons")
   quizzes         Quiz[]           @relation("CourseQuizzes")
   codeAssessments CodeAssessment[] @relation("CourseCodeAssessments")
+  organizations   Organization[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -90,7 +88,7 @@ model Lesson {
   content String
 
   courseId String
-  course   Course @relation("CourseLessons", fields: [courseId], references: [id])
+  course   Course @relation("CourseLessons", fields: [courseId], references: [id], onDelete: Cascade)
 
   modules Module[] @relation("LessonModules")
 
@@ -107,7 +105,7 @@ model Module {
   languageId Int?
 
   lessonId String
-  lesson   Lesson @relation("LessonModules", fields: [lessonId], references: [id])
+  lesson   Lesson @relation("LessonModules", fields: [lessonId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -119,7 +117,7 @@ model Quiz {
   description String?
 
   courseId String
-  course   Course @relation("CourseQuizzes", fields: [courseId], references: [id])
+  course   Course @relation("CourseQuizzes", fields: [courseId], references: [id], onDelete: Cascade)
 
   questions   Question[]   @relation("QuizQuestions")
   quizResults QuizResult[] @relation("QuizResult")
@@ -136,7 +134,7 @@ model Question {
   explanation String?
 
   quizId String
-  quiz   Quiz   @relation("QuizQuestions", fields: [quizId], references: [id])
+  quiz   Quiz   @relation("QuizQuestions", fields: [quizId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -147,10 +145,10 @@ model QuizResult {
   score Int
 
   userId String
-  user   User   @relation("UserResult", fields: [userId], references: [id])
+  user   User   @relation("UserResult", fields: [userId], references: [id], onDelete: Cascade)
 
   quizId String
-  quiz   Quiz   @relation("QuizResult", fields: [quizId], references: [id])
+  quiz   Quiz   @relation("QuizResult", fields: [quizId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -166,7 +164,7 @@ model CodeAssessment {
   languageId   Int?
 
   courseId String
-  course   Course @relation("CourseCodeAssessments", fields: [courseId], references: [id])
+  course   Course @relation("CourseCodeAssessments", fields: [courseId], references: [id], onDelete: Cascade)
 
   codeSolutions CodeSolution[] @relation("CodeAssessmentSolutions")
   testCases     TestCase[]     @relation("CodeAssessmentTestCases")
@@ -182,7 +180,7 @@ model TestCase {
   description String?
 
   assessmentId String
-  assessment   CodeAssessment @relation("CodeAssessmentTestCases", fields: [assessmentId], references: [id])
+  assessment   CodeAssessment @relation("CodeAssessmentTestCases", fields: [assessmentId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -195,10 +193,10 @@ model CodeSolution {
   score  Int?
 
   userId String
-  user   User   @relation("UserCodeSolutions", fields: [userId], references: [id])
+  user   User   @relation("UserCodeSolutions", fields: [userId], references: [id], onDelete: Cascade)
 
   assessmentId String
-  assessment   CodeAssessment @relation("CodeAssessmentSolutions", fields: [assessmentId], references: [id])
+  assessment   CodeAssessment @relation("CodeAssessmentSolutions", fields: [assessmentId], references: [id], onDelete: Cascade)
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
