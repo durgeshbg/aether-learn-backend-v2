@@ -1,160 +1,247 @@
 import { hash } from 'bcrypt-ts';
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient, Role, CodeSolutionStatus } from '../generated/prisma';
 
-const languages = {
-  PYTHON_3_11: 92,
-};
+const JAVASCRIPT_NODE_18 = 93;
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // 1. Create Users
+  await prisma.codeSolution.deleteMany({});
+  await prisma.codeAssessment.deleteMany({});
+  await prisma.course.deleteMany({});
+  await prisma.lesson.deleteMany({});
+  await prisma.module.deleteMany({});
+  await prisma.organization.deleteMany({});
+  await prisma.question.deleteMany({});
+  await prisma.quiz.deleteMany({});
+  await prisma.quizResult.deleteMany({});
+  await prisma.testCase.deleteMany({});
+  await prisma.user.deleteMany({});
+
+  // Create Organizations
+  const org1 = await prisma.organization.create({
+    data: {
+      name: 'CodeVerse Academy',
+      description: 'Learn to code interactively',
+      logoUrl: 'https://example.com/logo1.png',
+      websiteUrl: 'https://codeverse.academy',
+      email: 'contact@codeverse.academy',
+      phone: '+911234567890',
+      address: '123 Learning Lane, Mumbai',
+    },
+  });
+
+  const org2 = await prisma.organization.create({
+    data: {
+      name: 'DevMasters',
+      description: 'Master software skills',
+      logoUrl: 'https://example.com/logo2.png',
+      websiteUrl: 'https://devmasters.io',
+      email: 'hello@devmasters.io',
+      phone: '+919876543210',
+      address: '456 Skill Street, Bangalore',
+    },
+  });
+
+  // Create Users
   const hashedPassword = await hash('password', 10);
-  const user = await prisma.user.create({
+  const admin1 = await prisma.user.create({
     data: {
-      email: 'user@example.com',
+      email: 'admin1@codeverse.academy',
       password: hashedPassword,
-      firstName: 'Jane',
+      firstName: 'Alice',
       lastName: 'Doe',
-      role: 'USER',
+      role: Role.ADMIN,
+      orgAdminOf: { connect: { id: org1.id } },
     },
   });
 
-  const admin = await prisma.user.create({
+  const admin2 = await prisma.user.create({
     data: {
-      email: 'admin@example.com',
+      email: 'admin2@devmasters.io',
       password: hashedPassword,
-      firstName: 'John',
+      firstName: 'Bob',
       lastName: 'Smith',
-      role: 'ADMIN',
+      role: Role.ADMIN,
+      orgAdminOf: { connect: { id: org2.id } },
     },
   });
 
-  // 2. Create Organization
-  const organization = await prisma.organization.create({
+  const user1 = await prisma.user.create({
     data: {
-      name: 'OpenAI Academy',
-      description: 'An AI-powered learning platform',
-      email: 'contact@openaiacademy.com',
-      orgAdmin: {
-        connect: { id: admin.id },
+      email: 'user1@example.com',
+      password: hashedPassword,
+      firstName: 'Charlie',
+      lastName: 'Brown',
+      organization: { connect: { id: org1.id } },
+    },
+  });
+
+  const user2 = await prisma.user.create({
+    data: {
+      email: 'user2@example.com',
+      password: hashedPassword,
+      firstName: 'Diana',
+      lastName: 'Prince',
+      organization: { connect: { id: org1.id } },
+    },
+  });
+
+  const user3 = await prisma.user.create({
+    data: {
+      email: 'user3@example.com',
+      password: hashedPassword,
+      firstName: 'Evan',
+      lastName: 'Lee',
+      organization: { connect: { id: org2.id } },
+    },
+  });
+
+  // Create Courses
+  const course1 = await prisma.course.create({
+    data: {
+      name: 'JavaScript Basics',
+      description: 'Introduction to JavaScript',
+      thumbnailUrl: 'https://example.com/js-thumbnail.png',
+      organizations: {
+        connect: { id: org1.id },
       },
-      users: {
-        connect: [{ id: user.id }],
+    },
+  });
+
+  const course2 = await prisma.course.create({
+    data: {
+      name: 'Advanced Node.js',
+      description: 'Backend development with Node.js',
+      thumbnailUrl: 'https://example.com/node-thumbnail.png',
+      organizations: {
+        connect: { id: org2.id },
       },
     },
   });
 
-  // Update user with org ID
-  await prisma.user.update({
-    where: { id: user.id },
+  // Lessons and Modules
+  const lesson1 = await prisma.lesson.create({
     data: {
-      organizationId: organization.id,
+      title: 'Variables in JS',
+      content: 'Understanding let, var, and const.',
+      courseId: course1.id,
+      modules: {
+        create: [
+          {
+            title: 'Let vs Var',
+            content: 'Difference in scope and hoisting.',
+            code: 'let x = 10;',
+            languageId: JAVASCRIPT_NODE_18,
+          },
+          {
+            title: 'Const Basics',
+            content: 'Const for constant values.',
+            code: 'const PI = 3.14;',
+            languageId: JAVASCRIPT_NODE_18,
+          },
+        ],
+      },
     },
   });
 
-  // 3. Create Course
-  const course = await prisma.course.create({
+  const lesson2 = await prisma.lesson.create({
     data: {
-      name: 'Intro to Programming',
-      description: 'A beginner course for programming',
-      organizationId: organization.id,
+      title: 'Node Event Loop',
+      content: 'How the event loop works.',
+      courseId: course2.id,
+      modules: {
+        create: [
+          {
+            title: 'Async Callbacks',
+            content: 'Using setTimeout and callbacks.',
+            code: 'setTimeout(() => console.log("Hi"), 1000);',
+            languageId: 2,
+          },
+        ],
+      },
     },
   });
 
-  // 4. Create Lessons and Modules
-  const lesson = await prisma.lesson.create({
+  // Quizzes and Questions
+  const quiz1 = await prisma.quiz.create({
     data: {
-      title: 'Getting Started',
-      content: 'Welcome to programming!',
-      courseId: course.id,
-    },
-  });
-
-  await prisma.module.create({
-    data: {
-      title: 'Hello World',
-      content: 'print("Hello, World!")',
-      code: 'print("Hello, World!")',
-      languageId: 1, // assume Python is 1
-      lessonId: lesson.id,
-    },
-  });
-
-  // 5. Create Quiz with Questions
-  const quiz = await prisma.quiz.create({
-    data: {
-      title: 'Basics Quiz',
-      courseId: course.id,
+      title: 'JS Basics Quiz',
+      courseId: course1.id,
       questions: {
         create: [
           {
-            text: 'What is 2 + 2?',
-            options: ['1', '2', '4', '5'],
-            answer: 2,
-            explanation: 'Because 2 + 2 equals 4.',
+            text: 'What is the output of `typeof null`?',
+            options: ['null', 'object', 'undefined', 'number'],
+            answer: 1,
+            explanation:
+              'typeof null returns "object" due to historical reasons.',
+          },
+          {
+            text: 'Which one is block scoped?',
+            options: ['var', 'let', 'const', 'both let and const'],
+            answer: 3,
+            explanation: 'let and const are block scoped.',
           },
         ],
       },
     },
   });
 
-  // 6. Create a Quiz Result
-  await prisma.quizResult.create({
+  const quizResult1 = await prisma.quizResult.create({
     data: {
-      score: 100,
-      userId: user.id,
-      quizId: quiz.id,
+      userId: user1.id,
+      quizId: quiz1.id,
+      score: 85,
     },
   });
 
-  // 7. Create Code Assessment with Test Cases
-  const assessment = await prisma.codeAssessment.create({
+  // Code Assessment
+  const assessment1 = await prisma.codeAssessment.create({
     data: {
-      title: 'Add Numbers',
-      description: 'Write a function to add two numbers',
-      instructions: 'Define a function add(a, b) that returns a + b',
-      starterCode: 'def add(a, b):\n    # Your code here',
+      title: 'FizzBuzz Challenge',
+      description: 'Print numbers 1 to 100, with Fizz/Buzz/FizzBuzz',
+      instructions:
+        'Write a program that prints numbers from 1 to 100. For multiples of 3 print “Fizz”, for multiples of 5 “Buzz”, and for both “FizzBuzz”.',
+      starterCode: 'function fizzBuzz() {\n  // your code\n}',
       languageId: 1,
-      courseId: course.id,
+      courseId: course1.id,
       testCases: {
         create: [
           {
-            input: '2, 3',
-            expected: '5',
-            description: 'Basic addition',
+            input: '3',
+            expected: '1\n2\nFizz',
+            description: 'Basic test for 3 values',
           },
           {
-            input: '-1, 1',
-            expected: '0',
-            description: 'Negative and positive',
+            input: '5',
+            expected: '1\n2\nFizz\n4\nBuzz',
+            description: 'Check for Buzz at 5',
           },
         ],
       },
     },
   });
 
-  // 8. Create Code Solution
-  await prisma.codeSolution.create({
+  const codeSolution1 = await prisma.codeSolution.create({
     data: {
-      code: 'def add(a, b): return a + b',
-      status: 'SUBMITTED',
-      score: 100,
-      userId: user.id,
-      assessmentId: assessment.id,
+      code: 'function fizzBuzz() { for(let i=1;i<=100;i++){ let out=""; if(i%3==0)out+="Fizz"; if(i%5==0)out+="Buzz"; console.log(out||i); } }',
+      userId: user1.id,
+      assessmentId: assessment1.id,
+      status: CodeSolutionStatus.SUBMITTED,
+      score: 90,
     },
   });
 }
 
 main()
-  .then(async () => {
-    await prisma.$disconnect();
+  .then(() => {
+    prisma.$disconnect();
+    console.log('Seeding completed successfully.');
+    process.exit(0);
   })
-  .catch(async (e) => {
+  .catch((e) => {
     console.error(e);
-    await prisma.$disconnect();
+    prisma.$disconnect();
     process.exit(1);
-  })
-  .finally(() => {
-    console.log('Seeding completed');
   });
