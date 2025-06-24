@@ -18,9 +18,18 @@ declare global {
 }
 
 export const AuthErrors = {
-  UNAUTHORIZED: 'Unauthorized',
-  INVALID_TOKEN: 'Invalid token',
-  FORBIDDEN: 'Forbidden',
+  UNAUTHORIZED: {
+    STATUS: 401,
+    MESSAGE: 'Unauthorized access',
+  },
+  INVALID_TOKEN: {
+    STATUS: 401,
+    MESSAGE: 'Invalid or expired token',
+  },
+  FORBIDDEN: {
+    STATUS: 403,
+    MESSAGE: 'Forbidden access',
+  },
 };
 
 export const authMiddleware = (
@@ -31,13 +40,17 @@ export const authMiddleware = (
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
-    res.status(401).json({ error: AuthErrors.UNAUTHORIZED });
+    res.status(AuthErrors.UNAUTHORIZED.STATUS).json({
+      error: AuthErrors.UNAUTHORIZED.MESSAGE,
+    });
     return;
   }
 
   jwt.verify(token, process.env.JWT_SECRET!, (err, decoded) => {
     if (err) {
-      res.status(401).json({ error: AuthErrors.INVALID_TOKEN });
+      res.status(AuthErrors.INVALID_TOKEN.STATUS).json({
+        error: AuthErrors.INVALID_TOKEN.MESSAGE,
+      });
       return;
     }
     req.user = decoded as User;
@@ -52,7 +65,9 @@ export const adminMiddleware = (
   next: NextFunction
 ) => {
   if (req.user?.role !== 'ADMIN') {
-    res.status(403).json({ error: AuthErrors.FORBIDDEN });
+    res.status(AuthErrors.FORBIDDEN.STATUS).json({
+      error: AuthErrors.FORBIDDEN.MESSAGE,
+    });
     return;
   }
   next();
@@ -65,7 +80,9 @@ export const userMiddleware = (
   next: NextFunction
 ) => {
   if (req.user?.role !== 'USER') {
-    res.status(403).json({ error: AuthErrors.FORBIDDEN });
+    res.status(AuthErrors.FORBIDDEN.STATUS).json({
+      error: AuthErrors.FORBIDDEN.MESSAGE,
+    });
     return;
   }
   next();
@@ -81,6 +98,8 @@ export const orgAdminMiddleware = (
     next();
     return;
   }
-  res.status(403).json({ error: AuthErrors.FORBIDDEN });
+  res.status(AuthErrors.FORBIDDEN.STATUS).json({
+    error: AuthErrors.FORBIDDEN.MESSAGE,
+  });
   return;
 };

@@ -17,6 +17,16 @@ let userToken: string;
 let userId: string;
 let adminId: string;
 
+const {
+  USER_EMAIL_EXISTS,
+  USER_INVALID_CREDENTIALS,
+  USER_OWN_ACCOUNT_DELETION,
+  USER_INVALID_ORGANIZATION,
+} = UserErrors;
+const { FORBIDDEN, UNAUTHORIZED } = AuthErrors;
+const { INVALID_DATA, INVALID_QUERY_PARAMS, INTERNAL_SERVER_ERROR } =
+  ValidationErrors;
+
 beforeAll(async () => {
   const testDB = await setupTestDB();
   cleanTestDB = testDB.cleanDB;
@@ -58,21 +68,18 @@ describe('User', async () => {
       const response = await supertest(app)
         .post('/api/v1/users/login')
         .send({ email: 'admin@mail.com' });
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty(
-        'error',
-        ValidationErrors.INVALID_DATA
-      );
+      expect(response.status).toBe(INVALID_DATA.STATUS);
+      expect(response.body).toHaveProperty('error', INVALID_DATA.MESSAGE);
     });
 
     test('Should not login with wrong credentials', async () => {
       const response = await supertest(app)
         .post('/api/v1/users/login')
         .send({ email: 'admin@mail.com', password: 'wrongpassword' });
-      expect(response.status).toBe(401);
+      expect(response.status).toBe(USER_INVALID_CREDENTIALS.STATUS);
       expect(response.body).toHaveProperty(
         'error',
-        UserErrors.USER_INVALID_CREDENTIALS
+        USER_INVALID_CREDENTIALS.MESSAGE
       );
     });
   });
@@ -102,11 +109,8 @@ describe('User', async () => {
           firstName: 'Test',
           lastName: 'User',
         });
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty(
-        'error',
-        UserErrors.USER_EMAIL_EXISTS
-      );
+      expect(response.status).toBe(USER_EMAIL_EXISTS.STATUS);
+      expect(response.body).toHaveProperty('error', USER_EMAIL_EXISTS.MESSAGE);
     });
 
     test('Should not create user if not admin', async () => {
@@ -119,16 +123,16 @@ describe('User', async () => {
           firstName: 'Some',
           lastName: 'User',
         });
-      expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('error', AuthErrors.FORBIDDEN);
+      expect(response.status).toBe(FORBIDDEN.STATUS);
+      expect(response.body).toHaveProperty('error', FORBIDDEN.MESSAGE);
     });
   });
 
   describe('GET: /', () => {
     test('Should not fetch without auth token', async () => {
       const response = await supertest(app).get('/api/v1/users');
-      expect(response.status).toBe(401);
-      expect(response.body).toHaveProperty('error', AuthErrors.UNAUTHORIZED);
+      expect(response.status).toBe(UNAUTHORIZED.STATUS);
+      expect(response.body).toHaveProperty('error', UNAUTHORIZED.MESSAGE);
     });
 
     test('Should fetch all users with auth token', async () => {
@@ -152,10 +156,10 @@ describe('User', async () => {
       const response = await supertest(app)
         .get('/api/v1/users/invalid-id')
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
       expect(response.body).toHaveProperty(
         'error',
-        ValidationErrors.INVALID_QUERY_PARAMS
+        INVALID_QUERY_PARAMS.MESSAGE
       );
     });
   });
@@ -190,11 +194,8 @@ describe('User', async () => {
         .send({
           firstName: '', // Invalid first name
         });
-      expect(response.status).toBe(400);
-      expect(response.body).toHaveProperty(
-        'error',
-        ValidationErrors.INVALID_DATA
-      );
+      expect(response.status).toBe(INVALID_DATA.STATUS);
+      expect(response.body).toHaveProperty('error', INVALID_DATA.MESSAGE);
     });
 
     test('Should not update user if not admin', async () => {
@@ -204,8 +205,8 @@ describe('User', async () => {
         .send({
           firstName: 'Another Update',
         });
-      expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('error', AuthErrors.FORBIDDEN);
+      expect(response.status).toBe(FORBIDDEN.STATUS);
+      expect(response.body).toHaveProperty('error', FORBIDDEN.MESSAGE);
     });
   });
 
@@ -217,10 +218,10 @@ describe('User', async () => {
         .send({
           organizationId: 'org_1234567890abcdef', // Example organization ID
         });
-      expect(response.status).toBe(400);
+      expect(response.status).toBe(USER_INVALID_ORGANIZATION.STATUS);
       expect(response.body).toHaveProperty(
         'error',
-        UserErrors.USER_INVALID_ORGANIZATION
+        USER_INVALID_ORGANIZATION.MESSAGE
       );
     });
   });
@@ -233,8 +234,8 @@ describe('User', async () => {
         .send({
           role: Role.ADMIN,
         });
-      expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('error', AuthErrors.FORBIDDEN);
+      expect(response.status).toBe(FORBIDDEN.STATUS);
+      expect(response.body).toHaveProperty('error', FORBIDDEN.MESSAGE);
     });
 
     test('Should update user role by admin', async () => {
@@ -254,18 +255,18 @@ describe('User', async () => {
       const response = await supertest(app)
         .delete(`/api/v1/users/${userId}`)
         .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(403);
-      expect(response.body).toHaveProperty('error', AuthErrors.FORBIDDEN);
+      expect(response.status).toBe(FORBIDDEN.STATUS);
+      expect(response.body).toHaveProperty('error', FORBIDDEN.MESSAGE);
     });
 
     test('Should not delete user himself', async () => {
       const response = await supertest(app)
         .delete(`/api/v1/users/${adminId}`)
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(403);
+      expect(response.status).toBe(USER_OWN_ACCOUNT_DELETION.STATUS);
       expect(response.body).toHaveProperty(
         'error',
-        UserErrors.USER_OWN_ACCOUNT_DELETION
+        USER_OWN_ACCOUNT_DELETION.MESSAGE
       );
     });
 

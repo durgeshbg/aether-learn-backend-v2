@@ -10,6 +10,18 @@ import { hash } from 'bcrypt-ts';
 import { UserErrors } from './user.errors';
 import { Role } from '../../generated/prisma';
 
+const {
+  USER_NOT_FOUND,
+  SERVER_ERROR,
+  USER_EMAIL_EXISTS,
+  USER_INVALID_CREDENTIALS,
+  USER_UPDATE_FAILED,
+  USER_DELETE_FAILED,
+  USER_OWN_ACCOUNT_DELETION,
+  USER_FORBIDDEN,
+  USER_INVALID_ORGANIZATION,
+} = UserErrors;
+
 export const UserController = {
   findAll: async (req: Request, res: Response) => {
     try {
@@ -17,7 +29,7 @@ export const UserController = {
       res.status(200).json(users);
       return;
     } catch (error: any) {
-      res.status(500).json({ error: UserErrors.USERS_NOT_FOUND });
+      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
       return;
     }
   },
@@ -27,13 +39,15 @@ export const UserController = {
       const { id } = req.params as UserIdParamType;
       const user = await UserService.findById(id!);
       if (!user) {
-        res.status(404).json({ error: UserErrors.USER_NOT_FOUND });
+        res
+          .status(USER_NOT_FOUND.STATUS)
+          .json({ error: USER_NOT_FOUND.MESSAGE });
         return;
       }
       res.status(200).json(user);
       return;
     } catch (error: any) {
-      res.status(500).json({ error: UserErrors.USER_NOT_FOUND });
+      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
       return;
     }
   },
@@ -49,7 +63,9 @@ export const UserController = {
       res.status(201).json(user);
       return;
     } catch (error: any) {
-      res.status(400).json({ error: UserErrors.USER_EMAIL_EXISTS });
+      res
+        .status(USER_EMAIL_EXISTS.STATUS)
+        .json({ error: USER_EMAIL_EXISTS.MESSAGE });
       return;
     }
   },
@@ -59,7 +75,9 @@ export const UserController = {
       const { email, password }: UserLoginType = req.body;
       const user = await UserService.login(email, password);
       if (!user) {
-        res.status(401).json({ error: UserErrors.USER_INVALID_CREDENTIALS });
+        res
+          .status(USER_INVALID_CREDENTIALS.STATUS)
+          .json({ error: USER_INVALID_CREDENTIALS.MESSAGE });
         return;
       }
       const orgAdmin = user.orgAdminOf?.id;
@@ -78,7 +96,9 @@ export const UserController = {
       res.status(200).json({ token });
       return;
     } catch (error: any) {
-      res.status(400).json({ error: UserErrors.USER_INVALID_CREDENTIALS });
+      res
+        .status(USER_INVALID_CREDENTIALS.STATUS)
+        .json({ error: USER_INVALID_CREDENTIALS.MESSAGE });
       return;
     }
   },
@@ -91,7 +111,9 @@ export const UserController = {
       res.status(200).json(user);
       return;
     } catch (error: any) {
-      res.status(400).json({ error: UserErrors.USER_UPDATE_FAILED });
+      res
+        .status(USER_UPDATE_FAILED.STATUS)
+        .json({ error: USER_UPDATE_FAILED.MESSAGE });
       return;
     }
   },
@@ -104,7 +126,9 @@ export const UserController = {
       res.status(200).json(user);
       return;
     } catch (error: any) {
-      res.status(400).json({ error: UserErrors.USER_INVALID_ORGANIZATION });
+      res
+        .status(USER_INVALID_ORGANIZATION.STATUS)
+        .json({ error: USER_INVALID_ORGANIZATION.MESSAGE });
       return;
     }
   },
@@ -117,7 +141,9 @@ export const UserController = {
       res.status(200).json(user);
       return;
     } catch (error: any) {
-      res.status(400).json({ error: UserErrors.USER_UPDATE_FAILED });
+      res.status(USER_UPDATE_FAILED.STATUS).json({
+        error: USER_UPDATE_FAILED.MESSAGE,
+      });
       return;
     }
   },
@@ -126,7 +152,9 @@ export const UserController = {
     try {
       const { id } = req.params as UserIdParamType;
       if (id === req.user?.id) {
-        res.status(403).json({ error: UserErrors.USER_OWN_ACCOUNT_DELETION });
+        res.status(USER_OWN_ACCOUNT_DELETION.STATUS).json({
+          error: USER_OWN_ACCOUNT_DELETION.MESSAGE,
+        });
         return;
       }
       const user = await UserService.findById(id!);
@@ -139,11 +167,15 @@ export const UserController = {
           message: 'User deleted successfully',
         });
       } else {
-        res.status(403).json({ error: UserErrors.USER_FORBIDDEN });
+        res.status(USER_FORBIDDEN.STATUS).json({
+          error: USER_FORBIDDEN.MESSAGE,
+        });
       }
       return;
     } catch (error: any) {
-      res.status(400).json({ error: UserErrors.USER_DELETE_FAILED });
+      res.status(USER_DELETE_FAILED.STATUS).json({
+        error: USER_DELETE_FAILED.MESSAGE,
+      });
       return;
     }
   },

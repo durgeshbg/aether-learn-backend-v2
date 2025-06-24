@@ -3,9 +3,18 @@ import { ZodError } from 'zod';
 import type { Request, Response, NextFunction } from 'express';
 
 export const ValidationErrors = {
-  INVALID_DATA: 'Invalid data provided',
-  INVALID_QUERY_PARAMS: 'Invalid query parameters provided',
-  INTERNAL_SERVER_ERROR: 'Internal server error occurred',
+  INVALID_DATA: {
+    STATUS: 400,
+    MESSAGE: 'Invalid data provided',
+  },
+  INVALID_QUERY_PARAMS: {
+    STATUS: 400,
+    MESSAGE: 'Invalid query parameters provided',
+  },
+  INTERNAL_SERVER_ERROR: {
+    STATUS: 500,
+    MESSAGE: 'Internal server error occurred',
+  },
 };
 
 export const validate = (schema: ZodSchema) => {
@@ -18,12 +27,14 @@ export const validate = (schema: ZodSchema) => {
         const errorMessages = error.issues.map((issue: any) => ({
           message: `${issue.path.join('.')} is ${issue.message}`,
         }));
-        res.status(400).json({
-          error: ValidationErrors.INVALID_DATA,
+        res.status(ValidationErrors.INVALID_DATA.STATUS).json({
+          error: ValidationErrors.INVALID_DATA.MESSAGE,
           messages: errorMessages,
         });
       } else {
-        res.status(500).json({ error: ValidationErrors.INTERNAL_SERVER_ERROR });
+        res
+          .status(ValidationErrors.INTERNAL_SERVER_ERROR.STATUS)
+          .json({ error: ValidationErrors.INTERNAL_SERVER_ERROR.MESSAGE });
       }
     }
   };
@@ -39,12 +50,14 @@ export const validateParams = (schema: ZodSchema) => {
         const errorMessages = error.issues.map((issue: any) => ({
           message: `${issue.path.join('.')} is ${issue.message}`,
         }));
-        res.status(400).json({
-          error: ValidationErrors.INVALID_QUERY_PARAMS,
+        res.status(ValidationErrors.INVALID_QUERY_PARAMS.STATUS).json({
+          error: ValidationErrors.INVALID_QUERY_PARAMS.MESSAGE,
           messages: errorMessages,
         });
       } else {
-        res.status(500).json({ error: ValidationErrors.INTERNAL_SERVER_ERROR });
+        res
+          .status(ValidationErrors.INTERNAL_SERVER_ERROR.STATUS)
+          .json({ error: ValidationErrors.INTERNAL_SERVER_ERROR.MESSAGE });
       }
     }
   };
