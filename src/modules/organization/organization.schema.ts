@@ -15,7 +15,7 @@ export const CreateOrganizationSchema = z.object({
 });
 
 export const OrganizationUpdateSchema = CreateOrganizationSchema.extend({
-  name: z.string().min(1, 'Organization name is required').optional(),
+  name: z.string().min(1, 'Organization name too short').optional(),
 });
 
 export const OrganizationIdParamSchema = z.object({

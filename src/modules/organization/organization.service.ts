@@ -119,7 +119,21 @@ export const OrganizationService = {
   findAllCourses: async (id: string) => {
     const organization = await prisma.organization.findUnique({
       where: { id },
-      include: { courses: true },
+      include: {
+        courses: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            thumbnailUrl: true,
+            createdAt: true,
+            updatedAt: true,
+            lessons: true,
+            quizzes: true,
+            codeAssessments: true,
+          },
+        },
+      },
     });
     const courses = organization?.courses || [];
     return courses;
