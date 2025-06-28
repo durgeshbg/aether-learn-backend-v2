@@ -1,6 +1,10 @@
 import express from 'express';
 import { OrganizationController } from './organization.controller';
-import { adminMiddleware, authMiddleware } from '../../middlewares/auth';
+import {
+  adminMiddleware,
+  authMiddleware,
+  orgAdminMiddleware,
+} from '../../middlewares/auth';
 import { validate, validateParams } from '../../middlewares/validate';
 import {
   CreateOrganizationSchema,
@@ -12,23 +16,9 @@ import {
 
 const router = express.Router();
 
-router.use(authMiddleware, adminMiddleware);
+router.use(authMiddleware);
 
-router.get('/', OrganizationController.findAll);
-
-router.post(
-  '/',
-  validate(CreateOrganizationSchema),
-  OrganizationController.create
-);
-
-router.get('/search', OrganizationController.findByName);
-
-router.get(
-  '/:id',
-  validateParams(OrganizationIdParamSchema),
-  OrganizationController.findById
-);
+router.use(orgAdminMiddleware);
 
 router.put(
   '/:id',
@@ -47,7 +37,13 @@ router.put(
   '/:id/users',
   validateParams(OrganizationIdParamSchema),
   validate(OrganizationUserUpdateSchema),
-  OrganizationController.updateUsers
+  OrganizationController.addUsers
+);
+
+router.delete(
+  '/:id/users',
+  validateParams(OrganizationIdParamSchema),
+  OrganizationController.removeUsers
 );
 
 router.get(
@@ -56,11 +52,35 @@ router.get(
   OrganizationController.findAllCourses
 );
 
+router.use(adminMiddleware);
+
+router.get('/', OrganizationController.findAll);
+
+router.post(
+  '/',
+  validate(CreateOrganizationSchema),
+  OrganizationController.create
+);
+
+router.get('/search', OrganizationController.findByName);
+
+router.get(
+  '/:id',
+  validateParams(OrganizationIdParamSchema),
+  OrganizationController.findById
+);
+
 router.put(
   '/:id/courses',
   validateParams(OrganizationIdParamSchema),
   validate(OrganizationCourseUpdateSchema),
-  OrganizationController.updateCourses
+  OrganizationController.addCourses
+);
+
+router.delete(
+  '/:id/courses',
+  validateParams(OrganizationIdParamSchema),
+  OrganizationController.removeCourses
 );
 
 router.delete(
