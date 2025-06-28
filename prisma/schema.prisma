@@ -73,7 +73,7 @@ model Course {
   description  String?
   thumbnailUrl String?
 
-  modules         Lesson[]         @relation("CourseLessons")
+  lessons         Lesson[]         @relation("CourseLessons")
   quizzes         Quiz[]           @relation("CourseQuizzes")
   codeAssessments CodeAssessment[] @relation("CourseCodeAssessments")
   organizations   Organization[]
