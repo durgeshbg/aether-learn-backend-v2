@@ -1,4 +1,4 @@
-import { setupTestDB } from '../../utils/testDB';
+import { setupTests } from '../../utils/testsSetup';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
@@ -9,13 +9,7 @@ import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { Role } from '../../generated/prisma';
 
-let cleanTestDB: () => Promise<void>;
-let app: Application;
-let prisma: PrismaClient;
-let adminToken: string;
-let userToken: string;
-let userId: string;
-let adminId: string;
+const url = '/api/v1/users';
 
 const {
   USER_EMAIL_EXISTS,
@@ -27,46 +21,38 @@ const { FORBIDDEN, UNAUTHORIZED } = AuthErrors;
 const { INVALID_DATA, INVALID_QUERY_PARAMS, INTERNAL_SERVER_ERROR } =
   ValidationErrors;
 
-beforeAll(async () => {
-  const testDB = await setupTestDB();
-  cleanTestDB = testDB.cleanDB;
-
-  app = setupApp();
-
-  prisma = new PrismaClient();
-  testDB.seedUsers(prisma);
-});
-
-afterAll(async () => {
-  await cleanTestDB();
-  await prisma.$disconnect();
-});
-
 describe('User', async () => {
+  let cleanTestDB: () => Promise<void>;
+  let app: Application;
+  let prisma: PrismaClient;
+  let adminToken: string;
+  let userToken: string;
+  let userId: string;
+  let adminId: string;
+
+  beforeAll(async () => {
+    const testDB = await setupTests();
+    cleanTestDB = testDB.cleanDB;
+
+    app = setupApp();
+
+    prisma = new PrismaClient();
+    await testDB.seedUsers(prisma);
+
+    const tokens = await testDB.getTokens(app);
+    adminToken = tokens.adminToken;
+    userToken = tokens.userToken;
+  });
+
+  afterAll(async () => {
+    await cleanTestDB();
+    await prisma.$disconnect();
+  });
+
   describe('POST: /login', () => {
-    test('Should login with right credentials', async () => {
-      const response = await supertest(app)
-        .post('/api/v1/users/login')
-        .send({ email: 'admin@mail.com', password: 'password' });
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('token');
-
-      const response2 = await supertest(app).post('/api/v1/users/login').send({
-        email: 'user@mail.com',
-        password: 'password',
-      });
-      expect(response2.status).toBe(200);
-      expect(response2.body).toHaveProperty('token');
-
-      adminToken = response.body.token;
-      userToken = response2.body.token;
-      expect(adminToken).toBeDefined();
-      expect(userToken).toBeDefined();
-    });
-
     test('Should not login with missing credentials', async () => {
       const response = await supertest(app)
-        .post('/api/v1/users/login')
+        .post(`${url}/login`)
         .send({ email: 'admin@mail.com' });
       expect(response.status).toBe(INVALID_DATA.STATUS);
       expect(response.body).toHaveProperty('error', INVALID_DATA.MESSAGE);
@@ -74,7 +60,7 @@ describe('User', async () => {
 
     test('Should not login with wrong credentials', async () => {
       const response = await supertest(app)
-        .post('/api/v1/users/login')
+        .post(`${url}/login`)
         .send({ email: 'admin@mail.com', password: 'wrongpassword' });
       expect(response.status).toBe(USER_INVALID_CREDENTIALS.STATUS);
       expect(response.body).toHaveProperty(
@@ -87,7 +73,7 @@ describe('User', async () => {
   describe('POST: /create', () => {
     test('Should create a new user if admin', async () => {
       const response = await supertest(app)
-        .post('/api/v1/users/create')
+        .post(`${url}/create`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           email: 'test2@mail.com',
@@ -101,7 +87,7 @@ describe('User', async () => {
 
     test('Should not create a user with existing email', async () => {
       const response = await supertest(app)
-        .post('/api/v1/users/create')
+        .post(`${url}/create`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           email: 'test2@mail.com',
@@ -115,7 +101,7 @@ describe('User', async () => {
 
     test('Should not create user if not admin', async () => {
       const response = await supertest(app)
-        .post('/api/v1/users/create')
+        .post(`${url}/create`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({
           email: 'some@mail.com',
@@ -130,14 +116,14 @@ describe('User', async () => {
 
   describe('GET: /', () => {
     test('Should not fetch without auth token', async () => {
-      const response = await supertest(app).get('/api/v1/users');
+      const response = await supertest(app).get(url);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body).toHaveProperty('error', UNAUTHORIZED.MESSAGE);
     });
 
     test('Should fetch all users with auth token', async () => {
       const response = await supertest(app)
-        .get('/api/v1/users')
+        .get(url)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body).toBeInstanceOf(Array);
@@ -154,7 +140,7 @@ describe('User', async () => {
 
     test('Should not fetch user by invalid ID', async () => {
       const response = await supertest(app)
-        .get('/api/v1/users/invalid-id')
+        .get(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
       expect(response.body).toHaveProperty(
@@ -167,7 +153,7 @@ describe('User', async () => {
   describe('GET: /:id', () => {
     test('Should fetch user by ID with auth token', async () => {
       const response = await supertest(app)
-        .get(`/api/v1/users/${userId}`)
+        .get(`${url}/${userId}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('id', userId);
@@ -177,7 +163,7 @@ describe('User', async () => {
   describe('PUT: /:id', () => {
     test('Should update user by admin', async () => {
       const response = await supertest(app)
-        .put(`/api/v1/users/${userId}`)
+        .put(`${url}/${userId}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           firstName: 'Updated',
@@ -189,7 +175,7 @@ describe('User', async () => {
 
     test('Should not update user with invalid data', async () => {
       const response = await supertest(app)
-        .put(`/api/v1/users/${userId}`)
+        .put(`${url}/${userId}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           firstName: '', // Invalid first name
@@ -200,7 +186,7 @@ describe('User', async () => {
 
     test('Should not update user if not admin', async () => {
       const response = await supertest(app)
-        .put(`/api/v1/users/${userId}`)
+        .put(`${url}/${userId}`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({
           firstName: 'Another Update',
@@ -213,7 +199,7 @@ describe('User', async () => {
   describe('PUT: /:id/organization', () => {
     test('Should update user org with invalid org id', async () => {
       const response = await supertest(app)
-        .put(`/api/v1/users/${userId}/organization`)
+        .put(`${url}/${userId}/organization`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           organizationId: 'org_1234567890abcdef', // Example organization ID
@@ -229,7 +215,7 @@ describe('User', async () => {
   describe('PUT: /:id/role', () => {
     test('Should not update user role if not admin', async () => {
       const response = await supertest(app)
-        .put(`/api/v1/users/${userId}/role`)
+        .put(`${url}/${userId}/role`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({
           role: Role.ADMIN,
@@ -240,7 +226,7 @@ describe('User', async () => {
 
     test('Should update user role by admin', async () => {
       const response = await supertest(app)
-        .put(`/api/v1/users/${userId}/role`)
+        .put(`${url}/${userId}/role`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           role: Role.ADMIN,
@@ -253,7 +239,7 @@ describe('User', async () => {
   describe('DELETE: /:id', () => {
     test('Should not delete user if not admin', async () => {
       const response = await supertest(app)
-        .delete(`/api/v1/users/${userId}`)
+        .delete(`${url}/${userId}`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body).toHaveProperty('error', FORBIDDEN.MESSAGE);
@@ -261,7 +247,7 @@ describe('User', async () => {
 
     test('Should not delete user himself', async () => {
       const response = await supertest(app)
-        .delete(`/api/v1/users/${adminId}`)
+        .delete(`${url}/${adminId}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(USER_OWN_ACCOUNT_DELETION.STATUS);
       expect(response.body).toHaveProperty(
@@ -272,7 +258,7 @@ describe('User', async () => {
 
     test('Should delete user by admin', async () => {
       const response = await supertest(app)
-        .delete(`/api/v1/users/${userId}`)
+        .delete(`${url}/${userId}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(204);
     });

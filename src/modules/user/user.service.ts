@@ -4,6 +4,21 @@ import { compare } from 'bcrypt-ts';
 
 const prisma = new PrismaClient();
 
+export const userSelect = {
+  id: true,
+  email: true,
+  role: true,
+  firstName: true,
+  lastName: true,
+  organizationId: true,
+  orgAdminOf: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+};
+
 export const UserService = {
   create: async (data: CreateUserType) => {
     return await prisma.user.create({ data });
@@ -55,28 +70,21 @@ export const UserService = {
 
   findAll: async () => {
     return await prisma.user.findMany({
-      select: {
-        id: true,
-        email: true,
-        role: true,
-        firstName: true,
-        lastName: true,
-        organizationId: true,
-        orgAdminOf: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
+      select: userSelect,
     });
   },
 
   findById: async (id: string) => {
-    return await prisma.user.findUnique({ where: { id } });
+    return await prisma.user.findUnique({
+      where: { id },
+      select: userSelect,
+    });
   },
 
   findByEmail: async (email: string) => {
-    return await prisma.user.findUnique({ where: { email } });
+    return await prisma.user.findUnique({
+      where: { email },
+      select: userSelect,
+    });
   },
 };
