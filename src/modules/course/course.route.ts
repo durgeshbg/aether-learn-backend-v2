@@ -21,7 +21,11 @@ router.post(
   CourseController.create
 );
 
-router.get('/:id', validateParams(CourseIdParamSchema), CourseController.findById);
+router.get(
+  '/:id',
+  validateParams(CourseIdParamSchema),
+  CourseController.findById
+);
 
 router.put(
   '/:id',

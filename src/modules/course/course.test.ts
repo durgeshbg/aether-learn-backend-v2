@@ -28,14 +28,13 @@ describe('Course', async () => {
 
     prisma = new PrismaClient();
     await testDB.seedUsers(prisma);
-    await testDB.seedCourses(prisma);
+    const course = await testDB.seedCourses(prisma);
 
     const tokens = await testDB.getTokens(app);
     adminToken = tokens.adminToken;
     userToken = tokens.userToken;
 
-    const courses = await prisma.course.findMany();
-    courseId = courses[0]?.id || '';
+    courseId = course?.id;
   });
 
   afterAll(async () => {

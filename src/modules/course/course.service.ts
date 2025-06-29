@@ -31,21 +31,6 @@ export const CourseService = {
         name: courseData.name,
         description: courseData.description,
         thumbnailUrl: courseData.thumbnailUrl,
-        lessons: {
-          connect: courseData.lessons?.map((moduleId: string) => ({
-            id: moduleId,
-          })),
-        },
-        quizzes: {
-          connect: courseData.quizzes?.map((quizId: string) => ({
-            id: quizId,
-          })),
-        },
-        codeAssessments: {
-          connect: courseData.codeAssesments?.map((assessmentId: string) => ({
-            id: assessmentId,
-          })),
-        },
       },
       include: {
         lessons: true,
@@ -62,21 +47,6 @@ export const CourseService = {
         name: courseData.name,
         description: courseData.description,
         thumbnailUrl: courseData.thumbnailUrl,
-        lessons: {
-          set: courseData.lessons?.map((moduleId: string) => ({
-            id: moduleId,
-          })),
-        },
-        quizzes: {
-          set: courseData.quizzes?.map((quizId: string) => ({
-            id: quizId,
-          })),
-        },
-        codeAssessments: {
-          set: courseData.codeAssesments?.map((assessmentId: string) => ({
-            id: assessmentId,
-          })),
-        },
       },
       include: {
         lessons: true,

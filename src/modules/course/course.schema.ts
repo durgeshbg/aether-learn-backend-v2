@@ -4,9 +4,6 @@ export const CourseCreateSchema = z.object({
   name: z.string().min(1, 'Course name is required'),
   description: z.string().optional(),
   thumbnailUrl: z.string().optional(),
-  lessons: z.array(z.string().cuid()).optional(),
-  quizzes: z.array(z.string().cuid()).optional(),
-  codeAssesments: z.array(z.string().cuid()).optional(),
 });
 
 export const CourseUpdateSchema = CourseCreateSchema.extend({
