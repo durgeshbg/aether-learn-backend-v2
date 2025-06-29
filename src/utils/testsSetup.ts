@@ -61,6 +61,16 @@ export async function setupTests() {
     });
   };
 
+  const seedQuizzes = async (prisma: PrismaClient, courseId: string) => {
+    return await prisma.quiz.create({
+      data: {
+        title: 'Programming Basics Quiz',
+        description: 'Test your knowledge on programming basics.',
+        courseId,
+      },
+    });
+  };
+
   const getTokens = async (app: Application) => {
     const admin = await supertest(app)
       .post('/api/v1/users/login')
@@ -77,5 +87,12 @@ export async function setupTests() {
     };
   };
 
-  return { cleanDB, seedUsers, getTokens, seedCourses, seedLessons };
+  return {
+    cleanDB,
+    seedUsers,
+    getTokens,
+    seedCourses,
+    seedLessons,
+    seedQuizzes,
+  };
 }
