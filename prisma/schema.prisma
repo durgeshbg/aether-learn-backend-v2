@@ -102,7 +102,7 @@ model Module {
   content String
 
   code       String?
-  languageId Int?
+  languageId Int
 
   lessonId String
   lesson   Lesson @relation("LessonModules", fields: [lessonId], references: [id], onDelete: Cascade)
