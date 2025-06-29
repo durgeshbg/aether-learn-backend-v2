@@ -33,7 +33,6 @@ export const LessonService = {
       data: {
         title: lessonData.title,
         content: lessonData.content,
-        courseId: lessonData.courseId,
       },
       include: {
         course: true,

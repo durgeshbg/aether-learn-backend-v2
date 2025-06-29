@@ -9,7 +9,6 @@ export const LessonCreateSchema = z.object({
 export const LessonUpdateSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   content: z.string().min(1, 'Content is required').optional(),
-  courseId: z.string().min(1, 'Course ID is required').optional(),
 });
 
 export const LessonIdParamsSchema = z.object({
