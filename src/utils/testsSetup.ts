@@ -43,10 +43,20 @@ export async function setupTests() {
   };
 
   const seedCourses = async (prisma: PrismaClient) => {
-    await prisma.course.create({
+    return await prisma.course.create({
       data: {
         name: 'Introduction to Programming',
         description: 'Learn the basics of programming.',
+      },
+    });
+  };
+
+  const seedLessons = async (prisma: PrismaClient, courseId: string) => {
+    return await prisma.lesson.create({
+      data: {
+        title: 'Getting Started with Programming',
+        content: 'This lesson covers the basics of programming.',
+        courseId,
       },
     });
   };
@@ -67,5 +77,5 @@ export async function setupTests() {
     };
   };
 
-  return { cleanDB, seedUsers, getTokens, seedCourses };
+  return { cleanDB, seedUsers, getTokens, seedCourses, seedLessons };
 }
