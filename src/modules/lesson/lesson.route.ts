@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { adminMiddleware, authMiddleware } from '../../middlewares/auth';
 import {
+  LessonCourseIdParamsSchema,
   LessonCreateSchema,
   LessonIdParamsSchema,
   LessonUpdateSchema,
@@ -8,13 +9,22 @@ import {
 import { LessonController } from './lesson.controller';
 import { validate, validateParams } from '../../middlewares/validate';
 
-const router = Router();
+const router = Router({ mergeParams: true });
 
 router.use(authMiddleware, adminMiddleware);
 
-router.get('/', LessonController.findAll);
+router.get(
+  '/',
+  validateParams(LessonCourseIdParamsSchema),
+  LessonController.findAll
+);
 
-router.post('/', validate(LessonCreateSchema), LessonController.create);
+router.post(
+  '/',
+  validateParams(LessonCourseIdParamsSchema),
+  validate(LessonCreateSchema),
+  LessonController.create
+);
 
 router.get(
   '/:id',

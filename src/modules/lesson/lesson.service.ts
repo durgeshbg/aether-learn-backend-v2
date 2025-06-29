@@ -4,22 +4,22 @@ import type { LessonCreateType, LessonUpdateType } from './lesson.schema';
 const prisma = new PrismaClient();
 
 export const LessonService = {
-  async findAll() {
-    return await prisma.lesson.findMany({});
+  async findAll(courseId: string) {
+    return await prisma.lesson.findMany({ where: { courseId } });
   },
 
-  async findById(id: string) {
+  async findById(id: string, courseId: string) {
     return await prisma.lesson.findUnique({
-      where: { id },
+      where: { id, courseId },
     });
   },
 
-  async create(lessonData: LessonCreateType) {
+  async create(courseId: string, lessonData: LessonCreateType) {
     return await prisma.lesson.create({
       data: {
         title: lessonData.title,
         content: lessonData.content,
-        courseId: lessonData.courseId,
+        courseId,
       },
       include: {
         course: true,
@@ -27,9 +27,9 @@ export const LessonService = {
     });
   },
 
-  async update(id: string, lessonData: LessonUpdateType) {
+  async update(id: string, courseId: string, lessonData: LessonUpdateType) {
     return await prisma.lesson.update({
-      where: { id },
+      where: { id, courseId },
       data: {
         title: lessonData.title,
         content: lessonData.content,
@@ -40,9 +40,9 @@ export const LessonService = {
     });
   },
 
-  async delete(id: string) {
+  async delete(id: string, courseId: string) {
     return await prisma.lesson.delete({
-      where: { id },
+      where: { id, courseId },
     });
   },
 };

@@ -7,7 +7,7 @@ import { PrismaClient } from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 
-const url = '/api/v1/lessons';
+let url = '/api/v1/courses';
 
 const { UNAUTHORIZED, FORBIDDEN } = AuthErrors;
 const { INVALID_DATA, INVALID_QUERY_PARAMS } = ValidationErrors;
@@ -19,7 +19,6 @@ describe('Lesson', async () => {
   let adminToken: string;
   let userToken: string;
   let lessonId: string;
-  let courseId: string;
 
   beforeAll(async () => {
     const testDB = await setupTests();
@@ -30,14 +29,12 @@ describe('Lesson', async () => {
     prisma = new PrismaClient();
     await testDB.seedUsers(prisma);
     const course = await testDB.seedCourses(prisma);
-    const lesson = await testDB.seedLessons(prisma, course.id);
 
     const tokens = await testDB.getTokens(app);
     adminToken = tokens.adminToken;
     userToken = tokens.userToken;
 
-    courseId = course.id;
-    lessonId = lesson.id;
+    url = `${url}/${course.id}/lessons`;
   });
 
   afterAll(async () => {
@@ -77,7 +74,6 @@ describe('Lesson', async () => {
         .send({
           title: 'Test Lesson',
           content: 'Lesson content',
-          courseId: courseId,
         });
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
@@ -89,7 +85,7 @@ describe('Lesson', async () => {
       const response = await supertest(app)
         .post(url)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ title: '', content: '', courseId: '' });
+        .send({ title: '', content: '' });
       expect(response.status).toBe(INVALID_DATA.STATUS);
       expect(response.body.error).toBe(INVALID_DATA.MESSAGE);
     });
@@ -98,7 +94,7 @@ describe('Lesson', async () => {
       const response = await supertest(app)
         .post(url)
         .set('Authorization', `Bearer ${userToken}`)
-        .send({ title: 'Test', content: 'Test', courseId: courseId });
+        .send({ title: 'Test', content: 'Test' });
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
     });
@@ -106,7 +102,7 @@ describe('Lesson', async () => {
     test('Should not create lesson without auth', async () => {
       const response = await supertest(app)
         .post(url)
-        .send({ title: 'Test', content: 'Test', courseId: 'courseId' });
+        .send({ title: 'Test', content: 'Test' });
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });
@@ -199,7 +195,6 @@ describe('Lesson', async () => {
         .send({
           title: 'To Delete',
           content: 'content',
-          courseId: courseId,
         });
       const delId = create.body.id;
       const response = await supertest(app)

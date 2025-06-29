@@ -1,7 +1,12 @@
 import type { Request, Response } from 'express';
 import { LessonService } from './lesson.service';
 import { LessonErrors } from './lesson.errors';
-import type { LessonCreateType, LessonUpdateType } from './lesson.schema';
+import type {
+  LessonCreateType,
+  LessonUpdateType,
+  LessonCourseIdParamsType,
+  LessonIdParamsType,
+} from './lesson.schema';
 
 const {
   LESSON_NOT_FOUND,
@@ -15,7 +20,8 @@ const {
 export const LessonController = {
   findAll: async (req: Request, res: Response) => {
     try {
-      const lessons = await LessonService.findAll();
+      const { courseId } = req.params as LessonCourseIdParamsType;
+      const lessons = await LessonService.findAll(courseId);
       res.status(200).json(lessons);
     } catch (error: any) {
       res.status(LESSONS_FETCH_FAILED.STATUS).json({
@@ -26,8 +32,8 @@ export const LessonController = {
 
   findById: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
-      const lesson = await LessonService.findById(id!);
+      const { id, courseId } = req.params as LessonIdParamsType;
+      const lesson = await LessonService.findById(id, courseId);
       if (!lesson) {
         res.status(LESSON_NOT_FOUND.STATUS).json({
           error: LESSON_NOT_FOUND.MESSAGE,
@@ -43,8 +49,9 @@ export const LessonController = {
   },
   create: async (req: Request, res: Response) => {
     try {
+      const { courseId } = req.params as LessonCourseIdParamsType;
       const lessonData: LessonCreateType = req.body;
-      const lesson = await LessonService.create(lessonData);
+      const lesson = await LessonService.create(courseId, lessonData);
       res.status(201).json(lesson);
     } catch (error: any) {
       res.status(LESSON_CREATE_FAILED.STATUS).json({
@@ -54,9 +61,13 @@ export const LessonController = {
   },
   update: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
+      const { id, courseId } = req.params as LessonIdParamsType;
       const lessonData: LessonUpdateType = req.body;
-      const updatedLesson = await LessonService.update(id!, lessonData);
+      const updatedLesson = await LessonService.update(
+        id,
+        courseId,
+        lessonData
+      );
       if (!updatedLesson) {
         res.status(LESSON_NOT_FOUND.STATUS).json({
           error: LESSON_NOT_FOUND.MESSAGE,
@@ -72,8 +83,8 @@ export const LessonController = {
   },
   delete: async (req: Request, res: Response) => {
     try {
-      const { id } = req.params;
-      const deleted = await LessonService.delete(id!);
+      const { id, courseId } = req.params as LessonIdParamsType;
+      const deleted = await LessonService.delete(id, courseId);
       if (!deleted) {
         res.status(LESSON_NOT_FOUND.STATUS).json({
           error: LESSON_NOT_FOUND.MESSAGE,
