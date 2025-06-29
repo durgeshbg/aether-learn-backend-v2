@@ -3,6 +3,7 @@ import { PrismaClient, Role } from '../generated/prisma';
 import { hash } from 'bcrypt-ts';
 import type { Application } from 'express';
 import supertest from 'supertest';
+import { LANG_KEYS, LANGUAGES_MAP } from '../laguages';
 
 const commandExecSync = (command: string) => {
   try {
@@ -71,6 +72,27 @@ export async function setupTests() {
     });
   };
 
+  const seedCodeAssessments = async (
+    prisma: PrismaClient,
+    courseId: string
+  ) => {
+    const language = LANGUAGES_MAP[LANG_KEYS.PYTHON_3_12];
+    if (!language) {
+      throw new Error('Language PYTHON_3_12 not found in LANGUAGES_MAP');
+    }
+    const languageId = language.id;
+    return await prisma.codeAssessment.create({
+      data: {
+        title: 'Basic Programming Assessment',
+        description: 'Assess your programming skills.',
+        instructions: 'Write a simple program to demonstrate your skills.',
+        starterCode: 'print("Hello, World!")',
+        languageId,
+        courseId,
+      },
+    });
+  };
+
   const getTokens = async (app: Application) => {
     const admin = await supertest(app)
       .post('/api/v1/users/login')
@@ -94,5 +116,6 @@ export async function setupTests() {
     seedCourses,
     seedLessons,
     seedQuizzes,
+    seedCodeAssessments,
   };
 }
