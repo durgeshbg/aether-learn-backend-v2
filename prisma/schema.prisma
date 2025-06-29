@@ -157,11 +157,11 @@ model QuizResult {
 model CodeAssessment {
   id          String  @id @default(cuid())
   title       String
-  description String?
+  description String
 
-  instructions String?
-  starterCode  String?
-  languageId   Int?
+  instructions String
+  starterCode  String
+  languageId   Int
 
   courseId String
   course   Course @relation("CourseCodeAssessments", fields: [courseId], references: [id], onDelete: Cascade)
