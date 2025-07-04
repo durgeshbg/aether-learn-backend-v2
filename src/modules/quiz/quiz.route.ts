@@ -11,7 +11,7 @@ import { authMiddleware, adminMiddleware } from '../../middlewares/auth';
 
 const router = Router({ mergeParams: true });
 
-router.use(authMiddleware, adminMiddleware);
+router.use(authMiddleware);
 
 router.get(
   '/',
@@ -21,6 +21,7 @@ router.get(
 
 router.post(
   '/',
+  adminMiddleware,
   validateParams(QuizCourseIdParamsSchema),
   validate(QuizCreateSchema),
   QuizController.create
@@ -30,6 +31,7 @@ router.get('/:id', validateParams(QuizIdParamsSchema), QuizController.findById);
 
 router.put(
   '/:id',
+  adminMiddleware,
   validateParams(QuizIdParamsSchema),
   validate(QuizUpdateSchema),
   QuizController.update
@@ -37,6 +39,7 @@ router.put(
 
 router.delete(
   '/:id',
+  adminMiddleware,
   validateParams(QuizIdParamsSchema),
   QuizController.delete
 );

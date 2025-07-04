@@ -51,12 +51,12 @@ describe('Quiz', async () => {
       expect(Array.isArray(response.body)).toBe(true);
     });
 
-    test('Should not fetch quizzes as user', async () => {
+    test('Should fetch quizzes as user', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
     test('Should not fetch quizzes without auth', async () => {
@@ -129,12 +129,12 @@ describe('Quiz', async () => {
       expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
     });
 
-    test('Should not fetch quiz as user', async () => {
+    test('Should fetch quiz as user', async () => {
       const response = await supertest(app)
         .get(`${url}/${quizId}`)
         .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('id', quizId);
     });
 
     test('Should not fetch quiz without auth', async () => {
