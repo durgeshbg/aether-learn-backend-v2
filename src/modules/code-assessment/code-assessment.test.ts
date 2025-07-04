@@ -51,12 +51,12 @@ describe('CodeAssessment', async () => {
       expect(Array.isArray(response.body)).toBe(true);
     });
 
-    test('Should not fetch code assessments as user', async () => {
+    test('Should fetch code assessments as user', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
+      expect(response.status).toBe(200);
+      expect(Array.isArray(response.body)).toBe(true);
     });
 
     test('Should not fetch code assessments without auth', async () => {
@@ -144,12 +144,12 @@ describe('CodeAssessment', async () => {
       expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
     });
 
-    test('Should not fetch code assessment as user', async () => {
+    test('Should fetch code assessment as user', async () => {
       const response = await supertest(app)
         .get(`${url}/${codeAssessmentId}`)
         .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('id', codeAssessmentId);
     });
 
     test('Should not fetch code assessment without auth', async () => {
