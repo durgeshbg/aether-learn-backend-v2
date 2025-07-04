@@ -20,7 +20,6 @@ enum Role {
 }
 
 enum CodeSolutionStatus {
-  PENDING
   SUBMITTED
   GRADED
 }
@@ -155,7 +154,7 @@ model QuizResult {
 }
 
 model CodeAssessment {
-  id          String  @id @default(cuid())
+  id          String @id @default(cuid())
   title       String
   description String
 
@@ -189,8 +188,8 @@ model TestCase {
 model CodeSolution {
   id     String             @id @default(cuid())
   code   String
-  status CodeSolutionStatus @default(PENDING)
-  score  Int?
+  status CodeSolutionStatus @default(SUBMITTED)
+  score  Int                @default(0)
 
   userId String
   user   User   @relation("UserCodeSolutions", fields: [userId], references: [id], onDelete: Cascade)

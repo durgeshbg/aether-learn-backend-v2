@@ -19,7 +19,7 @@ const commandExecSync = (command: string) => {
 };
 
 export async function setupTests() {
-  commandExecSync('bunx prisma db push');
+  commandExecSync('bunx prisma db push --accept-data-loss');
 
   const cleanDB = async () => {
     commandExecSync('bunx prisma migrate reset --force');
