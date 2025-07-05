@@ -72,6 +72,28 @@ export async function setupTests() {
     });
   };
 
+  const seedQuizQuestions = async (prisma: PrismaClient, quizId: string) => {
+    return await prisma.question.createManyAndReturn({
+      data: [
+        {
+          text: 'What is a variable?',
+          options: ['A storage location', 'A function', 'A loop'],
+          answer: 0,
+          quizId,
+        },
+        {
+          text: 'What is a function?',
+          options: ['A block of code', 'A variable', 'A loop'],
+          answer: 0,
+          quizId,
+        },
+      ],
+      select: {
+        id: true,
+      },
+    });
+  };
+
   const seedCodeAssessments = async (
     prisma: PrismaClient,
     courseId: string
@@ -117,5 +139,6 @@ export async function setupTests() {
     seedLessons,
     seedQuizzes,
     seedCodeAssessments,
+    seedQuizQuestions,
   };
 }
