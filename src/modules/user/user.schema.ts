@@ -6,14 +6,28 @@ export const CreateUserSchema = z.object({
   password: z.string().min(8, 'Password must be at least 8 characters long'),
   firstName: z.string().min(1, 'First name is required'),
   lastName: z.string().min(1, 'Last name is required'),
+  organizationId: z.string().cuid('Invalid organization ID format').optional(),
+  orgAdmin: z.boolean().optional().default(false),
+  role: z
+    .enum([Role.ADMIN, Role.USER], {
+      errorMap: () => ({
+        message: 'Role must be either ADMIN or USER',
+      }),
+    })
+    .default(Role.USER)
+    .optional(),
 });
 
-export const UserUpdateSchema = z.object({
+export const UserNameUpdateSchema = z.object({
   firstName: z.string().min(1, 'First name is required').optional(),
   lastName: z.string().min(1, 'Last name is required').optional(),
 });
 
 export const UserOrganizationUpdateSchema = z.object({
+  organizationId: z.string().cuid('Invalid organization ID format'),
+});
+
+export const UserOrgAdminUpdateScehma = z.object({
   organizationId: z.string().cuid('Invalid organization ID format'),
 });
 
@@ -35,9 +49,10 @@ export const UserRoleUpdateSchema = z.object({
 });
 
 export type CreateUserType = z.infer<typeof CreateUserSchema>;
-export type UserUpdateType = z.infer<typeof UserUpdateSchema>;
+export type UserNameUpdateType = z.infer<typeof UserNameUpdateSchema>;
 export type UserLoginType = z.infer<typeof UserLoginSchema>;
 export type UserOrganizationUpdateType = z.infer<
   typeof UserOrganizationUpdateSchema
 >;
 export type UserIdParamType = z.infer<typeof UserIdParamSchema>;
+export type UserOrgAdminUpdateType = z.infer<typeof UserOrgAdminUpdateScehma>;

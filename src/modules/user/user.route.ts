@@ -10,34 +10,68 @@ import {
   CreateUserSchema,
   UserIdParamSchema,
   UserLoginSchema,
-  UserUpdateSchema,
+  UserNameUpdateSchema,
   UserRoleUpdateSchema,
+  UserOrgAdminUpdateScehma,
+  UserOrganizationUpdateSchema,
 } from './user.schema';
 
 const router = express.Router();
 
 router.post('/login', validate(UserLoginSchema), UserController.login);
 
-router.use(authMiddleware, orgAdminMiddleware);
+router.use(authMiddleware);
 
-router.get('/', UserController.findAll);
+router.get('/', adminMiddleware, UserController.findAll);
 
-router.get('/:id', validateParams(UserIdParamSchema), UserController.findById);
+router.post(
+  '/',
+  orgAdminMiddleware,
+  validate(CreateUserSchema),
+  UserController.create
+);
 
-router.post('/create', validate(CreateUserSchema), UserController.create);
+router.get(
+  '/organization',
+  orgAdminMiddleware,
+  UserController.findAllInOrganization
+);
+
+router.get(
+  '/organization/:id',
+  orgAdminMiddleware,
+  validateParams(UserIdParamSchema),
+  UserController.findUserInOrganization
+);
+
+router.get(
+  '/:id',
+  adminMiddleware,
+  validateParams(UserIdParamSchema),
+  UserController.findById
+);
 
 router.put(
   '/:id',
-  validate(UserUpdateSchema),
   validateParams(UserIdParamSchema),
-  UserController.update
+  validate(UserNameUpdateSchema),
+  UserController.updateName
 );
 
 router.put(
   '/:id/organization',
   adminMiddleware,
   validateParams(UserIdParamSchema),
+  validate(UserOrganizationUpdateSchema),
   UserController.updateOrganization
+);
+
+router.put(
+  '/:id/organization-admin',
+  adminMiddleware,
+  validateParams(UserIdParamSchema),
+  validate(UserOrgAdminUpdateScehma),
+  UserController.updateOrgAdmin
 );
 
 router.put(
@@ -48,6 +82,11 @@ router.put(
   UserController.updateRole
 );
 
-router.delete('/:id', validateParams(UserIdParamSchema), UserController.delete);
+router.delete(
+  '/:id',
+  orgAdminMiddleware,
+  validateParams(UserIdParamSchema),
+  UserController.delete
+);
 
 export default router;
