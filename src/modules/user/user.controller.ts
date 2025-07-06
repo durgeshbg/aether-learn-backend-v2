@@ -5,12 +5,15 @@ import type {
   CreateUserType,
   UserLoginType,
   UserIdParamType,
+  UserNameUpdateType,
+  UserOrgAdminUpdateType,
 } from './user.schema';
 import { hash } from 'bcrypt-ts';
 import { UserErrors } from './user.errors';
 import { Role } from '../../generated/prisma';
 
 const {
+  USERS_NOT_FOUND,
   USER_NOT_FOUND,
   SERVER_ERROR,
   USER_EMAIL_EXISTS,
@@ -25,8 +28,33 @@ const {
 export const UserController = {
   findAll: async (req: Request, res: Response) => {
     try {
-      const users = await UserService.findAll();
-      res.status(200).json(users);
+      const orgId = req.query.organizationId as string;
+      const users = await UserService.findAll(orgId);
+      res.status(200).json({ users });
+      return;
+    } catch (error: any) {
+      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
+      return;
+    }
+  },
+
+  findAllInOrganization: async (req: Request, res: Response) => {
+    try {
+      const orgId = req.user?.orgAdmin;
+      if (!orgId) {
+        res
+          .status(USER_NOT_FOUND.STATUS)
+          .json({ error: USER_NOT_FOUND.MESSAGE });
+        return;
+      }
+      const users = await UserService.findAllInOrganization(orgId);
+      if (!users || users.length === 0) {
+        res
+          .status(USERS_NOT_FOUND.STATUS)
+          .json({ error: USERS_NOT_FOUND.MESSAGE });
+        return;
+      }
+      res.status(200).json({ users });
       return;
     } catch (error: any) {
       res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
@@ -44,7 +72,32 @@ export const UserController = {
           .json({ error: USER_NOT_FOUND.MESSAGE });
         return;
       }
-      res.status(200).json(user);
+      res.status(200).json({ user });
+      return;
+    } catch (error: any) {
+      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
+      return;
+    }
+  },
+
+  findUserInOrganization: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params as UserIdParamType;
+      const orgId = req.user?.orgAdmin;
+      if (!orgId) {
+        res
+          .status(USER_NOT_FOUND.STATUS)
+          .json({ error: USER_NOT_FOUND.MESSAGE });
+        return;
+      }
+      const user = await UserService.findById(id!);
+      if (!user || user.organizationId !== orgId) {
+        res
+          .status(USER_NOT_FOUND.STATUS)
+          .json({ error: USER_NOT_FOUND.MESSAGE });
+        return;
+      }
+      res.status(200).json({ user });
       return;
     } catch (error: any) {
       res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
@@ -54,13 +107,17 @@ export const UserController = {
 
   create: async (req: Request, res: Response) => {
     try {
-      const data: CreateUserType & { organizationId?: string | null } =
-        req.body;
+      const data: CreateUserType = req.body;
       data.password = await hash(data.password, 10);
-      data.organizationId = req.user?.orgAdmin;
+
+      if (req.user?.orgAdmin) {
+        data.organizationId = req.user.orgAdmin;
+        data.orgAdmin = false;
+        data.role = Role.USER;
+      }
+
       const user = await UserService.create(data);
-      user.password = '';
-      res.status(201).json(user);
+      res.status(201).json({ user });
       return;
     } catch (error: any) {
       res
@@ -103,12 +160,34 @@ export const UserController = {
     }
   },
 
-  update: async (req: Request, res: Response) => {
+  updateName: async (req: Request, res: Response) => {
     try {
       const { id } = req.params as UserIdParamType;
-      const data = req.body;
-      const user = await UserService.update(id!, data);
-      res.status(200).json(user);
+      const data: UserNameUpdateType = req.body;
+
+      const user = await UserService.findById(id!);
+
+      if (!user) {
+        res
+          .status(USER_NOT_FOUND.STATUS)
+          .json({ error: USER_NOT_FOUND.MESSAGE });
+        return;
+      }
+
+      if (
+        req.user?.role === Role.ADMIN ||
+        req.user?.orgAdmin === user.organizationId ||
+        id === req.user?.id
+      ) {
+        const user = await UserService.updateName(id!, data);
+        res.status(200).json({ user });
+        return;
+      }
+
+      res.status(USER_FORBIDDEN.STATUS).json({
+        error: USER_FORBIDDEN.MESSAGE,
+      });
+
       return;
     } catch (error: any) {
       res
@@ -123,9 +202,25 @@ export const UserController = {
       const { id } = req.params as UserIdParamType;
       const { organizationId } = req.body;
       const user = await UserService.updateOrganization(id!, organizationId);
-      res.status(200).json(user);
+      res.status(200).json({ user });
       return;
     } catch (error: any) {
+      res
+        .status(USER_INVALID_ORGANIZATION.STATUS)
+        .json({ error: USER_INVALID_ORGANIZATION.MESSAGE });
+      return;
+    }
+  },
+
+  updateOrgAdmin: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params as UserIdParamType;
+      const { organizationId }: UserOrgAdminUpdateType = req.body;
+      const user = await UserService.updateOrgAdmin(id!, organizationId);
+      res.status(200).json({ user });
+      return;
+    } catch (error: any) {
+      console.error('Error updating user role:', error);
       res
         .status(USER_INVALID_ORGANIZATION.STATUS)
         .json({ error: USER_INVALID_ORGANIZATION.MESSAGE });
@@ -138,7 +233,7 @@ export const UserController = {
       const { id } = req.params as UserIdParamType;
       const { role } = req.body;
       const user = await UserService.updateRole(id!, role);
-      res.status(200).json(user);
+      res.status(200).json({ user });
       return;
     } catch (error: any) {
       res.status(USER_UPDATE_FAILED.STATUS).json({

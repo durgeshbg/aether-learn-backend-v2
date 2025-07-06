@@ -1,4 +1,4 @@
-import type { CreateUserType, UserUpdateType } from './user.schema';
+import type { CreateUserType, UserNameUpdateType } from './user.schema';
 import { PrismaClient, Role } from '../../generated/prisma';
 import { compare } from 'bcrypt-ts';
 
@@ -21,7 +21,22 @@ export const userSelect = {
 
 export const UserService = {
   create: async (data: CreateUserType) => {
-    return await prisma.user.create({ data });
+    const connectIfOrgAdmin = data.orgAdmin
+      ? { connect: { id: data.organizationId } }
+      : undefined;
+
+    return await prisma.user.create({
+      data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        password: data.password,
+        role: data.role,
+        organizationId: data.organizationId,
+        orgAdminOf: connectIfOrgAdmin,
+      },
+      select: userSelect,
+    });
   },
 
   login: async (email: string, password: string) => {
@@ -46,8 +61,12 @@ export const UserService = {
     return user;
   },
 
-  update: async (id: string, data: UserUpdateType) => {
-    return await prisma.user.update({ where: { id }, data });
+  updateName: async (id: string, data: UserNameUpdateType) => {
+    return await prisma.user.update({
+      where: { id },
+      data,
+      select: userSelect,
+    });
   },
 
   updateRole: async (id: string, role: Role) => {
@@ -57,10 +76,30 @@ export const UserService = {
     });
   },
 
+  updateOrgAdmin: async (id: string, organizationId: string) => {
+    const organization = await prisma.organization.findFirst({
+      where: { id: organizationId },
+    });
+    return await prisma.user.update({
+      where: {
+        id,
+      },
+      data: {
+        orgAdminOf: {
+          connect: {
+            id: organization?.id,
+          },
+        },
+      },
+      select: userSelect,
+    });
+  },
+
   updateOrganization: async (userId: string, organizationId: string) => {
     return await prisma.user.update({
       where: { id: userId },
       data: { organizationId },
+      select: userSelect,
     });
   },
 
@@ -68,9 +107,10 @@ export const UserService = {
     return await prisma.user.delete({ where: { id } });
   },
 
-  findAll: async () => {
+  findAll: async (orgId?: string) => {
     return await prisma.user.findMany({
       select: userSelect,
+      where: orgId ? { organizationId: orgId } : undefined,
     });
   },
 
@@ -84,6 +124,13 @@ export const UserService = {
   findByEmail: async (email: string) => {
     return await prisma.user.findUnique({
       where: { email },
+      select: userSelect,
+    });
+  },
+
+  findAllInOrganization: async (organizationId: string) => {
+    return await prisma.user.findMany({
+      where: { organizationId },
       select: userSelect,
     });
   },
