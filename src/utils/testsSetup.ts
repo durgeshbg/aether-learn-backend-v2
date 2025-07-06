@@ -43,6 +43,15 @@ export async function setupTests() {
     });
   };
 
+  const seedOrganizations = async (prisma: PrismaClient) => {
+    return await prisma.organization.create({
+      data: {
+        name: 'Test Organization',
+        description: 'This is a test organization.',
+      },
+    });
+  };
+
   const seedCourses = async (prisma: PrismaClient) => {
     return await prisma.course.create({
       data: {
@@ -135,6 +144,7 @@ export async function setupTests() {
     cleanDB,
     seedUsers,
     getTokens,
+    seedOrganizations,
     seedCourses,
     seedLessons,
     seedQuizzes,

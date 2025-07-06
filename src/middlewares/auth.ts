@@ -94,13 +94,16 @@ export const orgAdminMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  if (req.user?.role === Role.ADMIN || req.user?.orgAdmin) {
-    const orgId = req.params?.id;
-    if (req.user?.orgAdmin === orgId) {
-      next();
-      return;
-    }
+  if (req.user?.role === Role.ADMIN) {
+    next();
+    return;
   }
+
+  if (req.user?.orgAdmin && req.user.orgAdmin !== null) {
+    next();
+    return;
+  }
+
   res.status(AuthErrors.FORBIDDEN.STATUS).json({
     error: AuthErrors.FORBIDDEN.MESSAGE,
   });
