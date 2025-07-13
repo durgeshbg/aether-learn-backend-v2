@@ -37,6 +37,8 @@ router.get(
   UserController.findAllInOrganization
 );
 
+router.get('/me', UserController.findMe);
+
 router.get(
   '/organization/:id',
   orgAdminMiddleware,

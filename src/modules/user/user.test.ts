@@ -86,6 +86,23 @@ describe('User', async () => {
     // Successful login test is already covered in the setupTests function
   });
 
+  describe('GET: /me', () => {
+    test('Should not fetch user details without auth token', async () => {
+      const response = await supertest(app).get(`${url}/me`);
+      expect(response.status).toBe(UNAUTHORIZED.STATUS);
+      expect(response.body).toHaveProperty('error', UNAUTHORIZED.MESSAGE);
+    });
+
+    test('Should fetch user details with valid auth token', async () => {
+      const response = await supertest(app)
+        .get(`${url}/me`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.user).toHaveProperty('id');
+      expect(response.body.user).toHaveProperty('email');
+    });
+  });
+
   describe('POST: /', () => {
     let orgAdminToken: string;
 

@@ -38,6 +38,24 @@ export const UserController = {
     }
   },
 
+  findMe: async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id!;
+      const user = await UserService.findById(userId);
+      if (!user) {
+        res
+          .status(USER_NOT_FOUND.STATUS)
+          .json({ error: USER_NOT_FOUND.MESSAGE });
+        return;
+      }
+      res.status(200).json({ user });
+      return;
+    } catch (error: any) {
+      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
+      return;
+    }
+  },
+
   findAllInOrganization: async (req: Request, res: Response) => {
     try {
       const orgId = req.user?.orgAdmin;
