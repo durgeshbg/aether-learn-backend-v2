@@ -10,7 +10,9 @@ export const userSelect = {
   role: true,
   firstName: true,
   lastName: true,
-  organizationId: true,
+  organization: {
+    select: { id: true, name: true, logoUrl: true, websiteUrl: true },
+  },
   orgAdminOf: {
     select: {
       id: true,

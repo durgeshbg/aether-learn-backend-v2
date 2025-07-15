@@ -109,7 +109,7 @@ export const UserController = {
         return;
       }
       const user = await UserService.findById(id!);
-      if (!user || user.organizationId !== orgId) {
+      if (!user || user.organization?.id !== orgId) {
         res
           .status(USER_NOT_FOUND.STATUS)
           .json({ error: USER_NOT_FOUND.MESSAGE });
@@ -194,7 +194,7 @@ export const UserController = {
 
       if (
         req.user?.role === Role.ADMIN ||
-        req.user?.orgAdmin === user.organizationId ||
+        req.user?.orgAdmin === user.organization?.id ||
         id === req.user?.id
       ) {
         const user = await UserService.updateName(id!, data);
@@ -273,7 +273,7 @@ export const UserController = {
       const user = await UserService.findById(id!);
       if (
         req.user?.role === Role.ADMIN ||
-        req.user?.orgAdmin === user?.organizationId
+        req.user?.orgAdmin === user?.organization?.id
       ) {
         await UserService.delete(id!);
         res.status(204).json({

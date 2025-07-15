@@ -120,8 +120,8 @@ describe('User', async () => {
         });
       expect(response.status).toBe(201);
       expect(response.body.user).toHaveProperty('id');
-      expect(response.body.user).toHaveProperty(
-        'organizationId',
+      expect(response.body.user.organization).toHaveProperty(
+        'id',
         organizationId
       );
       expect(response.body.user.orgAdminOf).toHaveProperty(
@@ -177,8 +177,8 @@ describe('User', async () => {
         });
       expect(response.status).toBe(201);
       expect(response.body.user).toHaveProperty('id');
-      expect(response.body.user).toHaveProperty(
-        'organizationId',
+      expect(response.body.user.organization).toHaveProperty(
+        'id',
         organizationId
       );
     });
@@ -409,8 +409,8 @@ describe('User', async () => {
           organizationId: organizationId, // Valid organization ID
         });
       expect(response.status).toBe(200);
-      expect(response.body.user).toHaveProperty(
-        'organizationId',
+      expect(response.body.user.organization).toHaveProperty(
+        'id',
         organizationId
       );
     });
@@ -512,7 +512,7 @@ describe('User', async () => {
     });
 
     test('Should delete user if org admin', async () => {
-      let orgAdmin: User;
+      let orgAdmin: any;
       const {
         body: { users },
       } = await supertest(app)
@@ -520,15 +520,19 @@ describe('User', async () => {
         .set('Authorization', `Bearer ${adminToken}`);
 
       orgAdmin = users?.find((user: any) => user.orgAdminOf);
+
       normalUserIds = users
-        ?.filter(
+        .filter(
           (user: any) =>
-            !user.orgAdminOf && user.organizationId !== orgAdmin.organizationId
+            user.role === Role.USER &&
+            user.orgAdminOf === null &&
+            user?.id !== orgAdmin?.id &&
+            user?.organization?.id === orgAdmin?.organization?.id
         )
         .map((user: any) => user.id);
 
       const orgAdminToken = await supertest(app).post(`${url}/login`).send({
-        email: orgAdmin.email,
+        email: orgAdmin?.email,
         password: USER_TEST_PASSWORD,
       });
 
