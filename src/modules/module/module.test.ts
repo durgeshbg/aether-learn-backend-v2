@@ -1,27 +1,55 @@
-import { setupTests } from '../../utils/testsSetup';
+import {
+  setupTests,
+  staticData,
+  type UserOrgAdmin,
+} from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import { PrismaClient } from '../../generated/prisma';
+import {
+  PrismaClient,
+  type Course,
+  type Lesson,
+  type Module,
+  type Organization,
+} from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { ModuleErrors } from './module.errors';
 import { LANGUAGES_MAP, LANG_KEYS } from '../../laguages';
+import { Role } from '../../generated/prisma';
 
 let url = '/api/v1/courses';
 
-const { MODULE_CREATE_FAILED } = ModuleErrors;
+const { MODULE_CREATE_FAILED, MODULE_NOT_FOUND } = ModuleErrors;
 const { FORBIDDEN, UNAUTHORIZED } = AuthErrors;
-const { INVALID_DATA, INVALID_QUERY_PARAMS } = ValidationErrors;
+const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
+
+const {
+  USER_TEST_EMAILS,
+  USER_TEST_PASSWORD,
+  ORGANIZATION_TEST_NAME,
+  COURSE_TEST_NAME,
+  LESSON_TEST_TITLE,
+} = staticData;
 
 describe('Module', async () => {
   let cleanTestDB: () => Promise<void>;
   let app: Application;
   let prisma: PrismaClient;
+
+  let admin: UserOrgAdmin;
+  let user: UserOrgAdmin;
+  let user2: UserOrgAdmin;
   let adminToken: string;
   let userToken: string;
-  let moduleId: string;
+  let user2Token: string;
+
+  let organization: Organization;
+  let course: Course;
+  let lesson: Lesson;
+  let module: Module;
 
   beforeAll(async () => {
     const testDB = await setupTests();
@@ -30,15 +58,46 @@ describe('Module', async () => {
     app = setupApp();
 
     prisma = new PrismaClient();
-    await testDB.seedUsers(prisma);
-    const course = await testDB.seedCourses(prisma);
-    const lesson = await testDB.seedLessons(prisma, course.id);
+    admin = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.admin,
+      Role.ADMIN,
+      USER_TEST_PASSWORD
+    );
+    user = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.user,
+      Role.USER,
+      USER_TEST_PASSWORD
+    );
+    user2 = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.user2,
+      Role.USER,
+      USER_TEST_PASSWORD
+    );
+
+    organization = await testDB.seedOrganization(
+      prisma,
+      ORGANIZATION_TEST_NAME,
+      user.id
+    );
+    course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
+    lesson = await testDB.seedLesson(prisma, LESSON_TEST_TITLE, course.id);
+    module = await testDB.seedModule(
+      prisma,
+      lesson.id,
+      staticData.MODULE_TEST_TITLE
+    );
 
     url += `/${course.id}/lessons/${lesson.id}/modules`;
 
-    const tokens = await testDB.getTokens(app);
-    adminToken = tokens.adminToken;
-    userToken = tokens.userToken;
+    adminToken = testDB.genToken(admin);
+    userToken = testDB.genToken({
+      ...user,
+      orgAdminOf: { id: organization.id },
+    });
+    user2Token = testDB.genToken(user2);
   });
 
   afterAll(async () => {
@@ -47,20 +106,51 @@ describe('Module', async () => {
   });
 
   describe('GET: /', () => {
-    test('Should fetch all modules with admin auth', async () => {
+    test('Should fetch all modules in lesson as admin', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.modules).toHaveLength(1);
+      expect(response.body.modules[0]).toHaveProperty('id', module.id);
     });
 
-    test('Should not fetch modules as user', async () => {
+    test('Should fetch all modules in lesson for organization admin', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
+      expect(response.status).toBe(200);
+      expect(response.body.modules).toHaveLength(1);
+      expect(response.body.modules[0]).toHaveProperty('id', module.id);
+    });
+
+    test('Should fecth all modules in lesson for user in organization', async () => {
+      // add user2 to the organization
+      const a = await supertest(app)
+        .put(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+
+      const response = await supertest(app)
+        .get(url)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.modules).toHaveLength(1);
+      expect(response.body.modules[0]).toHaveProperty('id', module.id);
+
+      // remove user2 from the organization
+      await supertest(app)
+        .delete(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+    });
+
+    test('Should not fetch modules for user not in organization', async () => {
+      const response = await supertest(app)
+        .get(url)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.modules).toHaveLength(0);
     });
 
     test('Should not fetch modules without auth', async () => {
@@ -81,8 +171,7 @@ describe('Module', async () => {
           languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id,
         });
       expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('id');
-      moduleId = response.body.id;
+      expect(response.body.module).toHaveProperty('id');
     });
 
     test('Should not create module as user', async () => {
@@ -136,30 +225,58 @@ describe('Module', async () => {
   describe('GET: /:id', () => {
     test('Should fetch module by ID as admin', async () => {
       const response = await supertest(app)
-        .get(`${url}/${moduleId}`)
+        .get(`${url}/${module.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', moduleId);
+      expect(response.body.module).toHaveProperty('id', module.id);
     });
 
-    test('Should not fetch module with invalid ID', async () => {
+    test('Should fetch module by ID for organization admin', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${module.id}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.module).toHaveProperty('id', module.id);
+    });
+
+    test('Should fetch module by ID for user in organization', async () => {
+      // add user2 to the organization
+      const a = await supertest(app)
+        .put(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+
+      const response = await supertest(app)
+        .get(`${url}/${module.id}`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.module).toHaveProperty('id', module.id);
+
+      // remove user2 from the organization
+      await supertest(app)
+        .delete(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+    });
+
+    test('Should not fetch module by ID for user not in organization', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${module.id}`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(MODULE_NOT_FOUND.STATUS);
+      expect(response.body.error).toBe(MODULE_NOT_FOUND.MESSAGE);
+    });
+
+    test('Should not fetch module by invalid ID', async () => {
       const response = await supertest(app)
         .get(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
-    });
-
-    test('Should not fetch module as user', async () => {
-      const response = await supertest(app)
-        .get(`${url}/${moduleId}`)
-        .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not fetch module without auth', async () => {
-      const response = await supertest(app).get(`${url}/${moduleId}`);
+      const response = await supertest(app).get(`${url}/${module.id}`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });
@@ -168,16 +285,16 @@ describe('Module', async () => {
   describe('PUT: /:id', () => {
     test('Should update module as admin', async () => {
       const response = await supertest(app)
-        .put(`${url}/${moduleId}`)
+        .put(`${url}/${module.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ title: 'Updated Module' });
       expect(response.status).toBe(200);
-      expect(response.body.title).toBe('Updated Module');
+      expect(response.body.module.title).toBe('Updated Module');
     });
 
     test('Should not update module as user', async () => {
       const response = await supertest(app)
-        .put(`${url}/${moduleId}`)
+        .put(`${url}/${module.id}`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ title: 'Should Not Update' });
       expect(response.status).toBe(FORBIDDEN.STATUS);
@@ -186,7 +303,7 @@ describe('Module', async () => {
 
     test('Should not update module with invalid data', async () => {
       const response = await supertest(app)
-        .put(`${url}/${moduleId}`)
+        .put(`${url}/${module.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ title: '' });
       expect(response.status).toBe(INVALID_DATA.STATUS);
@@ -198,13 +315,13 @@ describe('Module', async () => {
         .put(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ title: 'Module' });
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not update module without auth', async () => {
       const response = await supertest(app)
-        .put(`${url}/${moduleId}`)
+        .put(`${url}/${module.id}`)
         .send({ title: 'Module' });
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
@@ -214,7 +331,7 @@ describe('Module', async () => {
   describe('DELETE: /:id', () => {
     test('Should not delete module as user', async () => {
       const response = await supertest(app)
-        .delete(`${url}/${moduleId}`)
+        .delete(`${url}/${module.id}`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
@@ -224,19 +341,19 @@ describe('Module', async () => {
       const response = await supertest(app)
         .delete(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not delete module without auth', async () => {
-      const response = await supertest(app).delete(`${url}/${moduleId}`);
+      const response = await supertest(app).delete(`${url}/${module.id}`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });
 
     test('Should delete module as admin', async () => {
       const response = await supertest(app)
-        .delete(`${url}/${moduleId}`)
+        .delete(`${url}/${module.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(204);
     });

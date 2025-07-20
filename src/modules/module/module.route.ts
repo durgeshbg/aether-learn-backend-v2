@@ -11,7 +11,7 @@ import { validate, validateParams } from '../../middlewares/validate';
 
 const router = Router({mergeParams: true});
 
-router.use(authMiddleware, adminMiddleware);
+router.use(authMiddleware);
 
 router.get(
   '/',
@@ -21,6 +21,7 @@ router.get(
 
 router.post(
   '/',
+  adminMiddleware,
   validateParams(CourseLessonModuleIdParamSchema),
   validate(ModuleCreateSchema),
   ModuleController.create
@@ -34,6 +35,7 @@ router.get(
 
 router.put(
   '/:id',
+  adminMiddleware,
   validateParams(ModuleIdParamsSchema),
   validate(ModuleUpdateSchema),
   ModuleController.update
@@ -41,6 +43,7 @@ router.put(
 
 router.delete(
   '/:id',
+  adminMiddleware,
   validateParams(ModuleIdParamsSchema),
   ModuleController.delete
 );

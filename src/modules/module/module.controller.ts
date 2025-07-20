@@ -22,8 +22,15 @@ export const ModuleController = {
     try {
       const { courseId, lessonId } =
         req.params as CourseLessonModuleIdParamsType;
-      const modules = await ModuleService.findAll(lessonId);
-      res.status(200).json(modules);
+      const userId = req.user?.id;
+      const modules = await ModuleService.findAll(
+        lessonId,
+        courseId,
+        userId,
+        req.user?.role,
+        req.user?.orgAdmin
+      );
+      res.status(200).json({ modules });
     } catch (error) {
       res
         .status(MODULES_FETCH_FAILED.STATUS)
@@ -36,7 +43,7 @@ export const ModuleController = {
     const moduleData: ModuleCreateType = req.body;
     try {
       const newModule = await ModuleService.create(lessonId, moduleData);
-      res.status(201).json(newModule);
+      res.status(201).json({ module: newModule });
     } catch (error) {
       res
         .status(MODULE_CREATE_FAILED.STATUS)
@@ -46,14 +53,25 @@ export const ModuleController = {
 
   findById: async (req: Request, res: Response) => {
     const { id, courseId, lessonId } = req.params as ModuleIdParamsType;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+    const userOrgAdmin = req.user?.orgAdmin;
     try {
-      const module = await ModuleService.findById(id, lessonId);
+      const module = await ModuleService.findById(
+        id,
+        lessonId,
+        courseId,
+        userId,
+        userRole,
+        userOrgAdmin
+      );
       if (!module) {
         res
           .status(MODULE_NOT_FOUND.STATUS)
           .json({ error: MODULE_NOT_FOUND.MESSAGE });
+        return;
       }
-      res.status(200).json(module);
+      res.status(200).json({ module });
     } catch (error) {
       res
         .status(MODULE_FETCH_FAILED.STATUS)
@@ -75,7 +93,7 @@ export const ModuleController = {
           .status(MODULE_NOT_FOUND.STATUS)
           .json({ error: MODULE_NOT_FOUND.MESSAGE });
       }
-      res.status(200).json(updatedModule);
+      res.status(200).json({ module: updatedModule });
     } catch (error) {
       res
         .status(MODULE_UPDATE_FAILED.STATUS)
