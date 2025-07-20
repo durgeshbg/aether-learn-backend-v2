@@ -1,24 +1,46 @@
-import { setupTests } from '../../utils/testsSetup';
+import {
+  setupTests,
+  staticData,
+  type UserOrgAdmin,
+} from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import { PrismaClient } from '../../generated/prisma';
+import {
+  PrismaClient,
+  type Course,
+  type Organization,
+} from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
+import { Role } from '../../generated/prisma';
+import { CourseErrors } from './course.errors';
 
 const url = '/api/v1/courses';
 
 const { FORBIDDEN, UNAUTHORIZED } = AuthErrors;
-const { INVALID_DATA, INVALID_QUERY_PARAMS } = ValidationErrors;
+const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
+const { COURSE_ACCESS_FORBIDDEN } = CourseErrors;
+const {
+  USER_TEST_EMAILS,
+  USER_TEST_PASSWORD,
+  ORGANIZATION_TEST_NAME,
+  COURSE_TEST_NAME,
+} = staticData;
 
 describe('Course', async () => {
   let cleanTestDB: () => Promise<void>;
   let app: Application;
   let prisma: PrismaClient;
+  let admin: UserOrgAdmin;
+  let user: UserOrgAdmin;
+  let user2: UserOrgAdmin;
   let adminToken: string;
   let userToken: string;
-  let courseId: string;
+  let user2Token: string;
+  let organization: Organization;
+  let course: Course;
 
   beforeAll(async () => {
     const testDB = await setupTests();
@@ -27,14 +49,39 @@ describe('Course', async () => {
     app = setupApp();
 
     prisma = new PrismaClient();
-    await testDB.seedUsers(prisma);
-    const course = await testDB.seedCourses(prisma);
 
-    const tokens = await testDB.getTokens(app);
-    adminToken = tokens.adminToken;
-    userToken = tokens.userToken;
+    admin = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.admin,
+      Role.ADMIN,
+      USER_TEST_PASSWORD
+    );
+    user = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.user,
+      Role.USER,
+      USER_TEST_PASSWORD
+    );
+    user2 = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.user2,
+      Role.USER,
+      USER_TEST_PASSWORD
+    );
 
-    courseId = course?.id;
+    organization = await testDB.seedOrganization(
+      prisma,
+      ORGANIZATION_TEST_NAME,
+      user.id
+    );
+    course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
+
+    adminToken = testDB.genToken(admin);
+    userToken = testDB.genToken({
+      ...user,
+      orgAdminOf: { id: organization.id },
+    });
+    user2Token = testDB.genToken(user2);
   });
 
   afterAll(async () => {
@@ -43,18 +90,28 @@ describe('Course', async () => {
   });
 
   describe('GET: /', () => {
-    test('Should fetch all courses with auth', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-    });
-
     test('Should not fetch courses without auth', async () => {
       const response = await supertest(app).get(url);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
+    });
+
+    test('Should fetch all courses for organization admin', async () => {
+      const response = await supertest(app)
+        .get(url)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.courses).toBeInstanceOf(Array);
+      expect(response.body.courses.length).toBeGreaterThan(0);
+    });
+
+    test('Should not be visible for regular user not part of organization', async () => {
+      const response = await supertest(app)
+        .get(url)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.courses).toBeInstanceOf(Array);
+      expect(response.body.courses.length).toBe(0);
     });
   });
 
@@ -65,8 +122,7 @@ describe('Course', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'Test Course', description: 'desc' });
       expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('id');
-      courseId = response.body.id;
+      expect(response.body.course).toHaveProperty('id');
     });
 
     test('Should not create course as user', async () => {
@@ -89,37 +145,54 @@ describe('Course', async () => {
   });
 
   describe('GET: /:id', () => {
-    test('Should fetch course by ID', async () => {
+    test('Should fetch course by ID by admin', async () => {
       const response = await supertest(app)
-        .get(`${url}/${courseId}`)
+        .get(`${url}/${course.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.course).toHaveProperty('id', course.id);
+      expect(response.body.course).toHaveProperty('name');
+    });
+
+    test('Should fetch course by ID by organization admin', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${course.id}`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', courseId);
-      expect(response.body).toHaveProperty('name');
+      expect(response.body.course).toHaveProperty('id', course.id);
+      expect(response.body.course).toHaveProperty('name');
+    });
+
+    test('Should not fetch course by ID for regular user not part of organization', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${course.id}`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(COURSE_ACCESS_FORBIDDEN.STATUS);
+      expect(response.body.error).toBe(COURSE_ACCESS_FORBIDDEN.MESSAGE);
     });
 
     test('Should not fetch course with invalid ID', async () => {
       const response = await supertest(app)
         .get(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
   });
 
   describe('PUT: /:id', () => {
     test('Should update course as admin', async () => {
       const response = await supertest(app)
-        .put(`${url}/${courseId}`)
+        .put(`${url}/${course.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'Updated Course', description: 'Updated desc' });
       expect(response.status).toBe(200);
-      expect(response.body.name).toBe('Updated Course');
+      expect(response.body.course.name).toBe('Updated Course');
     });
 
     test('Should not update course as user', async () => {
       const response = await supertest(app)
-        .put(`${url}/${courseId}`)
+        .put(`${url}/${course.id}`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ name: 'Should Not Update', description: 'desc' });
       expect(response.status).toBe(FORBIDDEN.STATUS);
@@ -128,7 +201,7 @@ describe('Course', async () => {
 
     test('Should not update course with invalid data', async () => {
       const response = await supertest(app)
-        .put(`${url}/${courseId}`)
+        .put(`${url}/${course.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: '', description: '' });
       expect(response.status).toBe(INVALID_DATA.STATUS);
@@ -140,8 +213,8 @@ describe('Course', async () => {
         .put(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'Course', description: 'desc' });
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
   });
 
@@ -152,7 +225,7 @@ describe('Course', async () => {
         .post(url)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ name: 'To Delete', description: 'desc' });
-      const delId = create.body.id;
+      const delId = create.body.course.id;
 
       const response = await supertest(app)
         .delete(`${url}/${delId}`)
@@ -162,7 +235,7 @@ describe('Course', async () => {
 
     test('Should not delete course as user', async () => {
       const response = await supertest(app)
-        .delete(`${url}/${courseId}`)
+        .delete(`${url}/${course.id}`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
@@ -172,8 +245,8 @@ describe('Course', async () => {
       const response = await supertest(app)
         .delete(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
   });
 });

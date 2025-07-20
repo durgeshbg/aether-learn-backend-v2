@@ -4,8 +4,15 @@ import type { CourseCreateType, CourseUpdateType } from './course.schema';
 const prisma = new PrismaClient();
 
 export const CourseService = {
-  async findAll() {
+  async findAll(organizationId?: string) {
     return await prisma.course.findMany({
+      where: {
+        organizations: {
+          some: {
+            id: organizationId,
+          },
+        },
+      },
       include: {
         lessons: true,
         quizzes: true,
@@ -14,9 +21,9 @@ export const CourseService = {
     });
   },
 
-  async findById(id: string) {
+  async findById(id: string, organizationId?: string) {
     return await prisma.course.findUnique({
-      where: { id },
+      where: { id, organizations: { some: { id: organizationId } } },
       include: {
         lessons: true,
         quizzes: true,

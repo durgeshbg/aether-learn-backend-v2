@@ -11,6 +11,10 @@ export const CourseErrors = {
     STATUS: 500,
     MESSAGE: 'Failed to fetch course',
   },
+  COURSE_ACCESS_FORBIDDEN: {
+    STATUS: 403,
+    MESSAGE: 'Access to course is forbidden',
+  },
   COURSE_CREATE_FAILED: {
     STATUS: 500,
     MESSAGE: 'Failed to create course',

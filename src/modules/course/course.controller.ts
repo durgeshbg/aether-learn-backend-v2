@@ -2,10 +2,13 @@ import type { Request, Response } from 'express';
 import { CourseService } from './course.service';
 import { CourseErrors } from './course.errors';
 import type { CourseCreateType, CourseUpdateType } from './course.schema';
+import { UserService } from '../user/user.service';
+import { Role } from '../../generated/prisma';
 
 const {
   COURSE_NOT_FOUND,
   COURSES_FETCH_FAILED,
+  COURSE_ACCESS_FORBIDDEN,
   COURSE_FETCH_FAILED,
   COURSE_CREATE_FAILED,
   COURSE_UPDATE_FAILED,
@@ -15,8 +18,17 @@ const {
 export const CourseController = {
   findAll: async (req: Request, res: Response) => {
     try {
-      const courses = await CourseService.findAll();
-      res.status(200).json(courses);
+      const userId = req.user?.id;
+      const user = await UserService.findById(userId!);
+      let organizationId = req.user?.orgAdmin || user?.organization?.id;
+      const courses = await CourseService.findAll(organizationId);
+      res.status(200).json({
+        courses: !organizationId
+          ? req.user?.role === Role.ADMIN
+            ? courses
+            : []
+          : courses,
+      });
     } catch (error: any) {
       res.status(COURSES_FETCH_FAILED.STATUS).json({
         error: COURSES_FETCH_FAILED.MESSAGE,
@@ -27,13 +39,24 @@ export const CourseController = {
   findById: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const course = await CourseService.findById(id!);
+      const userId = req.user?.id;
+      const user = await UserService.findById(userId!);
+      let organizationId = req.user?.orgAdmin || user?.organization?.id;
+      const course = await CourseService.findById(id!, organizationId);
       if (!course) {
         res.status(COURSE_NOT_FOUND.STATUS).json({
           error: COURSE_NOT_FOUND.MESSAGE,
         });
       }
-      res.status(200).json(course);
+
+      if (!organizationId && req.user?.role !== Role.ADMIN) {
+        res.status(COURSE_ACCESS_FORBIDDEN.STATUS).json({
+          error: COURSE_ACCESS_FORBIDDEN.MESSAGE,
+        });
+        return;
+      }
+
+      res.status(200).json({ course });
     } catch (error: any) {
       res.status(COURSE_FETCH_FAILED.STATUS).json({
         error: COURSE_FETCH_FAILED.MESSAGE,
@@ -45,7 +68,7 @@ export const CourseController = {
     try {
       const courseData: CourseCreateType = req.body;
       const course = await CourseService.create(courseData);
-      res.status(201).json(course);
+      res.status(201).json({ course });
     } catch (error: any) {
       res.status(COURSE_CREATE_FAILED.STATUS).json({
         error: COURSE_CREATE_FAILED.MESSAGE,
@@ -63,7 +86,7 @@ export const CourseController = {
           error: COURSE_NOT_FOUND.MESSAGE,
         });
       }
-      res.status(200).json(updatedCourse);
+      res.status(200).json({ course: updatedCourse });
     } catch (error: any) {
       res.status(COURSE_UPDATE_FAILED.STATUS).json({
         error: COURSE_UPDATE_FAILED.MESSAGE,
