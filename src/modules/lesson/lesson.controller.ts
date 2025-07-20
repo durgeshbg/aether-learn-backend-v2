@@ -21,8 +21,20 @@ export const LessonController = {
   findAll: async (req: Request, res: Response) => {
     try {
       const { courseId } = req.params as LessonCourseIdParamsType;
-      const lessons = await LessonService.findAll(courseId);
-      res.status(200).json(lessons);
+      const userId = req.user?.id;
+      const orgAdmin = req.user?.orgAdmin;
+      const userRole = req.user?.role;
+      const lessons = await LessonService.findAll(
+        courseId,
+        userId,
+        orgAdmin,
+        userRole
+      );
+
+      res.status(200).json({
+        lessons,
+      });
+      return;
     } catch (error: any) {
       res.status(LESSONS_FETCH_FAILED.STATUS).json({
         error: LESSONS_FETCH_FAILED.MESSAGE,
@@ -33,14 +45,23 @@ export const LessonController = {
   findById: async (req: Request, res: Response) => {
     try {
       const { id, courseId } = req.params as LessonIdParamsType;
-      const lesson = await LessonService.findById(id, courseId);
+      const userId = req.user?.id;
+      const lesson = await LessonService.findById(
+        id,
+        courseId,
+        userId,
+        req.user?.orgAdmin,
+        req.user?.role
+      );
       if (!lesson) {
         res.status(LESSON_NOT_FOUND.STATUS).json({
           error: LESSON_NOT_FOUND.MESSAGE,
         });
         return;
       }
-      res.status(200).json(lesson);
+
+      res.status(200).json({ lesson });
+      return;
     } catch (error: any) {
       res.status(LESSON_FETCH_FAILED.STATUS).json({
         error: LESSON_FETCH_FAILED.MESSAGE,
