@@ -6,7 +6,7 @@ export const CodeSolutionCreateSchema = z.object({
 });
 
 export const CodeSolutionStatusUpdateSchema = z.object({
-  status: z.nativeEnum(CodeSolutionStatus, {
+  status: z.enum([CodeSolutionStatus.GRADED, CodeSolutionStatus.SUBMITTED], {
     errorMap: () => ({ message: 'Invalid status' }),
   }),
 });
