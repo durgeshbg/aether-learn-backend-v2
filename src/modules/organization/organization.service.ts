@@ -38,6 +38,15 @@ export const OrganizationService = {
     return await prisma.organization.update({ where: { id }, data });
   },
 
+  updateOrgAdmin: async (id: string, userId: string) => {
+    return await prisma.organization.update({
+      where: { id },
+      data: {
+        orgAdminId: userId,
+      },
+    });
+  },
+
   delete: async (id: string) => {
     return await prisma.organization.delete({ where: { id } });
   },
@@ -94,6 +103,16 @@ export const OrganizationService = {
     return await prisma.organization.update({
       where: { id },
       data: { courses: { connect: validCourseIds } },
+      select: {
+        id: true,
+        name: true,
+        courses: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
     });
   },
 
@@ -111,6 +130,16 @@ export const OrganizationService = {
       data: {
         courses: {
           disconnect: coursesToRemove.map((cid) => ({ id: cid })),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        courses: {
+          select: {
+            id: true,
+            name: true,
+          },
         },
       },
     });

@@ -11,6 +11,10 @@ export const OrganizationErrors = {
     STATUS: 400,
     MESSAGE: 'Failed to fetch organization',
   },
+  ORGANIZATION_FETCH_FORBIDDEN: {
+    STATUS: 403,
+    MESSAGE: 'You do not have access to this organization',
+  },
   ORGANIZATION_NAME_INVALID: {
     STATUS: 400,
     MESSAGE: 'Invalid organization name',
@@ -34,6 +38,10 @@ export const OrganizationErrors = {
   ORGANIZATION_DELETE_FAILED: {
     STATUS: 400,
     MESSAGE: 'Failed to delete organization',
+  },
+  ORGANIZATION_ADMIN_UPDATE_FAILED: {
+    STATUS: 400,
+    MESSAGE: 'Failed to update organization admin',
   },
   // Organization users related errors
   ORGANIZATION_USERS_FETCH_FAILED: {
@@ -60,5 +68,9 @@ export const OrganizationErrors = {
   ORGANIZATION_COURSES_REMOVE_FAILED: {
     STATUS: 400,
     MESSAGE: 'Failed to remove courses from organization',
+  },
+  ORGANIZATION_COURSE_ACCESS_FORBIDDEN: {
+    STATUS: 403,
+    MESSAGE: 'You do not have access to this course',
   },
 };
