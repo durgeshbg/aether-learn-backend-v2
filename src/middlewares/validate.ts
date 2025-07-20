@@ -7,7 +7,7 @@ export const ValidationErrors = {
     STATUS: 400,
     MESSAGE: 'Invalid data provided',
   },
-  INVALID_QUERY_PARAMS: {
+  INVALID_PARAMS: {
     STATUS: 400,
     MESSAGE: 'Invalid query parameters provided',
   },
@@ -50,8 +50,8 @@ export const validateParams = (schema: ZodSchema) => {
         const errorMessages = error.issues.map((issue: any) => ({
           message: `${issue.path.join('.')} is ${issue.message}`,
         }));
-        res.status(ValidationErrors.INVALID_QUERY_PARAMS.STATUS).json({
-          error: ValidationErrors.INVALID_QUERY_PARAMS.MESSAGE,
+        res.status(ValidationErrors.INVALID_PARAMS.STATUS).json({
+          error: ValidationErrors.INVALID_PARAMS.MESSAGE,
           messages: errorMessages,
         });
       } else {

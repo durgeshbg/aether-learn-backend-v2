@@ -141,7 +141,7 @@ model Question {
 
 model QuizResult {
   id    String @id @default(cuid())
-  score Int @default(0)
+  score Int    @default(0)
 
   userId String
   user   User   @relation("UserResult", fields: [userId], references: [id], onDelete: Cascade)

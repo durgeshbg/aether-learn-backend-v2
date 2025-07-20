@@ -18,16 +18,17 @@ export const CreateUserSchema = z.object({
     .optional(),
 });
 
-export const UserNameUpdateSchema = z.object({
+export const UserDetailsUpdateSchema = z.object({
   firstName: z.string().min(1, 'First name is required').optional(),
   lastName: z.string().min(1, 'Last name is required').optional(),
+  email: z.string().email().optional(),
+  password: z
+    .string()
+    .min(8, 'Password must be at least 8 characters long')
+    .optional(),
 });
 
 export const UserOrganizationUpdateSchema = z.object({
-  organizationId: z.string().cuid('Invalid organization ID format'),
-});
-
-export const UserOrgAdminUpdateScehma = z.object({
   organizationId: z.string().cuid('Invalid organization ID format'),
 });
 
@@ -49,10 +50,10 @@ export const UserRoleUpdateSchema = z.object({
 });
 
 export type CreateUserType = z.infer<typeof CreateUserSchema>;
-export type UserNameUpdateType = z.infer<typeof UserNameUpdateSchema>;
+export type UserDetailsUpdateType = z.infer<typeof UserDetailsUpdateSchema>;
 export type UserLoginType = z.infer<typeof UserLoginSchema>;
 export type UserOrganizationUpdateType = z.infer<
   typeof UserOrganizationUpdateSchema
 >;
 export type UserIdParamType = z.infer<typeof UserIdParamSchema>;
-export type UserOrgAdminUpdateType = z.infer<typeof UserOrgAdminUpdateScehma>;
+export type UserQueryParamType = 'code-solutions' | 'quiz-results';

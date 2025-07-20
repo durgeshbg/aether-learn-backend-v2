@@ -5,15 +5,14 @@ import type {
   CreateUserType,
   UserLoginType,
   UserIdParamType,
-  UserNameUpdateType,
-  UserOrgAdminUpdateType,
+  UserDetailsUpdateType,
+  UserQueryParamType,
 } from './user.schema';
 import { hash } from 'bcrypt-ts';
 import { UserErrors } from './user.errors';
 import { Role } from '../../generated/prisma';
 
 const {
-  USERS_NOT_FOUND,
   USER_NOT_FOUND,
   SERVER_ERROR,
   USER_EMAIL_EXISTS,
@@ -28,50 +27,8 @@ const {
 export const UserController = {
   findAll: async (req: Request, res: Response) => {
     try {
-      const orgId = req.query.organizationId as string;
+      const orgId = (req.query.organizationId || req.user?.orgAdmin) as string;
       const users = await UserService.findAll(orgId);
-      res.status(200).json({ users });
-      return;
-    } catch (error: any) {
-      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
-      return;
-    }
-  },
-
-  findMe: async (req: Request, res: Response) => {
-    try {
-      const userId = req.user?.id!;
-      const user = await UserService.findById(userId);
-      if (!user) {
-        res
-          .status(USER_NOT_FOUND.STATUS)
-          .json({ error: USER_NOT_FOUND.MESSAGE });
-        return;
-      }
-      res.status(200).json({ user });
-      return;
-    } catch (error: any) {
-      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
-      return;
-    }
-  },
-
-  findAllInOrganization: async (req: Request, res: Response) => {
-    try {
-      const orgId = req.user?.orgAdmin;
-      if (!orgId) {
-        res
-          .status(USER_NOT_FOUND.STATUS)
-          .json({ error: USER_NOT_FOUND.MESSAGE });
-        return;
-      }
-      const users = await UserService.findAllInOrganization(orgId);
-      if (!users || users.length === 0) {
-        res
-          .status(USERS_NOT_FOUND.STATUS)
-          .json({ error: USERS_NOT_FOUND.MESSAGE });
-        return;
-      }
       res.status(200).json({ users });
       return;
     } catch (error: any) {
@@ -83,39 +40,28 @@ export const UserController = {
   findById: async (req: Request, res: Response) => {
     try {
       const { id } = req.params as UserIdParamType;
-      const user = await UserService.findById(id!);
+      const { filter } = req.query as {
+        filter?: UserQueryParamType;
+      };
+      const user = await UserService.findById(id!, filter);
+
       if (!user) {
         res
           .status(USER_NOT_FOUND.STATUS)
           .json({ error: USER_NOT_FOUND.MESSAGE });
         return;
       }
-      res.status(200).json({ user });
-      return;
-    } catch (error: any) {
-      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
-      return;
-    }
-  },
-
-  findUserInOrganization: async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params as UserIdParamType;
-      const orgId = req.user?.orgAdmin;
-      if (!orgId) {
-        res
-          .status(USER_NOT_FOUND.STATUS)
-          .json({ error: USER_NOT_FOUND.MESSAGE });
+      if (
+        req.user?.role === Role.ADMIN ||
+        req.user?.orgAdmin === user?.organization?.id ||
+        id === req.user?.id
+      ) {
+        res.status(200).json({ user });
         return;
       }
-      const user = await UserService.findById(id!);
-      if (!user || user.organization?.id !== orgId) {
-        res
-          .status(USER_NOT_FOUND.STATUS)
-          .json({ error: USER_NOT_FOUND.MESSAGE });
-        return;
-      }
-      res.status(200).json({ user });
+      res.status(USER_FORBIDDEN.STATUS).json({
+        error: USER_FORBIDDEN.MESSAGE,
+      });
       return;
     } catch (error: any) {
       res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
@@ -178,10 +124,10 @@ export const UserController = {
     }
   },
 
-  updateName: async (req: Request, res: Response) => {
+  updateDetails: async (req: Request, res: Response) => {
     try {
       const { id } = req.params as UserIdParamType;
-      const data: UserNameUpdateType = req.body;
+      const data: UserDetailsUpdateType = req.body;
 
       const user = await UserService.findById(id!);
 
@@ -197,7 +143,10 @@ export const UserController = {
         req.user?.orgAdmin === user.organization?.id ||
         id === req.user?.id
       ) {
-        const user = await UserService.updateName(id!, data);
+        if (data.password) {
+          data.password = await hash(data.password, 10);
+        }
+        const user = await UserService.updateDetails(id!, data);
         res.status(200).json({ user });
         return;
       }
@@ -223,22 +172,6 @@ export const UserController = {
       res.status(200).json({ user });
       return;
     } catch (error: any) {
-      res
-        .status(USER_INVALID_ORGANIZATION.STATUS)
-        .json({ error: USER_INVALID_ORGANIZATION.MESSAGE });
-      return;
-    }
-  },
-
-  updateOrgAdmin: async (req: Request, res: Response) => {
-    try {
-      const { id } = req.params as UserIdParamType;
-      const { organizationId }: UserOrgAdminUpdateType = req.body;
-      const user = await UserService.updateOrgAdmin(id!, organizationId);
-      res.status(200).json({ user });
-      return;
-    } catch (error: any) {
-      console.error('Error updating user role:', error);
       res
         .status(USER_INVALID_ORGANIZATION.STATUS)
         .json({ error: USER_INVALID_ORGANIZATION.MESSAGE });

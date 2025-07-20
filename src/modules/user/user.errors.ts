@@ -1,8 +1,4 @@
 export const UserErrors = {
-  USERS_NOT_FOUND: {
-    STATUS: 404,
-    MESSAGE: 'No users found in the organization.',
-  },
   USER_NOT_FOUND: {
     STATUS: 404,
     MESSAGE: 'User not found.',

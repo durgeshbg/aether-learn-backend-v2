@@ -10,9 +10,8 @@ import {
   CreateUserSchema,
   UserIdParamSchema,
   UserLoginSchema,
-  UserNameUpdateSchema,
+  UserDetailsUpdateSchema,
   UserRoleUpdateSchema,
-  UserOrgAdminUpdateScehma,
   UserOrganizationUpdateSchema,
 } from './user.schema';
 
@@ -22,7 +21,7 @@ router.post('/login', validate(UserLoginSchema), UserController.login);
 
 router.use(authMiddleware);
 
-router.get('/', adminMiddleware, UserController.findAll);
+router.get('/', orgAdminMiddleware, UserController.findAll);
 
 router.post(
   '/',
@@ -31,33 +30,13 @@ router.post(
   UserController.create
 );
 
-router.get(
-  '/organization',
-  orgAdminMiddleware,
-  UserController.findAllInOrganization
-);
-
-router.get('/me', UserController.findMe);
-
-router.get(
-  '/organization/:id',
-  orgAdminMiddleware,
-  validateParams(UserIdParamSchema),
-  UserController.findUserInOrganization
-);
-
-router.get(
-  '/:id',
-  adminMiddleware,
-  validateParams(UserIdParamSchema),
-  UserController.findById
-);
+router.get('/:id', validateParams(UserIdParamSchema), UserController.findById);
 
 router.put(
   '/:id',
   validateParams(UserIdParamSchema),
-  validate(UserNameUpdateSchema),
-  UserController.updateName
+  validate(UserDetailsUpdateSchema),
+  UserController.updateDetails
 );
 
 router.put(
@@ -66,14 +45,6 @@ router.put(
   validateParams(UserIdParamSchema),
   validate(UserOrganizationUpdateSchema),
   UserController.updateOrganization
-);
-
-router.put(
-  '/:id/organization-admin',
-  adminMiddleware,
-  validateParams(UserIdParamSchema),
-  validate(UserOrgAdminUpdateScehma),
-  UserController.updateOrgAdmin
 );
 
 router.put(
