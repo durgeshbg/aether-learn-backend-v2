@@ -47,29 +47,39 @@ async function main() {
   const hashedPassword = await hash('password', 10);
   const admin1 = await prisma.user.create({
     data: {
-      email: 'admin1@codeverse.academy',
+      email: 'admin1@mail.com',
       password: hashedPassword,
       firstName: 'Alice',
       lastName: 'Doe',
       role: Role.ADMIN,
-      orgAdminOf: { connect: { id: org1.id } },
     },
   });
 
-  const admin2 = await prisma.user.create({
+  const org1admin = await prisma.user.create({
     data: {
-      email: 'admin2@devmasters.io',
+      email: 'org1admin@mail.com',
       password: hashedPassword,
       firstName: 'Bob',
       lastName: 'Smith',
-      role: Role.ADMIN,
+      role: Role.USER,
       orgAdminOf: { connect: { id: org2.id } },
+    },
+  });
+
+  const org2admin = await prisma.user.create({
+    data: {
+      email: 'org2admin@mail.com',
+      password: hashedPassword,
+      firstName: 'Eve',
+      lastName: 'Johnson',
+      role: Role.USER,
+      orgAdminOf: { connect: { id: org1.id } },
     },
   });
 
   const user1 = await prisma.user.create({
     data: {
-      email: 'user1@example.com',
+      email: 'user1@mail.com',
       password: hashedPassword,
       firstName: 'Charlie',
       lastName: 'Brown',
@@ -79,7 +89,7 @@ async function main() {
 
   const user2 = await prisma.user.create({
     data: {
-      email: 'user2@example.com',
+      email: 'user2@mail.com',
       password: hashedPassword,
       firstName: 'Diana',
       lastName: 'Prince',
@@ -89,10 +99,20 @@ async function main() {
 
   const user3 = await prisma.user.create({
     data: {
-      email: 'user3@example.com',
+      email: 'user3@mail.com',
       password: hashedPassword,
       firstName: 'Evan',
       lastName: 'Lee',
+      organization: { connect: { id: org2.id } },
+    },
+  });
+
+  const user4 = await prisma.user.create({
+    data: {
+      email: 'user4@mail.com',
+      password: hashedPassword,
+      firstName: 'Grace',
+      lastName: 'Kim',
       organization: { connect: { id: org2.id } },
     },
   });
@@ -140,6 +160,12 @@ async function main() {
             code: 'const PI = 3.14;',
             languageId: JAVASCRIPT_NODE_18,
           },
+          {
+            title: 'Variable Hoisting',
+            content: 'How hoisting works in JavaScript.',
+            code: 'console.log(a); var a = 5; // undefined',
+            languageId: JAVASCRIPT_NODE_18,
+          },
         ],
       },
     },
@@ -156,6 +182,18 @@ async function main() {
             title: 'Async Callbacks',
             content: 'Using setTimeout and callbacks.',
             code: 'setTimeout(() => console.log("Hi"), 1000);',
+            languageId: 2,
+          },
+          {
+            title: 'Promises in Node',
+            content: 'Understanding promises and async/await.',
+            code: 'const fetchData = async () => { await new Promise(resolve => setTimeout(resolve, 1000)); return "Data"; };',
+            languageId: 2,
+          },
+          {
+            title: 'Event Emitter',
+            content: 'Using Node.js EventEmitter.',
+            code: 'const EventEmitter = require("events"); const emitter = new EventEmitter(); emitter.on("event", () => console.log("Event triggered")); emitter.emit("event");',
             languageId: 2,
           },
         ],
@@ -188,11 +226,49 @@ async function main() {
     },
   });
 
+  const quiz2 = await prisma.quiz.create({
+    data: {
+      title: 'Node.js Fundamentals',
+      courseId: course2.id,
+      questions: {
+        create: [
+          {
+            text: 'What is the purpose of the event loop in Node.js?',
+            options: [
+              'To handle asynchronous operations',
+              'To manage memory',
+              'To execute synchronous code',
+              'To handle file I/O',
+            ],
+            answer: 0,
+            explanation:
+              'The event loop allows Node.js to perform non-blocking I/O operations by offloading operations to the system kernel whenever possible.',
+          },
+          {
+            text: 'Which module is used to create a web server in Node.js?',
+            options: ['http', 'fs', 'path', 'url'],
+            answer: 0,
+            explanation:
+              'The http module provides utilities to create HTTP servers.',
+          },
+        ],
+      },
+    },
+  });
+
   const quizResult1 = await prisma.quizResult.create({
     data: {
       userId: user1.id,
       quizId: quiz1.id,
       score: 85,
+    },
+  });
+
+  const quizResult2 = await prisma.quizResult.create({
+    data: {
+      userId: user2.id,
+      quizId: quiz2.id,
+      score: 90,
     },
   });
 
@@ -223,6 +299,32 @@ async function main() {
     },
   });
 
+  const assessment2 = await prisma.codeAssessment.create({
+    data: {
+      title: 'Palindrome Checker',
+      description: 'Check if a string is a palindrome',
+      instructions:
+        'Write a function that checks if a given string is a palindrome.',
+      starterCode: 'function isPalindrome(str) {\n  // your code\n}',
+      languageId: JAVASCRIPT_NODE_18,
+      courseId: course2.id,
+      testCases: {
+        create: [
+          {
+            input: '"racecar"',
+            expected: 'true',
+            description: 'Check for racecar',
+          },
+          {
+            input: '"hello"',
+            expected: 'false',
+            description: 'Check for non-palindrome hello',
+          },
+        ],
+      },
+    },
+  });
+
   const codeSolution1 = await prisma.codeSolution.create({
     data: {
       code: 'function fizzBuzz() { for(let i=1;i<=100;i++){ let out=""; if(i%3==0)out+="Fizz"; if(i%5==0)out+="Buzz"; console.log(out||i); } }',
@@ -230,6 +332,16 @@ async function main() {
       assessmentId: assessment1.id,
       status: CodeSolutionStatus.SUBMITTED,
       score: 90,
+    },
+  });
+
+  const codeSolution2 = await prisma.codeSolution.create({
+    data: {
+      code: 'function isPalindrome(str) { return str === str.split("").reverse().join(""); }',
+      userId: user2.id,
+      assessmentId: assessment2.id,
+      status: CodeSolutionStatus.SUBMITTED,
+      score: 95,
     },
   });
 }
