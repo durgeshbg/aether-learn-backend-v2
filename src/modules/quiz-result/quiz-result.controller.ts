@@ -19,8 +19,18 @@ const {
 export const QuizResultController = {
   findAll: async (req: Request, res: Response) => {
     try {
-      const quizResults = await QuizResultService.findAll();
-      res.status(200).json(quizResults);
+      const { courseId, quizId } = req.params as QuizResultQuizIdParamsType;
+      const userId = req.user?.id;
+      const orgAdmin = req.user?.orgAdmin;
+      const userRole = req.user?.role;
+      const quizResults = await QuizResultService.findAll(
+        quizId,
+        courseId,
+        userId,
+        orgAdmin,
+        userRole
+      );
+      res.status(200).json({ quizResults });
     } catch (error) {
       res
         .status(QUIZ_RESULTS_FETCH_FAILED.STATUS)
@@ -29,11 +39,11 @@ export const QuizResultController = {
   },
 
   create: async (req: Request, res: Response) => {
-    const { quizId } = req.params as QuizResultQuizIdParamsType;
+    const { quizId, courseId } = req.params as QuizResultQuizIdParamsType;
     const userId = req.user?.id!;
     const quizResultData: QuizResultCreateType = req.body;
     try {
-      const questions = await QuestionService.findAll(quizId);
+      const questions = await QuestionService.findAll(quizId, courseId, userId);
       let score = 0;
       quizResultData.answers.forEach((answer) => {
         const question = questions.find((q) => q.id === answer.questionId);
@@ -46,7 +56,7 @@ export const QuizResultController = {
         userId,
         score
       );
-      res.status(201).json(newQuizResult);
+      res.status(201).json({ quizResult: newQuizResult });
     } catch (error) {
       res
         .status(QUIZ_RESULT_CREATE_FAILED.STATUS)
@@ -55,15 +65,26 @@ export const QuizResultController = {
   },
 
   findById: async (req: Request, res: Response) => {
-    const { id, quizId } = req.params as QuizResultIdParamsType;
+    const { id, quizId, courseId } = req.params as QuizResultIdParamsType;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+    const userOrgAdmin = req.user?.orgAdmin;
     try {
-      const quizResults = await QuizResultService.findById(id, quizId);
-      if (!quizResults) {
+      const quizResult = await QuizResultService.findById(
+        id,
+        quizId,
+        courseId,
+        userId,
+        userOrgAdmin,
+        userRole
+      );
+      if (!quizResult) {
         res
           .status(QUIZ_RESULT_NOT_FOUND.STATUS)
           .json({ error: QUIZ_RESULT_NOT_FOUND.MESSAGE });
+        return;
       }
-      res.status(200).json(quizResults);
+      res.status(200).json({ quizResult });
     } catch (error) {
       res
         .status(QUIZ_RESULT_FETCH_FAILED.STATUS)

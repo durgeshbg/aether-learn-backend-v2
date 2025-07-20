@@ -3,8 +3,61 @@ import { PrismaClient } from '../../generated/prisma';
 const prisma = new PrismaClient();
 
 export const QuizResultService = {
-  findAll: async () => {
-    return await prisma.quizResult.findMany();
+  findAll: async (
+    quizId: string,
+    courseId: string,
+    userId?: string,
+    orgAdmin?: string | null,
+    role?: string
+  ) => {
+    if (role === 'ADMIN') {
+      return await prisma.quizResult.findMany({
+        where: {
+          quiz: {
+            id: quizId,
+            courseId,
+          },
+        },
+      });
+    }
+
+    if (orgAdmin) {
+      return await prisma.quizResult.findMany({
+        where: {
+          quiz: {
+            id: quizId,
+            course: {
+              id: courseId,
+              organizations: {
+                some: { id: orgAdmin },
+              },
+            },
+          },
+        },
+      });
+    }
+
+    const user = await prisma.user.findFirst({
+      where: { id: userId },
+      include: {
+        organization: {
+          include: {
+            courses: {
+              where: { quizzes: { some: { id: quizId } } },
+              include: {
+                quizzes: {
+                  include: {
+                    quizResults: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return user?.organization?.courses[0]?.quizzes[0]?.quizResults || [];
   },
 
   create: async (quizId: string, userId: string, score: number = 0) => {
@@ -14,12 +67,53 @@ export const QuizResultService = {
         userId,
         score,
       },
+      select: {
+        id: true,
+        score: true,
+        user: true,
+        quiz: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
     });
   },
 
-  findById: async (id: string, quizId: string) => {
+  findById: async (
+    id: string,
+    quizId: string,
+    courseId: string,
+    userId?: string,
+    orgAdmin?: string | null,
+    role?: string
+  ) => {
+    if (role === 'ADMIN') {
+      return await prisma.quizResult.findUnique({
+        where: { id, quizId },
+      });
+    }
+
+    if (orgAdmin) {
+      return await prisma.quizResult.findFirst({
+        where: {
+          id,
+          quiz: {
+            id: quizId,
+            course: {
+              id: courseId,
+              organizations: {
+                some: { id: orgAdmin },
+              },
+            },
+          },
+        },
+      });
+    }
+
     return await prisma.quizResult.findFirst({
-      where: { id, quizId },
+      where: { id, userId, quiz: { id: quizId, courseId } },
     });
   },
 

@@ -1,27 +1,59 @@
-import { setupTests } from '../../utils/testsSetup';
+import {
+  setupTests,
+  staticData,
+  type UserOrgAdmin,
+} from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import { PrismaClient } from '../../generated/prisma';
+import {
+  PrismaClient,
+  type Course,
+  type Organization,
+  type Question,
+  type Quiz,
+  type QuizResult,
+} from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
+import { Role } from '../../generated/prisma';
+import { QuizResultErrors } from './quiz-result.errors';
 
 let url = '/api/v1/quizzes';
 
 const { UNAUTHORIZED, FORBIDDEN } = AuthErrors;
-const { INVALID_DATA, INVALID_QUERY_PARAMS } = ValidationErrors;
+const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
+const { QUIZ_RESULT_NOT_FOUND } = QuizResultErrors;
+
+const {
+  USER_TEST_EMAILS,
+  USER_TEST_PASSWORD,
+  ORGANIZATION_TEST_NAME,
+  COURSE_TEST_NAME,
+  QUIZ_TEST_TITLE,
+  QUESTION_TEST_TEXT,
+  QUESTION_TEST_OPTIONS,
+  QUESTION_TEST_ANSWER,
+} = staticData;
 
 describe('QuizResult', async () => {
   let cleanTestDB: () => Promise<void>;
   let app: Application;
   let prisma: PrismaClient;
+
+  let admin: UserOrgAdmin;
+  let user: UserOrgAdmin;
+  let user2: UserOrgAdmin;
   let adminToken: string;
   let userToken: string;
-  let quizResultId: string;
-  let quizId: string;
-  let courseId: string;
-  let questionIds: string[];
+  let user2Token: string;
+
+  let organization: Organization;
+  let course: Course;
+  let quiz: Quiz;
+  let question: Question;
+  let quizResult: QuizResult;
 
   beforeAll(async () => {
     const testDB = await setupTests();
@@ -30,22 +62,49 @@ describe('QuizResult', async () => {
     app = setupApp();
 
     prisma = new PrismaClient();
-    await testDB.seedUsers(prisma);
-    const course = await testDB.seedCourses(prisma);
-    courseId = course.id;
-    const quiz = await testDB.seedQuizzes(prisma, course.id);
-    // Q1: Ans = 0
-    // Q2: Ans = 0
-    questionIds = (await testDB.seedQuizQuestions(prisma, quiz.id)).map(
-      (q) => q.id
+    admin = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.admin,
+      Role.ADMIN,
+      USER_TEST_PASSWORD
+    );
+    user = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.user,
+      Role.USER,
+      USER_TEST_PASSWORD
+    );
+    user2 = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.user2,
+      Role.USER,
+      USER_TEST_PASSWORD
     );
 
-    const tokens = await testDB.getTokens(app);
-    adminToken = tokens.adminToken;
-    userToken = tokens.userToken;
+    organization = await testDB.seedOrganization(
+      prisma,
+      ORGANIZATION_TEST_NAME,
+      user.id
+    );
+    course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
+    quiz = await testDB.seedQuiz(prisma, QUIZ_TEST_TITLE, course.id);
+    question = await testDB.seedQuestion(
+      prisma,
+      quiz.id,
+      QUESTION_TEST_TEXT,
+      QUESTION_TEST_OPTIONS,
+      QUESTION_TEST_ANSWER
+    );
+    quizResult = await testDB.seedQuizResult(prisma, quiz.id, user2.id);
 
-    quizId = quiz.id;
-    url = `/api/v1/courses/${courseId}/quizzes/${quizId}/quiz-results`;
+    url = `/api/v1/courses/${course.id}/quizzes/${quiz.id}/quiz-results`;
+
+    adminToken = testDB.genToken(admin);
+    userToken = testDB.genToken({
+      ...user,
+      orgAdminOf: { id: organization.id },
+    });
+    user2Token = testDB.genToken(user2);
   });
 
   afterAll(async () => {
@@ -54,20 +113,52 @@ describe('QuizResult', async () => {
   });
 
   describe('GET: /', () => {
-    test('Should fetch all quiz results with admin auth', async () => {
+    test('Should fetch all quiz results as admin', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.quizResults).toBeInstanceOf(Array);
+      expect(response.body.quizResults.length).toBeGreaterThanOrEqual(1);
     });
 
-    test('Should not fetch quiz results as user', async () => {
+    test('Should fetch all quiz results for quiz as org admin', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
+      expect(response.status).toBe(200);
+      expect(response.body.quizResults).toBeInstanceOf(Array);
+      expect(response.body.quizResults.length).toBeGreaterThanOrEqual(1);
+    });
+
+    test('Should fecth all quiz results for quiz as user who has access to quiz', async () => {
+      // add user2 to the organization
+      const a = await supertest(app)
+        .put(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+
+      const response = await supertest(app)
+        .get(url)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.quizResults).toBeInstanceOf(Array);
+      expect(response.body.quizResults.length).toBe(1);
+
+      // remove user2 from the organization
+      await supertest(app)
+        .delete(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+    });
+
+    test('Should not fetch quiz results for users not having access to quiz', async () => {
+      const response = await supertest(app)
+        .get(url)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.quizResults).toBeInstanceOf(Array);
+      expect(response.body.quizResults.length).toBe(0);
     });
 
     test('Should not fetch quiz results without auth', async () => {
@@ -79,20 +170,28 @@ describe('QuizResult', async () => {
 
   describe('POST: /', () => {
     test('Should create a new quiz result with valid data', async () => {
+      // add user2 to the organization
+      const a = await supertest(app)
+        .put(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+
       // Create a question for the quiz
       const response = await supertest(app)
         .post(url)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${user2Token}`)
         .send({
-          answers: [
-            { questionId: questionIds[0], answer: 0 },
-            { questionId: questionIds[1], answer: 3 },
-          ],
+          answers: [{ questionId: question.id, answer: QUESTION_TEST_ANSWER }],
         });
       expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.score).toBe(1);
-      quizResultId = response.body.id;
+      expect(response.body.quizResult).toHaveProperty('id');
+      expect(response.body.quizResult.score).toBe(1);
+
+      // remove user2 from the organization
+      await supertest(app)
+        .delete(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
     });
 
     test('Should not create quiz result with invalid data', async () => {
@@ -116,34 +215,40 @@ describe('QuizResult', async () => {
   describe('GET: /:id', () => {
     test('Should fetch quiz result by ID as admin', async () => {
       const response = await supertest(app)
-        .get(`${url}/${quizResultId}`)
+        .get(`${url}/${quizResult.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', quizResultId);
-      expect(response.body).toHaveProperty('score', 1);
-      expect(response.body).toHaveProperty('userId');
+      expect(response.body.quizResult).toHaveProperty('id');
+      expect(response.body.quizResult.id).toBe(quizResult.id);
+    });
+
+    test('Should fetch quiz result by ID as org admin', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${quizResult.id}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.quizResult).toHaveProperty('id');
+      expect(response.body.quizResult.id).toBe(quizResult.id);
+    });
+
+    test('Should fetch quiz result by ID as user', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${quizResult.id}`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.quizResult.id).toBe(quizResult.id);
     });
 
     test('Should not fetch quiz result with invalid ID', async () => {
       const response = await supertest(app)
         .get(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
-    });
-
-    test('Should fetch quiz result as user', async () => {
-      const response = await supertest(app)
-        .get(`${url}/${quizResultId}`)
-        .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', quizResultId);
-      expect(response.body).toHaveProperty('score', 1);
-      expect(response.body).toHaveProperty('userId');
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not fetch quiz result without auth', async () => {
-      const response = await supertest(app).get(`${url}/${quizResultId}`);
+      const response = await supertest(app).get(`${url}/${quizResult.id}`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });
@@ -153,9 +258,11 @@ describe('QuizResult', async () => {
     test('Should delete quiz result as admin', async () => {
       const create = await supertest(app)
         .post(url)
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({ answers: [{ questionId: questionIds[0], answer: 1 }] });
-      const delId = create.body.id;
+        .set('Authorization', `Bearer ${user2Token}`)
+        .send({
+          answers: [{ questionId: question.id, answer: QUESTION_TEST_ANSWER }],
+        });
+      const delId = create.body.quizResult.id;
 
       const response = await supertest(app)
         .delete(`${url}/${delId}`)
@@ -165,7 +272,7 @@ describe('QuizResult', async () => {
 
     test('Should not delete quiz result as user', async () => {
       const response = await supertest(app)
-        .delete(`${url}/${quizResultId}`)
+        .delete(`${url}/${quizResult.id}`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
@@ -175,12 +282,12 @@ describe('QuizResult', async () => {
       const response = await supertest(app)
         .delete(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not delete quiz result without auth', async () => {
-      const response = await supertest(app).delete(`${url}/${quizResultId}`);
+      const response = await supertest(app).delete(`${url}/${quizResult.id}`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });

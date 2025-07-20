@@ -12,7 +12,7 @@ const router = Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
-router.get('/', adminMiddleware, QuizResultController.findAll);
+router.get('/', QuizResultController.findAll);
 
 router.post(
   '/',
