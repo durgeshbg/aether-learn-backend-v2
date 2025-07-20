@@ -1,24 +1,56 @@
-import { setupTests } from '../../utils/testsSetup';
+import {
+  setupTests,
+  staticData,
+  type UserOrgAdmin,
+} from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import { PrismaClient } from '../../generated/prisma';
+import {
+  PrismaClient,
+  type CodeAssessment,
+  type Course,
+  type Organization,
+} from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
+import { Role } from '../../generated/prisma';
+import { CodeAssessmentErrors } from './code-assessment.errors';
 
 let url = '/api/v1/courses';
 
 const { UNAUTHORIZED, FORBIDDEN } = AuthErrors;
-const { INVALID_DATA, INVALID_QUERY_PARAMS } = ValidationErrors;
+const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
+const { CODE_ASSESSMENT_NOT_FOUND } = CodeAssessmentErrors;
+
+const {
+  USER_TEST_EMAILS,
+  USER_TEST_PASSWORD,
+  ORGANIZATION_TEST_NAME,
+  COURSE_TEST_NAME,
+  CODE_ASSESSMENT_TEST_TITLE,
+  CODE_ASSESSMENT_TEST_DESCRIPTION,
+  CODE_ASSESSMENT_TEST_INSTRUCTIONS,
+  CODE_ASSESSMENT_TEST_STARTER_CODE,
+  CODE_ASSESSMENT_TEST_LANGUAGE_ID,
+} = staticData;
 
 describe('CodeAssessment', async () => {
   let cleanTestDB: () => Promise<void>;
   let app: Application;
   let prisma: PrismaClient;
+
+  let admin: UserOrgAdmin;
+  let user: UserOrgAdmin;
+  let user2: UserOrgAdmin;
   let adminToken: string;
   let userToken: string;
-  let codeAssessmentId: string;
+  let user2Token: string;
+
+  let organization: Organization;
+  let course: Course;
+  let codeAssessment: CodeAssessment;
 
   beforeAll(async () => {
     const testDB = await setupTests();
@@ -27,12 +59,49 @@ describe('CodeAssessment', async () => {
     app = setupApp();
 
     prisma = new PrismaClient();
-    await testDB.seedUsers(prisma);
-    const course = await testDB.seedCourses(prisma);
 
-    const tokens = await testDB.getTokens(app);
-    adminToken = tokens.adminToken;
-    userToken = tokens.userToken;
+    admin = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.admin,
+      Role.ADMIN,
+      USER_TEST_PASSWORD
+    );
+    user = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.user,
+      Role.USER,
+      USER_TEST_PASSWORD
+    );
+
+    user2 = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.user2,
+      Role.USER,
+      USER_TEST_PASSWORD
+    );
+
+    organization = await testDB.seedOrganization(
+      prisma,
+      ORGANIZATION_TEST_NAME,
+      user.id
+    );
+    course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
+    codeAssessment = await testDB.seedCodeAssessment(
+      prisma,
+      course.id,
+      CODE_ASSESSMENT_TEST_TITLE,
+      CODE_ASSESSMENT_TEST_DESCRIPTION,
+      CODE_ASSESSMENT_TEST_INSTRUCTIONS,
+      CODE_ASSESSMENT_TEST_STARTER_CODE,
+      CODE_ASSESSMENT_TEST_LANGUAGE_ID
+    );
+
+    adminToken = testDB.genToken(admin);
+    userToken = testDB.genToken({
+      ...user,
+      orgAdminOf: { id: organization.id },
+    });
+    user2Token = testDB.genToken(user2);
 
     url = `/api/v1/courses/${course.id}/code-assessments`;
   });
@@ -43,20 +112,52 @@ describe('CodeAssessment', async () => {
   });
 
   describe('GET: /', () => {
-    test('Should fetch all code assessments with admin auth', async () => {
+    test('Should fetch all code assessments in course for admin', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.codeAssessments).toBeInstanceOf(Array);
+      expect(response.body.codeAssessments.length).toBeGreaterThan(0);
     });
 
-    test('Should fetch code assessments as user', async () => {
+    test('Should fetch all code assessments in course for organization admin', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body.codeAssessments).toBeInstanceOf(Array);
+      expect(response.body.codeAssessments.length).toBeGreaterThan(0);
+    });
+
+    test('Should fetch all code assessments in course for regular user part of org', async () => {
+      // add user 2 to organization
+      await supertest(app)
+        .put(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+
+      const response = await supertest(app)
+        .get(url)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.codeAssessments).toBeInstanceOf(Array);
+      expect(response.body.codeAssessments.length).toBeGreaterThan(0);
+
+      // Clean up: remove user2 from organization
+      await supertest(app)
+        .delete(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+    });
+
+    test('Should not fetch code assessments for regular user not part of org', async () => {
+      const response = await supertest(app)
+        .get(url)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.codeAssessments).toBeInstanceOf(Array);
+      expect(response.body.codeAssessments.length).toBe(0);
     });
 
     test('Should not fetch code assessments without auth', async () => {
@@ -79,9 +180,8 @@ describe('CodeAssessment', async () => {
           languageId: 1,
         });
       expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('id');
-      expect(response.body.title).toBe('Test Code Assessment');
-      codeAssessmentId = response.body.id;
+      expect(response.body.codeAssessment).toHaveProperty('id');
+      expect(response.body.codeAssessment.title).toBe('Test Code Assessment');
     });
 
     test('Should not create code assessment with invalid data', async () => {
@@ -130,30 +230,67 @@ describe('CodeAssessment', async () => {
   describe('GET: /:id', () => {
     test('Should fetch code assessment by ID as admin', async () => {
       const response = await supertest(app)
-        .get(`${url}/${codeAssessmentId}`)
+        .get(`${url}/${codeAssessment.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', codeAssessmentId);
+      expect(response.body.codeAssessment).toHaveProperty('id');
+      expect(response.body.codeAssessment.title).toBe(
+        CODE_ASSESSMENT_TEST_TITLE
+      );
+    });
+
+    test('Should fetch code assessment by ID as organization admin', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${codeAssessment.id}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.codeAssessment).toHaveProperty('id');
+      expect(response.body.codeAssessment.title).toBe(
+        CODE_ASSESSMENT_TEST_TITLE
+      );
+    });
+
+    test('Should fetch code assessment by ID as regular user part of org', async () => {
+      // add user 2 to organization
+      await supertest(app)
+        .put(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+
+      const response = await supertest(app)
+        .get(`${url}/${codeAssessment.id}`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.codeAssessment).toHaveProperty('id');
+      expect(response.body.codeAssessment.title).toBe(
+        CODE_ASSESSMENT_TEST_TITLE
+      );
+
+      // Clean up: remove user2 from organization
+      await supertest(app)
+        .delete(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+    });
+
+    test('Should not fetch code assessment by ID as regular user not part of org', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${codeAssessment.id}`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(CODE_ASSESSMENT_NOT_FOUND.STATUS);
+      expect(response.body.error).toBe(CODE_ASSESSMENT_NOT_FOUND.MESSAGE);
     });
 
     test('Should not fetch code assessment with invalid ID', async () => {
       const response = await supertest(app)
         .get(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
-    });
-
-    test('Should fetch code assessment as user', async () => {
-      const response = await supertest(app)
-        .get(`${url}/${codeAssessmentId}`)
-        .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', codeAssessmentId);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not fetch code assessment without auth', async () => {
-      const response = await supertest(app).get(`${url}/${codeAssessmentId}`);
+      const response = await supertest(app).get(`${url}/${codeAssessment.id}`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });
@@ -162,16 +299,18 @@ describe('CodeAssessment', async () => {
   describe('PUT: /:id', () => {
     test('Should update code assessment with valid data as admin', async () => {
       const response = await supertest(app)
-        .put(`${url}/${codeAssessmentId}`)
+        .put(`${url}/${codeAssessment.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ title: 'Updated Code Assessment' });
       expect(response.status).toBe(200);
-      expect(response.body.title).toBe('Updated Code Assessment');
+      expect(response.body.codeAssessment.title).toBe(
+        'Updated Code Assessment'
+      );
     });
 
     test('Should not update code assessment with invalid data', async () => {
       const response = await supertest(app)
-        .put(`${url}/${codeAssessmentId}`)
+        .put(`${url}/${codeAssessment.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ title: '' });
       expect(response.status).toBe(INVALID_DATA.STATUS);
@@ -183,13 +322,13 @@ describe('CodeAssessment', async () => {
         .put(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ title: 'Test' });
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not update code assessment as user', async () => {
       const response = await supertest(app)
-        .put(`${url}/${codeAssessmentId}`)
+        .put(`${url}/${codeAssessment.id}`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ title: 'Test' });
       expect(response.status).toBe(FORBIDDEN.STATUS);
@@ -198,7 +337,7 @@ describe('CodeAssessment', async () => {
 
     test('Should not update code assessment without auth', async () => {
       const response = await supertest(app)
-        .put(`${url}/${codeAssessmentId}`)
+        .put(`${url}/${codeAssessment.id}`)
         .send({ title: 'Test' });
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
@@ -212,13 +351,13 @@ describe('CodeAssessment', async () => {
         .post(url)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
-          title: 'To Delete',
+          title: 'Code Assessment to Delete',
           description: 'desc',
           instructions: 'Do this',
           starterCode: 'print("Hello")',
           languageId: 1,
         });
-      const delId = create.body.id;
+      const delId = create.body.codeAssessment.id;
       const response = await supertest(app)
         .delete(`${url}/${delId}`)
         .set('Authorization', `Bearer ${adminToken}`);
@@ -229,13 +368,13 @@ describe('CodeAssessment', async () => {
       const response = await supertest(app)
         .delete(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not delete code assessment as user', async () => {
       const response = await supertest(app)
-        .delete(`${url}/${codeAssessmentId}`)
+        .delete(`${url}/${codeAssessment.id}`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
@@ -243,7 +382,7 @@ describe('CodeAssessment', async () => {
 
     test('Should not delete code assessment without auth', async () => {
       const response = await supertest(app).delete(
-        `${url}/${codeAssessmentId}`
+        `${url}/${codeAssessment.id}`
       );
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
