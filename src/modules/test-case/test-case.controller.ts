@@ -22,8 +22,17 @@ export const TestCaseController = {
     try {
       const { courseId, codeAssessmentId } =
         req.params as CourseCodeAssessmentTestCaseIdParamsType;
-      const testCases = await TestCaseService.findAll(codeAssessmentId);
-      res.status(200).json(testCases);
+      const userId = req.user?.id;
+      const orgAdmin = req.user?.orgAdmin;
+      const userRole = req.user?.role;
+      const testCases = await TestCaseService.findAll(
+        codeAssessmentId,
+        courseId,
+        userId,
+        orgAdmin,
+        userRole
+      );
+      res.status(200).json({ testCases });
     } catch (error) {
       res
         .status(TEST_CASES_FETCH_FAILED.STATUS)
@@ -40,7 +49,7 @@ export const TestCaseController = {
         codeAssessmentId,
         testCaseData
       );
-      res.status(201).json(newTestCase);
+      res.status(201).json({ testCase: newTestCase });
     } catch (error) {
       res
         .status(TEST_CASE_CREATE_FAILED.STATUS)
@@ -51,15 +60,25 @@ export const TestCaseController = {
   findById: async (req: Request, res: Response) => {
     const { id, courseId, codeAssessmentId } =
       req.params as TestCaseIdParamsType;
+    const userId = req.user?.id;
+    const userRole = req.user?.role;
+    const userOrgAdmin = req.user?.orgAdmin;
     try {
-      const testCase = await TestCaseService.findById(id, codeAssessmentId);
+      const testCase = await TestCaseService.findById(
+        id,
+        codeAssessmentId,
+        courseId,
+        userId,
+        userOrgAdmin,
+        userRole
+      );
       if (!testCase) {
         res
           .status(TEST_CASE_NOT_FOUND.STATUS)
           .json({ error: TEST_CASE_NOT_FOUND.MESSAGE });
         return;
       }
-      res.status(200).json(testCase);
+      res.status(200).json({ testCase });
     } catch (error) {
       res
         .status(TEST_CASE_FETCH_FAILED.STATUS)
@@ -83,7 +102,7 @@ export const TestCaseController = {
           .json({ error: TEST_CASE_NOT_FOUND.MESSAGE });
         return;
       }
-      res.status(200).json(updatedTestCase);
+      res.status(200).json({ testCase: updatedTestCase });
     } catch (error) {
       res
         .status(TEST_CASE_UPDATE_FAILED.STATUS)
