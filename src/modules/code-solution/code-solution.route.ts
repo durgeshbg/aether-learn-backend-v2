@@ -16,7 +16,6 @@ router.use(authMiddleware);
 
 router.get(
   '/',
-  adminMiddleware,
   validateParams(CodeSolutionAssesmentIdParamSchema),
   CodeSolutionController.findAll
 );
@@ -29,14 +28,7 @@ router.post(
 );
 
 router.get(
-  '/me',
-  validateParams(CodeSolutionAssesmentIdParamSchema),
-  CodeSolutionController.findByUser
-);
-
-router.get(
   '/:id',
-  adminMiddleware,
   validateParams(CodeSolutionIdParamSchema),
   CodeSolutionController.findById
 );

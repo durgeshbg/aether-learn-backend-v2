@@ -22,8 +22,17 @@ export const CodeSolutionController = {
     try {
       const { courseId, codeAssessmentId } =
         req.params as CodeSolutionAssesmentIdParamType;
-      const codeSolutions = await CodeSolutionService.findAll(codeAssessmentId);
-      res.status(200).json(codeSolutions);
+      const userId = req.user?.id;
+      const orgAdmin = req.user?.orgAdmin;
+      const userRole = req.user?.role;
+      const codeSolutions = await CodeSolutionService.findAll(
+        codeAssessmentId,
+        courseId,
+        userId,
+        orgAdmin,
+        userRole
+      );
+      res.status(200).json({ codeSolutions });
     } catch (error) {
       res
         .status(CODE_SOLUTIONS_FETCH_FAILED.STATUS)
@@ -42,7 +51,7 @@ export const CodeSolutionController = {
         codeAssessmentId,
         userId
       );
-      res.status(201).json(newCodeSolution);
+      res.status(201).json({ codeSolution: newCodeSolution });
     } catch (error) {
       res
         .status(CODE_SOLUTION_CREATE_FAILED.STATUS)
@@ -53,10 +62,17 @@ export const CodeSolutionController = {
   findById: async (req: Request, res: Response) => {
     const { id, codeAssessmentId, courseId } =
       req.params as CodeSolutionIdParamType;
+    const userId = req.user?.id;
+    const orgAdmin = req.user?.orgAdmin;
+    const userRole = req.user?.role;
     try {
       const codeSolution = await CodeSolutionService.findById(
         id,
-        codeAssessmentId
+        codeAssessmentId,
+        courseId,
+        userId,
+        orgAdmin,
+        userRole
       );
       if (!codeSolution) {
         res
@@ -64,28 +80,11 @@ export const CodeSolutionController = {
           .json({ error: CODE_SOLUTION_NOT_FOUND.MESSAGE });
         return;
       }
-      res.status(200).json(codeSolution);
+      res.status(200).json({ codeSolution });
     } catch (error) {
       res
         .status(CODE_SOLUTION_FETCH_FAILED.STATUS)
         .json({ error: CODE_SOLUTION_FETCH_FAILED.MESSAGE });
-    }
-  },
-
-  findByUser: async (req: Request, res: Response) => {
-    const userId = req?.user?.id!;
-    const { codeAssessmentId, courseId } =
-      req.params as CodeSolutionAssesmentIdParamType;
-    try {
-      const codeSolutions = await CodeSolutionService.findByUser(
-        codeAssessmentId,
-        userId
-      );
-      res.status(200).json(codeSolutions);
-    } catch (error) {
-      res
-        .status(CODE_SOLUTIONS_FETCH_FAILED.STATUS)
-        .json({ error: CODE_SOLUTIONS_FETCH_FAILED.MESSAGE });
     }
   },
 
@@ -99,7 +98,7 @@ export const CodeSolutionController = {
         codeAssessmentId,
         statusData
       );
-      res.status(200).json(updatedCodeSolution);
+      res.status(200).json({ codeSolution: updatedCodeSolution });
     } catch (error) {
       res
         .status(CODE_SOLUTION_UPDATE_FAILED.STATUS)
@@ -117,7 +116,7 @@ export const CodeSolutionController = {
         codeAssessmentId,
         scoreData
       );
-      res.status(200).json(updatedCodeSolution);
+      res.status(200).json({ codeSolution: updatedCodeSolution });
     } catch (error) {
       res
         .status(CODE_SOLUTION_UPDATE_FAILED.STATUS)
