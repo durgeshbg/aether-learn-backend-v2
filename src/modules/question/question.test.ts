@@ -1,26 +1,57 @@
-import { setupTests } from '../../utils/testsSetup';
+import {
+  setupTests,
+  staticData,
+  type UserOrgAdmin,
+} from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import { PrismaClient } from '../../generated/prisma';
+import {
+  PrismaClient,
+  type Course,
+  type Organization,
+  type Question,
+  type Quiz,
+} from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
+import { QuestionErrors } from './question.errors';
+import { Role } from '../../generated/prisma';
 
 let url = '/api/v1/courses';
 
 const { UNAUTHORIZED, FORBIDDEN } = AuthErrors;
-const { INVALID_DATA, INVALID_QUERY_PARAMS } = ValidationErrors;
+const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
+const { QUESTION_NOT_FOUND } = QuestionErrors;
+
+const {
+  USER_TEST_EMAILS,
+  USER_TEST_PASSWORD,
+  ORGANIZATION_TEST_NAME,
+  COURSE_TEST_NAME,
+  QUIZ_TEST_TITLE,
+  QUESTION_TEST_TEXT,
+  QUESTION_TEST_OPTIONS,
+  QUESTION_TEST_ANSWER,
+} = staticData;
 
 describe('Question', async () => {
   let cleanTestDB: () => Promise<void>;
   let app: Application;
   let prisma: PrismaClient;
+
+  let admin: UserOrgAdmin;
+  let user: UserOrgAdmin;
+  let user2: UserOrgAdmin;
   let adminToken: string;
   let userToken: string;
-  let questionId: string;
-  let quizId: string;
-  let courseId: string;
+  let user2Token: string;
+
+  let organization: Organization;
+  let course: Course;
+  let quiz: Quiz;
+  let question: Question;
 
   beforeAll(async () => {
     const testDB = await setupTests();
@@ -29,17 +60,48 @@ describe('Question', async () => {
     app = setupApp();
 
     prisma = new PrismaClient();
-    await testDB.seedUsers(prisma);
-    const course = await testDB.seedCourses(prisma);
-    const quiz = await testDB.seedQuizzes(prisma, course.id);
+    admin = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.admin,
+      Role.ADMIN,
+      USER_TEST_PASSWORD
+    );
+    user = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.user,
+      Role.USER,
+      USER_TEST_PASSWORD
+    );
+    user2 = await testDB.seedUser(
+      prisma,
+      USER_TEST_EMAILS.user2,
+      Role.USER,
+      USER_TEST_PASSWORD
+    );
 
-    const tokens = await testDB.getTokens(app);
-    adminToken = tokens.adminToken;
-    userToken = tokens.userToken;
+    organization = await testDB.seedOrganization(
+      prisma,
+      ORGANIZATION_TEST_NAME,
+      user.id
+    );
+    course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
+    quiz = await testDB.seedQuiz(prisma, QUIZ_TEST_TITLE, course.id);
+    question = await testDB.seedQuestion(
+      prisma,
+      quiz.id,
+      QUESTION_TEST_TEXT,
+      QUESTION_TEST_OPTIONS,
+      QUESTION_TEST_ANSWER
+    );
 
-    courseId = course.id;
-    quizId = quiz.id;
-    url = `/api/v1/courses/${courseId}/quizzes/${quizId}/questions`;
+    url = `/api/v1/courses/${course.id}/quizzes/${quiz.id}/questions`;
+
+    adminToken = testDB.genToken(admin);
+    userToken = testDB.genToken({
+      ...user,
+      orgAdminOf: { id: organization.id },
+    });
+    user2Token = testDB.genToken(user2);
   });
 
   afterAll(async () => {
@@ -48,20 +110,52 @@ describe('Question', async () => {
   });
 
   describe('GET: /', () => {
-    test('Should fetch all questions with admin auth', async () => {
+    test('Should fetch all questions for quiz as admin', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body).toHaveProperty('questions');
+      expect(response.body.questions.length).toBeGreaterThan(0);
     });
 
-    test('Should questions as user', async () => {
+    test('Should fetch all questions for quiz as organization admin', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
+      expect(response.body).toHaveProperty('questions');
+      expect(response.body.questions.length).toBeGreaterThan(0);
+    });
+
+    test('Should fetch all questions for quiz as organization user', async () => {
+      // add user2 to the organization
+      const a = await supertest(app)
+        .put(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+
+      const response = await supertest(app)
+        .get(url)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('questions');
+      expect(response.body.questions.length).toBeGreaterThan(0);
+
+      // remove user2 from the organization
+      await supertest(app)
+        .delete(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+    });
+
+    test('Should not fetch questions for quiz as regular user not part of organization', async () => {
+      const response = await supertest(app)
+        .get(url)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('questions');
+      expect(response.body.questions.length).toBe(0);
     });
 
     test('Should not fetch questions without auth', async () => {
@@ -82,8 +176,7 @@ describe('Question', async () => {
           answer: 1,
         });
       expect(response.status).toBe(201);
-      expect(response.body).toHaveProperty('id');
-      questionId = response.body.id;
+      expect(response.body.question).toHaveProperty('id');
     });
 
     test('Should not create question as user', async () => {
@@ -128,43 +221,63 @@ describe('Question', async () => {
   });
 
   describe('GET: /:id', async () => {
-    questionId = await prisma.question
-      .create({
-        data: {
-          text: 'Should Not Update',
-          options: ['A', 'B'],
-          answer: 0,
-          quiz: { connect: { id: quizId } },
-        },
-      })
-      .then((q) => q.id);
-
     test('Should fetch question by ID as admin', async () => {
       const response = await supertest(app)
-        .get(`${url}/${questionId}`)
+        .get(`${url}/${question.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', questionId);
+      expect(response.body.question).toHaveProperty('id');
+      expect(response.body.question.id).toBe(question.id);
+    });
+
+    test('Should fetch question by ID as organization admin', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${question.id}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.question).toHaveProperty('id');
+      expect(response.body.question.id).toBe(question.id);
+    });
+
+    test('Should fetch question by ID as organization user', async () => {
+      // add user2 to the organization
+      const a = await supertest(app)
+        .put(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+
+      const response = await supertest(app)
+        .get(`${url}/${question.id}`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body.question).toHaveProperty('id');
+      expect(response.body.question.id).toBe(question.id);
+
+      // remove user2 from the organization
+      await supertest(app)
+        .delete(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ userIds: [user2.id] });
+    });
+
+    test('Should not fetch question by ID as regular user not part of organization', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${question.id}`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(QUESTION_NOT_FOUND.STATUS);
+      expect(response.body.error).toBe(QUESTION_NOT_FOUND.MESSAGE);
     });
 
     test('Should not fetch question with invalid ID', async () => {
       const response = await supertest(app)
         .get(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
-    });
-
-    test('Should question as user', async () => {
-      const response = await supertest(app)
-        .get(`${url}/${questionId}`)
-        .set('Authorization', `Bearer ${userToken}`);
-      expect(response.status).toBe(200);
-      expect(response.body).toHaveProperty('id', questionId);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not fetch question without auth', async () => {
-      const response = await supertest(app).get(`${url}/${questionId}`);
+      const response = await supertest(app).get(`${url}/${question.id}`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });
@@ -173,16 +286,16 @@ describe('Question', async () => {
   describe('PUT: /:id', () => {
     test('Should update question as admin', async () => {
       const response = await supertest(app)
-        .put(`${url}/${questionId}`)
+        .put(`${url}/${question.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ text: 'Updated Q', options: ['A', 'B'], answer: 0 });
       expect(response.status).toBe(200);
-      expect(response.body.text).toBe('Updated Q');
+      expect(response.body.question.text).toBe('Updated Q');
     });
 
     test('Should not update question as user', async () => {
       const response = await supertest(app)
-        .put(`${url}/${questionId}`)
+        .put(`${url}/${question.id}`)
         .set('Authorization', `Bearer ${userToken}`)
         .send({ text: 'Should Not Update', options: ['A', 'B'], answer: 0 });
       expect(response.status).toBe(FORBIDDEN.STATUS);
@@ -191,7 +304,7 @@ describe('Question', async () => {
 
     test('Should not update question with invalid data', async () => {
       const response = await supertest(app)
-        .put(`${url}/${questionId}`)
+        .put(`${url}/${question.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ text: '', options: ['A'], answer: 0 });
       expect(response.status).toBe(INVALID_DATA.STATUS);
@@ -200,7 +313,7 @@ describe('Question', async () => {
 
     test('Should not update question with invalid answer index', async () => {
       const response = await supertest(app)
-        .put(`${url}/${questionId}`)
+        .put(`${url}/${question.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ text: 'Q', options: ['A', 'B'], answer: 5 });
       expect(response.status).toBe(INVALID_DATA.STATUS);
@@ -209,7 +322,7 @@ describe('Question', async () => {
 
     test('Should not update question with only options and no answer update', async () => {
       const response = await supertest(app)
-        .put(`${url}/${questionId}`)
+        .put(`${url}/${question.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ text: 'Q', options: ['A', 'B'] });
       expect(response.status).toBe(INVALID_DATA.STATUS);
@@ -218,7 +331,7 @@ describe('Question', async () => {
 
     test('Should not update question with only answer and no options update', async () => {
       const response = await supertest(app)
-        .put(`${url}/${questionId}`)
+        .put(`${url}/${question.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ text: 'Q', answer: 5 });
       expect(response.status).toBe(INVALID_DATA.STATUS);
@@ -232,13 +345,13 @@ describe('Question', async () => {
         .put(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ text: 'Q', options: ['A', 'B'], answer: 0 });
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not update question without auth', async () => {
       const response = await supertest(app)
-        .put(`${url}/${questionId}`)
+        .put(`${url}/${question.id}`)
         .send({ text: 'Q', options: ['A', 'B'], answer: 0 });
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
@@ -252,7 +365,7 @@ describe('Question', async () => {
         .post(url)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ text: 'To Delete', options: ['A', 'B'], answer: 0 });
-      const delId = create.body.id;
+      const delId = create.body.question.id;
 
       const response = await supertest(app)
         .delete(`${url}/${delId}`)
@@ -262,7 +375,7 @@ describe('Question', async () => {
 
     test('Should not delete question as user', async () => {
       const response = await supertest(app)
-        .delete(`${url}/${questionId}`)
+        .delete(`${url}/${question.id}`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
@@ -272,12 +385,12 @@ describe('Question', async () => {
       const response = await supertest(app)
         .delete(`${url}/invalid-id`)
         .set('Authorization', `Bearer ${adminToken}`);
-      expect(response.status).toBe(INVALID_QUERY_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_QUERY_PARAMS.MESSAGE);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
     test('Should not delete question without auth', async () => {
-      const response = await supertest(app).delete(`${url}/${questionId}`);
+      const response = await supertest(app).delete(`${url}/${question.id}`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });

@@ -21,8 +21,16 @@ export const QuizController = {
   findAll: async (req: Request, res: Response) => {
     try {
       const { courseId } = req.params as QuizCourseIdParamsType;
-      const quizzes = await QuizService.findAll(courseId);
-      res.status(200).json(quizzes);
+      const uesrId = req.user?.id;
+      const orgAdmin = req.user?.orgAdmin;
+      const userRole = req.user?.role;
+      const quizzes = await QuizService.findAll(
+        courseId,
+        uesrId,
+        orgAdmin,
+        userRole
+      );
+      res.status(200).json({ quizzes });
     } catch (error: any) {
       res.status(QUIZZES_FETCH_FAILED.STATUS).json({
         error: QUIZZES_FETCH_FAILED.MESSAGE,
@@ -33,14 +41,23 @@ export const QuizController = {
   findById: async (req: Request, res: Response) => {
     try {
       const { id, courseId } = req.params as QuizIdParamsType;
-      const quiz = await QuizService.findById(id, courseId);
+      const userId = req.user?.id;
+      const orgAdmin = req.user?.orgAdmin;
+      const userRole = req.user?.role;
+      const quiz = await QuizService.findById(
+        id,
+        courseId,
+        userId,
+        orgAdmin,
+        userRole
+      );
       if (!quiz) {
         res.status(QUIZ_NOT_FOUND.STATUS).json({
           error: QUIZ_NOT_FOUND.MESSAGE,
         });
         return;
       }
-      res.status(200).json(quiz);
+      res.status(200).json({ quiz });
     } catch (error: any) {
       res.status(QUIZ_FETCH_FAILED.STATUS).json({
         error: QUIZ_FETCH_FAILED.MESSAGE,
@@ -53,7 +70,7 @@ export const QuizController = {
       const { courseId } = req.params as QuizCourseIdParamsType;
       const quizData: QuizCreateType = req.body;
       const quiz = await QuizService.create(courseId, quizData);
-      res.status(201).json(quiz);
+      res.status(201).json({ quiz });
     } catch (error: any) {
       res.status(QUIZ_CREATE_FAILED.STATUS).json({
         error: QUIZ_CREATE_FAILED.MESSAGE,
@@ -72,7 +89,7 @@ export const QuizController = {
         });
         return;
       }
-      res.status(200).json(updatedQuiz);
+      res.status(200).json({ quiz: updatedQuiz });
     } catch (error: any) {
       res.status(QUIZ_UPDATE_FAILED.STATUS).json({
         error: QUIZ_UPDATE_FAILED.MESSAGE,
