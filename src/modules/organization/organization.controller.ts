@@ -52,6 +52,7 @@ export const OrganizationController = {
         res.status(ORGANIZATION_NOT_FOUND.STATUS).json({
           error: ORGANIZATION_NOT_FOUND.MESSAGE,
         });
+        return;
       }
 
       const users = organization?.users.map((user) => user.id);

@@ -62,7 +62,8 @@ async function main() {
       firstName: 'Bob',
       lastName: 'Smith',
       role: Role.USER,
-      orgAdminOf: { connect: { id: org2.id } },
+      orgAdminOf: { connect: { id: org1.id } },
+      organizationId: org1.id,
     },
   });
 
@@ -73,7 +74,8 @@ async function main() {
       firstName: 'Eve',
       lastName: 'Johnson',
       role: Role.USER,
-      orgAdminOf: { connect: { id: org1.id } },
+      orgAdminOf: { connect: { id: org2.id } },
+      organizationId: org2.id,
     },
   });
 

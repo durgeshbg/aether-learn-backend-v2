@@ -9,7 +9,7 @@ import {
 import { ModuleController } from './module.controller';
 import { validate, validateParams } from '../../middlewares/validate';
 
-const router = Router({mergeParams: true});
+const router = Router({ mergeParams: true });
 
 router.use(authMiddleware);
 

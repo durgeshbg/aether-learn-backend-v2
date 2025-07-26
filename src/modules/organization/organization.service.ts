@@ -43,6 +43,9 @@ export const OrganizationService = {
       where: { id },
       data: {
         orgAdminId: userId,
+        users: {
+          connect: { id: userId },
+        },
       },
     });
   },
