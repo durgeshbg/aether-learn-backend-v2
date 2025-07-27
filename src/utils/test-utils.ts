@@ -129,6 +129,9 @@ export async function setupTests() {
         name,
         description: `Description for ${name}`,
         orgAdminId,
+        users: {
+          connect: { id: orgAdminId },
+        }
       },
     });
   };
