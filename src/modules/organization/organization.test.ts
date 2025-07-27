@@ -208,7 +208,7 @@ describe('Organization', async () => {
       // add user2 to organization
       await supertest(app)
         .put(`${url}/${organization.id}/users`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
 
       const response = await supertest(app)
@@ -220,7 +220,7 @@ describe('Organization', async () => {
       // remove user2 from organization
       await supertest(app)
         .delete(`${url}/${organization.id}/users`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
     });
 
@@ -349,7 +349,7 @@ describe('Organization', async () => {
       expect(response.body.error).toBe(INVALID_DATA.MESSAGE);
     });
 
-    test('Should not add users if not admin or org admin', async () => {
+    test('Should not add users if not admin', async () => {
       const response = await supertest(app)
         .put(`${url}/${organization.id}/users`)
         .set('Authorization', `Bearer ${user2Token}`)
@@ -374,23 +374,6 @@ describe('Organization', async () => {
         usersResponse.body.users.some((user: any) => user.id === user2.id)
       ).toBe(true);
     });
-
-    test('Should add users to organization if org admin', async () => {
-      const response = await supertest(app)
-        .put(`${url}/${organization.id}/users`)
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({ userIds: [user3.id] });
-      expect(response.status).toBe(200);
-
-      // Verify user was added
-      const usersResponse = await supertest(app)
-        .get(`${url}/${organization.id}/users`)
-        .set('Authorization', `Bearer ${adminToken}`);
-      expect(usersResponse.status).toBe(200);
-      expect(
-        usersResponse.body.users.some((user: any) => user.id === user3.id)
-      ).toBe(true);
-    });
   });
 
   describe('DELETE: /:id/users', () => {
@@ -412,10 +395,10 @@ describe('Organization', async () => {
       expect(response.body.error).toBe(INVALID_DATA.MESSAGE);
     });
 
-    test('Should not remove users if not admin or org admin', async () => {
+    test('Should not remove users if not admin', async () => {
       const response = await supertest(app)
         .delete(`${url}/${organization.id}/users`)
-        .set('Authorization', `Bearer ${user2Token}`)
+        .set('Authorization', `Bearer ${userToken}`)
         .send({ userIds: [user2.id] });
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
@@ -435,23 +418,6 @@ describe('Organization', async () => {
       expect(usersResponse.status).toBe(200);
       expect(
         usersResponse.body.users.some((user: any) => user.id === user2.id)
-      ).toBe(false);
-    });
-
-    test('Should remove users from organization if org admin', async () => {
-      const response = await supertest(app)
-        .delete(`${url}/${organization.id}/users`)
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({ userIds: [user3.id] });
-      expect(response.status).toBe(200);
-
-      // Verify user was removed
-      const usersResponse = await supertest(app)
-        .get(`${url}/${organization.id}/users`)
-        .set('Authorization', `Bearer ${adminToken}`);
-      expect(usersResponse.status).toBe(200);
-      expect(
-        usersResponse.body.users.some((user: any) => user.id === user3.id)
       ).toBe(false);
     });
   });
@@ -477,7 +443,7 @@ describe('Organization', async () => {
       // add user2 to organization
       await supertest(app)
         .put(`${url}/${organization.id}/users`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
 
       const response = await supertest(app)
@@ -492,7 +458,7 @@ describe('Organization', async () => {
       // remove user2 from organization
       await supertest(app)
         .delete(`${url}/${organization.id}/users`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
     });
 

@@ -118,7 +118,7 @@ describe('Lesson', async () => {
       // add user 2 to organization
       await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
 
       const response = await supertest(app)
@@ -131,7 +131,7 @@ describe('Lesson', async () => {
       // Clean up: remove user2 from organization
       const r = await supertest(app)
         .delete(`/api/v1/organizations/${organization.id}/users`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
     });
 
@@ -214,7 +214,7 @@ describe('Lesson', async () => {
       // add user 2 to organization
       await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
 
       const response = await supertest(app)
@@ -226,7 +226,7 @@ describe('Lesson', async () => {
       // Clean up: remove user2 from organization
       await supertest(app)
         .delete(`/api/v1/organizations/${organization.id}/users`)
-        .set('Authorization', `Bearer ${userToken}`)
+        .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
     });
 
