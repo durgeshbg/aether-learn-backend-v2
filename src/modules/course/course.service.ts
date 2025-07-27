@@ -53,6 +53,18 @@ export const CourseService = {
     }
   },
 
+  async findAllNonOrganizationCourses(organizationId: string) {
+    return await prisma.course.findMany({
+      where: {
+        organizations: {
+          none: {
+            id: organizationId,
+          },
+        },
+      },
+    });
+  },
+
   async findById(
     id: string,
     userId?: string,

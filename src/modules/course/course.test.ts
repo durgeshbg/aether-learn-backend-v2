@@ -20,7 +20,7 @@ import { CourseErrors } from './course.errors';
 const url = '/api/v1/courses';
 
 const { FORBIDDEN, UNAUTHORIZED } = AuthErrors;
-const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
+const { INVALID_DATA, INVALID_PARAMS, INVALID_QUERY } = ValidationErrors;
 const { COURSE_NOT_FOUND } = CourseErrors;
 const {
   USER_TEST_EMAILS,
@@ -161,6 +161,37 @@ describe('Course', async () => {
         .send({ name: '', description: '' });
       expect(response.status).toBe(INVALID_DATA.STATUS);
       expect(response.body.error).toBe(INVALID_DATA.MESSAGE);
+    });
+  });
+
+  describe('GET: /non-organization-courses', () => {
+    test('Should fetch non-organization courses as admin', async () => {
+      const response = await supertest(app)
+        .get(
+          `${url}/non-organization-courses?organizationId=${organization.id}`
+        )
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.courses).toBeInstanceOf(Array);
+      expect(response.body.courses.length).toBeGreaterThan(0);
+    });
+
+    test('Should not fetch non-organization courses when non organization ID is provided', async () => {
+      const response = await supertest(app)
+        .get(`${url}/non-organization-courses?organizationId=invalid-id`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response.status).toBe(INVALID_QUERY.STATUS);
+      expect(response.body.error).toBe(INVALID_QUERY.MESSAGE);
+    });
+
+    test('Should not fetch non-organization courses as non admin', async () => {
+      const response = await supertest(app)
+        .get(
+          `${url}/non-organization-courses?organizationId=${organization.id}`
+        )
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(FORBIDDEN.STATUS);
+      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
     });
   });
 

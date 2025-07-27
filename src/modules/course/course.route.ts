@@ -31,6 +31,13 @@ router.post(
 );
 
 router.get(
+  '/non-organization-courses',
+  adminMiddleware,
+  validateQuery(CourseOrganizationIDQuerySchema),
+  CourseController.findAllNonOrganizationCourses
+);
+
+router.get(
   '/:id',
   validateParams(CourseIdParamSchema),
   CourseController.findById

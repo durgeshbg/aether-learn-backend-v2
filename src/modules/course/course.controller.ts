@@ -3,6 +3,7 @@ import { CourseService } from './course.service';
 import { CourseErrors } from './course.errors';
 import type {
   CourseCreateType,
+  CourseOrganizationIDQueryRequiredType,
   CourseOrganizationIDQueryType,
   CourseUpdateType,
 } from './course.schema';
@@ -27,6 +28,22 @@ export const CourseController = {
         userId,
         orgAdmin,
         role,
+        organizationId
+      );
+      res.status(200).json({ courses });
+    } catch (error: any) {
+      res.status(COURSES_FETCH_FAILED.STATUS).json({
+        error: COURSES_FETCH_FAILED.MESSAGE,
+      });
+    }
+  },
+
+  findAllNonOrganizationCourses: async (req: Request, res: Response) => {
+    try {
+      const { organizationId }: CourseOrganizationIDQueryRequiredType =
+        req.parsedQuery;
+
+      const courses = await CourseService.findAllNonOrganizationCourses(
         organizationId
       );
       res.status(200).json({ courses });
