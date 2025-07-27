@@ -19,16 +19,16 @@ export const CourseController = {
   findAll: async (req: Request, res: Response) => {
     try {
       const userId = req.user?.id;
-      const user = await UserService.findById(userId!);
-      let organizationId = req.user?.orgAdmin || user?.organization?.id;
-      const courses = await CourseService.findAll(organizationId);
-      res.status(200).json({
-        courses: !organizationId
-          ? req.user?.role === Role.ADMIN
-            ? courses
-            : []
-          : courses,
-      });
+      const { organizationId } = req.query as { organizationId?: string };
+      const role = req.user?.role;
+      const orgAdmin = req.user?.orgAdmin;
+      const courses = await CourseService.findAll(
+        userId,
+        orgAdmin,
+        role,
+        organizationId
+      );
+      res.status(200).json({ courses });
     } catch (error: any) {
       res.status(COURSES_FETCH_FAILED.STATUS).json({
         error: COURSES_FETCH_FAILED.MESSAGE,
@@ -40,18 +40,12 @@ export const CourseController = {
     try {
       const { id } = req.params;
       const userId = req.user?.id;
-      const user = await UserService.findById(userId!);
-      let organizationId = req.user?.orgAdmin || user?.organization?.id;
-      const course = await CourseService.findById(id!, organizationId);
+      const orgAdmin = req.user?.orgAdmin;
+      const role = req.user?.role;
+      const course = await CourseService.findById(id!, userId, orgAdmin, role);
       if (!course) {
         res.status(COURSE_NOT_FOUND.STATUS).json({
           error: COURSE_NOT_FOUND.MESSAGE,
-        });
-      }
-
-      if (!organizationId && req.user?.role !== Role.ADMIN) {
-        res.status(COURSE_ACCESS_FORBIDDEN.STATUS).json({
-          error: COURSE_ACCESS_FORBIDDEN.MESSAGE,
         });
         return;
       }

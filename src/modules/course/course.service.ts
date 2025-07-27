@@ -1,35 +1,92 @@
-import { PrismaClient } from '../../generated/prisma';
+import { PrismaClient, Role } from '../../generated/prisma';
 import type { CourseCreateType, CourseUpdateType } from './course.schema';
 
 const prisma = new PrismaClient();
 
 export const CourseService = {
-  async findAll(organizationId?: string) {
-    return await prisma.course.findMany({
-      where: {
-        organizations: {
-          some: {
-            id: organizationId,
+  async findAll(
+    userId?: string,
+    orgAdmin?: string | null,
+    role?: Role,
+    organizationId?: string
+  ) {
+    if (role === Role.ADMIN) {
+      return await prisma.course.findMany({
+        ...(organizationId && {
+          where: {
+            organizations: {
+              some: {
+                id: organizationId,
+              },
+            },
+          },
+        }),
+      });
+    }
+
+    if (orgAdmin) {
+      return await prisma.course.findMany({
+        where: {
+          organizations: {
+            some: {
+              id: orgAdmin,
+            },
           },
         },
-      },
-      include: {
-        lessons: true,
-        quizzes: true,
-        codeAssessments: true,
-      },
-    });
+      });
+    }
+
+    if (userId) {
+      return await prisma.course.findMany({
+        where: {
+          organizations: {
+            some: {
+              users: {
+                some: {
+                  id: userId,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
   },
 
-  async findById(id: string, organizationId?: string) {
-    return await prisma.course.findUnique({
-      where: { id, organizations: { some: { id: organizationId } } },
-      include: {
-        lessons: true,
-        quizzes: true,
-        codeAssessments: true,
-      },
-    });
+  async findById(
+    id: string,
+    userId?: string,
+    orgAdmin?: string | null,
+    role?: Role
+  ) {
+    if (role === Role.ADMIN) {
+      return await prisma.course.findUnique({
+        where: { id },
+      });
+    }
+
+    if (orgAdmin) {
+      return await prisma.course.findUnique({
+        where: { id, organizations: { some: { id: orgAdmin } } },
+      });
+    }
+
+    if (userId) {
+      return await prisma.course.findUnique({
+        where: {
+          id,
+          organizations: {
+            some: {
+              users: {
+                some: {
+                  id: userId,
+                },
+              },
+            },
+          },
+        },
+      });
+    }
   },
 
   async create(courseData: CourseCreateType) {
@@ -38,11 +95,6 @@ export const CourseService = {
         name: courseData.name,
         description: courseData.description,
         thumbnailUrl: courseData.thumbnailUrl,
-      },
-      include: {
-        lessons: true,
-        quizzes: true,
-        codeAssessments: true,
       },
     });
   },
