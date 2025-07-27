@@ -5,12 +5,17 @@ import {
   authMiddleware,
   orgAdminMiddleware,
 } from '../../middlewares/auth';
-import { validate, validateParams } from '../../middlewares/validate';
+import {
+  validate,
+  validateParams,
+  validateQuery,
+} from '../../middlewares/validate';
 import {
   CreateOrganizationSchema,
   OrgAdminUpdateScehma,
   OrganizationCourseUpdateSchema,
   OrganizationIdParamSchema,
+  OrganizationNameQuerySchema,
   OrganizationUpdateSchema,
   OrganizationUserUpdateSchema,
 } from './organization.schema';
@@ -21,7 +26,12 @@ router.use(authMiddleware);
 
 router.get('/', adminMiddleware, OrganizationController.findAll);
 
-router.get('/search', adminMiddleware, OrganizationController.findByName);
+router.get(
+  '/search',
+  adminMiddleware,
+  validateQuery(OrganizationNameQuerySchema),
+  OrganizationController.findByName
+);
 
 router.post(
   '/',

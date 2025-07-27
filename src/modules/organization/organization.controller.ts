@@ -5,6 +5,7 @@ import type {
   OrgAdminUpdateType,
   OrganizationCourseUpdateType,
   OrganizationIdParamType,
+  OrganizationNameQueryType,
   OrganizationUpdateType,
   OrganizationUserUpdateType,
 } from './organization.schema';
@@ -79,13 +80,7 @@ export const OrganizationController = {
 
   findByName: async (req: Request, res: Response) => {
     try {
-      const { name } = req.query;
-      if (typeof name !== 'string') {
-        res.status(ORGANIZATION_NAME_INVALID.STATUS).json({
-          error: ORGANIZATION_NAME_INVALID.MESSAGE,
-        });
-        return;
-      }
+      const { name }: OrganizationNameQueryType = req.parsedQuery;
       const organizations = await OrganizationService.findByName(name);
       if (organizations.length === 0) {
         res.status(ORGANIZATIONS_NOT_FOUND.STATUS).json({

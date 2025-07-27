@@ -34,6 +34,10 @@ export const OrgAdminUpdateScehma = z.object({
   userId: z.string().cuid('Invalid user ID format'),
 });
 
+export const OrganizationNameQuerySchema = z.object({
+  name: z.string().min(1, 'Organization name is required'),
+});
+
 export type CreateOrganizationType = z.infer<typeof CreateOrganizationSchema>;
 export type OrganizationUpdateType = z.infer<typeof OrganizationUpdateSchema>;
 export type OrganizationIdParamType = z.infer<typeof OrganizationIdParamSchema>;
@@ -44,3 +48,6 @@ export type OrganizationCourseUpdateType = z.infer<
   typeof OrganizationCourseUpdateSchema
 >;
 export type OrgAdminUpdateType = z.infer<typeof OrgAdminUpdateScehma>;
+export type OrganizationNameQueryType = z.infer<
+  typeof OrganizationNameQuerySchema
+>;
