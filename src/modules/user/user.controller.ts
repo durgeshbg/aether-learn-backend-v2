@@ -6,7 +6,8 @@ import type {
   UserLoginType,
   UserIdParamType,
   UserDetailsUpdateType,
-  UserQueryParamType,
+  UserFilterQueryType,
+  UserOrganizationIDQueryType,
 } from './user.schema';
 import { hash } from 'bcrypt-ts';
 import { UserErrors } from './user.errors';
@@ -27,7 +28,8 @@ const {
 export const UserController = {
   findAll: async (req: Request, res: Response) => {
     try {
-      const orgId = (req.query.organizationId || req.user?.orgAdmin) as string;
+      const orgId: UserOrganizationIDQueryType['organizationId'] = (req
+        .parsedQuery.organizationId || req.user?.orgAdmin) as string;
       const users = await UserService.findAll(orgId);
       res.status(200).json({ users });
       return;
@@ -51,9 +53,7 @@ export const UserController = {
   findById: async (req: Request, res: Response) => {
     try {
       const { id } = req.params as UserIdParamType;
-      const { filter } = req.query as {
-        filter?: UserQueryParamType;
-      };
+      const { filter }: UserFilterQueryType = req.parsedQuery;
       const user = await UserService.findById(id!, filter);
 
       if (!user) {

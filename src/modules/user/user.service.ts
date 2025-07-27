@@ -1,7 +1,7 @@
 import type {
   CreateUserType,
   UserDetailsUpdateType,
-  UserQueryParamType,
+  UserFilterQueryType,
 } from './user.schema';
 import { PrismaClient, Role } from '../../generated/prisma';
 import { compare } from 'bcrypt-ts';
@@ -103,7 +103,7 @@ export const UserService = {
     });
   },
 
-  findById: async (id: string, filter?: UserQueryParamType) => {
+  findById: async (id: string, filter?: UserFilterQueryType['filter']) => {
     const userSelectWithFilter = {
       ...userSelect,
       codeSolutions: filter === 'code-solutions' ? true : undefined,

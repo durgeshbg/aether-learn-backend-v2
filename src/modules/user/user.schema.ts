@@ -49,6 +49,20 @@ export const UserRoleUpdateSchema = z.object({
   }),
 });
 
+export const UserFilterQuerySchema = z.object({
+  filter: z
+    .enum(['code-solutions', 'quiz-results'], {
+      errorMap: () => ({
+        message: 'Filter must be either code-solutions or quiz-results',
+      }),
+    })
+    .optional(),
+});
+
+export const UserOrganizationIDQuerySchema = z.object({
+  organizationId: z.string().cuid('Invalid organization ID format').optional(),
+});
+
 export type CreateUserType = z.infer<typeof CreateUserSchema>;
 export type UserDetailsUpdateType = z.infer<typeof UserDetailsUpdateSchema>;
 export type UserLoginType = z.infer<typeof UserLoginSchema>;
@@ -56,4 +70,7 @@ export type UserOrganizationUpdateType = z.infer<
   typeof UserOrganizationUpdateSchema
 >;
 export type UserIdParamType = z.infer<typeof UserIdParamSchema>;
-export type UserQueryParamType = 'code-solutions' | 'quiz-results';
+export type UserFilterQueryType = z.infer<typeof UserFilterQuerySchema>;
+export type UserOrganizationIDQueryType = z.infer<
+  typeof UserOrganizationIDQuerySchema
+>;

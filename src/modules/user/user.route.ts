@@ -5,7 +5,11 @@ import {
   authMiddleware,
   orgAdminMiddleware,
 } from '../../middlewares/auth';
-import { validate, validateParams } from '../../middlewares/validate';
+import {
+  validate,
+  validateParams,
+  validateQuery,
+} from '../../middlewares/validate';
 import {
   CreateUserSchema,
   UserIdParamSchema,
@@ -13,6 +17,8 @@ import {
   UserDetailsUpdateSchema,
   UserRoleUpdateSchema,
   UserOrganizationUpdateSchema,
+  UserOrganizationIDQuerySchema,
+  UserFilterQuerySchema,
 } from './user.schema';
 
 const router = express.Router();
@@ -21,7 +27,12 @@ router.post('/login', validate(UserLoginSchema), UserController.login);
 
 router.use(authMiddleware);
 
-router.get('/', orgAdminMiddleware, UserController.findAll);
+router.get(
+  '/',
+  orgAdminMiddleware,
+  validateQuery(UserOrganizationIDQuerySchema),
+  UserController.findAll
+);
 
 router.post(
   '/',
@@ -36,7 +47,12 @@ router.get(
   UserController.findNonOrganizationUsers
 );
 
-router.get('/:id', validateParams(UserIdParamSchema), UserController.findById);
+router.get(
+  '/:id',
+  validateParams(UserIdParamSchema),
+  validateQuery(UserFilterQuerySchema),
+  UserController.findById
+);
 
 router.put(
   '/:id',
