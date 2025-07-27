@@ -175,15 +175,9 @@ export const OrganizationController = {
   addUsers: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      if (req.user?.orgAdmin === id || req.user?.role === 'ADMIN') {
-        const { userIds }: OrganizationUserUpdateType = req.body;
-        const organization = await OrganizationService.addUsers(id!, userIds);
-        res.status(200).json({ organization });
-        return;
-      }
-      res.status(ORGANIZATION_USERS_ADD_FAILED.STATUS).json({
-        error: ORGANIZATION_USERS_ADD_FAILED.MESSAGE,
-      });
+      const { userIds }: OrganizationUserUpdateType = req.body;
+      const organization = await OrganizationService.addUsers(id!, userIds);
+      res.status(200).json({ organization });
     } catch (error: any) {
       res.status(ORGANIZATION_USERS_ADD_FAILED.STATUS).json({
         error: ORGANIZATION_USERS_ADD_FAILED.MESSAGE,
@@ -194,19 +188,9 @@ export const OrganizationController = {
   removeUsers: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      if (req.user?.orgAdmin === id || req.user?.role === 'ADMIN') {
-        const { userIds }: OrganizationUserUpdateType = req.body;
-        const organization = await OrganizationService.removeUsers(
-          id!,
-          userIds
-        );
-        res.status(200).json({ organization });
-        return;
-      }
-      res.status(ORGANIZATION_USERS_REMOVE_FAILED.STATUS).json({
-        error: ORGANIZATION_USERS_REMOVE_FAILED.MESSAGE,
-      });
-      return;
+      const { userIds }: OrganizationUserUpdateType = req.body;
+      const organization = await OrganizationService.removeUsers(id!, userIds);
+      res.status(200).json({ organization });
     } catch (error: any) {
       res.status(ORGANIZATION_USERS_REMOVE_FAILED.STATUS).json({
         error: ORGANIZATION_USERS_REMOVE_FAILED.MESSAGE,

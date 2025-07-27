@@ -70,7 +70,7 @@ router.get(
 
 router.put(
   '/:id/users',
-  orgAdminMiddleware,
+  adminMiddleware,
   validateParams(OrganizationIdParamSchema),
   validate(OrganizationUserUpdateSchema),
   OrganizationController.addUsers
@@ -78,7 +78,7 @@ router.put(
 
 router.delete(
   '/:id/users',
-  orgAdminMiddleware,
+  adminMiddleware,
   validateParams(OrganizationIdParamSchema),
   validate(OrganizationUserUpdateSchema),
   OrganizationController.removeUsers
