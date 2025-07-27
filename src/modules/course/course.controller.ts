@@ -1,14 +1,15 @@
 import type { Request, Response } from 'express';
 import { CourseService } from './course.service';
 import { CourseErrors } from './course.errors';
-import type { CourseCreateType, CourseUpdateType } from './course.schema';
-import { UserService } from '../user/user.service';
-import { Role } from '../../generated/prisma';
+import type {
+  CourseCreateType,
+  CourseOrganizationIDQueryType,
+  CourseUpdateType,
+} from './course.schema';
 
 const {
   COURSE_NOT_FOUND,
   COURSES_FETCH_FAILED,
-  COURSE_ACCESS_FORBIDDEN,
   COURSE_FETCH_FAILED,
   COURSE_CREATE_FAILED,
   COURSE_UPDATE_FAILED,
@@ -19,7 +20,7 @@ export const CourseController = {
   findAll: async (req: Request, res: Response) => {
     try {
       const userId = req.user?.id;
-      const { organizationId } = req.query as { organizationId?: string };
+      const { organizationId }: CourseOrganizationIDQueryType = req.parsedQuery;
       const role = req.user?.role;
       const orgAdmin = req.user?.orgAdmin;
       const courses = await CourseService.findAll(

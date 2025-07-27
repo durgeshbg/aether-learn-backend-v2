@@ -14,5 +14,13 @@ export const CourseIdParamSchema = z.object({
   id: z.string().cuid('Invalid course ID format'),
 });
 
+export const CourseOrganizationIDQuerySchema = z.object({
+  organizationId: z.string().cuid('Invalid organization ID format').optional(),
+});
+
 export type CourseCreateType = z.infer<typeof CourseCreateSchema>;
 export type CourseUpdateType = z.infer<typeof CourseUpdateSchema>;
+export type CourseIdParamType = z.infer<typeof CourseIdParamSchema>;
+export type CourseOrganizationIDQueryType = z.infer<
+  typeof CourseOrganizationIDQuerySchema
+>;

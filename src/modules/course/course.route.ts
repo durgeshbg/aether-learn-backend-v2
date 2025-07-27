@@ -3,16 +3,25 @@ import { adminMiddleware, authMiddleware } from '../../middlewares/auth';
 import {
   CourseCreateSchema,
   CourseIdParamSchema,
+  CourseOrganizationIDQuerySchema,
   CourseUpdateSchema,
 } from './course.schema';
 import { CourseController } from './course.controller';
-import { validate, validateParams } from '../../middlewares/validate';
+import {
+  validate,
+  validateParams,
+  validateQuery,
+} from '../../middlewares/validate';
 
 const router = Router();
 
 router.use(authMiddleware);
 
-router.get('/', CourseController.findAll);
+router.get(
+  '/',
+  validateQuery(CourseOrganizationIDQuerySchema),
+  CourseController.findAll
+);
 
 router.post(
   '/',
