@@ -37,6 +37,17 @@ export const UserController = {
     }
   },
 
+  findNonOrganizationUsers: async (req: Request, res: Response) => {
+    try {
+      const users = await UserService.findNonOrganizationUsers();
+      res.status(200).json({ users });
+      return;
+    } catch (error: any) {
+      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
+      return;
+    }
+  },
+
   findById: async (req: Request, res: Response) => {
     try {
       const { id } = req.params as UserIdParamType;

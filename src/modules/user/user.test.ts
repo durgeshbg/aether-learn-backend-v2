@@ -149,16 +149,16 @@ describe('User', async () => {
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.users).toBeInstanceOf(Array);
-      expect(response.body.users).toHaveLength(1);
+      expect(response.body.users).toHaveLength(2);
     });
 
-    test('Should fetch if org admin', async () => {
+    test('Should fetch if all users in org for org admin', async () => {
       const response = await supertest(app)
         .get(url)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.users).toBeInstanceOf(Array);
-      expect(response.body.users).toHaveLength(1); // Only user3 should be returned
+      expect(response.body.users).toHaveLength(2);
     });
 
     test('Should not fetch users if not admin or not regular user', async () => {
@@ -234,6 +234,31 @@ describe('User', async () => {
         organization.id
       );
       expect(response.body.user.role).toBe(Role.USER); // Should default to USER
+    });
+  });
+
+  describe('GET: /non-organization-users', () => {
+    test('Should not fetch non-organization users without auth', async () => {
+      const response = await supertest(app).get(
+        `${url}/non-organization-users`
+      );
+      expect(response.status).toBe(UNAUTHORIZED.STATUS);
+      expect(response.body).toHaveProperty('error', UNAUTHORIZED.MESSAGE);
+    });
+    test('Should fetch non-organization users with admin token', async () => {
+      const response = await supertest(app)
+        .get(`${url}/non-organization-users`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.users).toBeInstanceOf(Array);
+      expect(response.body.users).toHaveLength(3);
+    });
+    test('Should not fetch non-organization users if not admin', async () => {
+      const response = await supertest(app)
+        .get(`${url}/non-organization-users`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(FORBIDDEN.STATUS);
+      expect(response.body).toHaveProperty('error', FORBIDDEN.MESSAGE);
     });
   });
 

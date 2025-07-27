@@ -30,6 +30,12 @@ router.post(
   UserController.create
 );
 
+router.get(
+  '/non-organization-users',
+  adminMiddleware,
+  UserController.findNonOrganizationUsers
+);
+
 router.get('/:id', validateParams(UserIdParamSchema), UserController.findById);
 
 router.put(

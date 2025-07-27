@@ -14,15 +14,10 @@ export const userSelect = {
   role: true,
   firstName: true,
   lastName: true,
-  organization: {
-    select: { id: true, name: true, logoUrl: true, websiteUrl: true },
-  },
-  orgAdminOf: {
-    select: {
-      id: true,
-      name: true,
-    },
-  },
+  organization: true,
+  orgAdminOf: true,
+  createdAt: true,
+  updatedAt: true,
 };
 
 export const UserService = {
@@ -98,6 +93,13 @@ export const UserService = {
     return await prisma.user.findMany({
       select: userSelect,
       where: orgId ? { organizationId: orgId } : undefined,
+    });
+  },
+
+  findNonOrganizationUsers: async () => {
+    return await prisma.user.findMany({
+      select: userSelect,
+      where: { organizationId: null },
     });
   },
 
