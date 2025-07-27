@@ -140,6 +140,16 @@ describe('User', async () => {
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.users).toBeInstanceOf(Array);
+      expect(response.body.users).toHaveLength(4);
+    });
+
+    test('Should fetch all users with for admin with org id query params', async () => {
+      const response = await supertest(app)
+        .get(`${url}?organizationId=${organization.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.users).toBeInstanceOf(Array);
+      expect(response.body.users).toHaveLength(1);
     });
 
     test('Should fetch if org admin', async () => {
