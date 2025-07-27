@@ -15,7 +15,9 @@ export default function setupApp() {
   useHelmet(app);
   useMorgan(app);
   useJsonParse(app);
-  useRateLimit(app);
+  if (process.env.NODE_ENV === 'production') {
+    useRateLimit(app);
+  }
   useCompression(app);
   useSwagger(app);
 
