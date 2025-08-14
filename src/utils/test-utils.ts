@@ -28,7 +28,7 @@ export const staticData = {
   QUIZ_TEST_TITLE: 'Test Quiz',
   QUESTION_TEST_TEXT: 'What is the capital of France?',
   QUESTION_TEST_OPTIONS: ['Paris', 'London', 'Berlin', 'Madrid'],
-  QUESTION_TEST_ANSWER: 0,
+  QUESTION_TEST_ANSWER: 1,
 
   CODE_ASSESSMENT_TEST_TITLE: 'Test Code Assessment',
   CODE_ASSESSMENT_TEST_DESCRIPTION:

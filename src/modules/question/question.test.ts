@@ -288,7 +288,7 @@ describe('Question', async () => {
       const response = await supertest(app)
         .put(`${url}/${question.id}`)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ text: 'Updated Q', options: ['A', 'B'], answer: 0 });
+        .send({ text: 'Updated Q', options: ['A', 'B'], answer: 1 });
       expect(response.status).toBe(200);
       expect(response.body.question.text).toBe('Updated Q');
     });
@@ -364,7 +364,7 @@ describe('Question', async () => {
       const create = await supertest(app)
         .post(url)
         .set('Authorization', `Bearer ${adminToken}`)
-        .send({ text: 'To Delete', options: ['A', 'B'], answer: 0 });
+        .send({ text: 'To Delete', options: ['A', 'B'], answer: 1 });
       const delId = create.body.question.id;
 
       const response = await supertest(app)

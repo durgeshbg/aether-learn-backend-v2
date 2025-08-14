@@ -213,14 +213,14 @@ async function main() {
           {
             text: 'What is the output of `typeof null`?',
             options: ['null', 'object', 'undefined', 'number'],
-            answer: 1,
+            answer: 2,
             explanation:
               'typeof null returns "object" due to historical reasons.',
           },
           {
             text: 'Which one is block scoped?',
             options: ['var', 'let', 'const', 'both let and const'],
-            answer: 3,
+            answer: 4,
             explanation: 'let and const are block scoped.',
           },
         ],
@@ -242,14 +242,14 @@ async function main() {
               'To execute synchronous code',
               'To handle file I/O',
             ],
-            answer: 0,
+            answer: 1,
             explanation:
               'The event loop allows Node.js to perform non-blocking I/O operations by offloading operations to the system kernel whenever possible.',
           },
           {
             text: 'Which module is used to create a web server in Node.js?',
             options: ['http', 'fs', 'path', 'url'],
-            answer: 0,
+            answer: 1,
             explanation:
               'The http module provides utilities to create HTTP servers.',
           },
