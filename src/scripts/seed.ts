@@ -214,8 +214,7 @@ async function main() {
             text: 'What is the output of `typeof null`?',
             options: ['null', 'object', 'undefined', 'number'],
             answer: 2,
-            explanation:
-              'typeof null returns "object" due to historical reasons.',
+            explanation: 'typeof null returns "object" due to historical reasons.',
           },
           {
             text: 'Which one is block scoped?',
@@ -250,8 +249,7 @@ async function main() {
             text: 'Which module is used to create a web server in Node.js?',
             options: ['http', 'fs', 'path', 'url'],
             answer: 1,
-            explanation:
-              'The http module provides utilities to create HTTP servers.',
+            explanation: 'The http module provides utilities to create HTTP servers.',
           },
         ],
       },
@@ -305,8 +303,7 @@ async function main() {
     data: {
       title: 'Palindrome Checker',
       description: 'Check if a string is a palindrome',
-      instructions:
-        'Write a function that checks if a given string is a palindrome.',
+      instructions: 'Write a function that checks if a given string is a palindrome.',
       starterCode: 'function isPalindrome(str) {\n  // your code\n}',
       languageId: JAVASCRIPT_NODE_18,
       courseId: course2.id,

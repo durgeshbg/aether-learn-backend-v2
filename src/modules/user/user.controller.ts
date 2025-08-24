@@ -28,8 +28,8 @@ const {
 export const UserController = {
   findAll: async (req: Request, res: Response) => {
     try {
-      const orgId: UserOrganizationIDQueryType['organizationId'] = (req
-        .parsedQuery.organizationId || req.user?.orgAdmin) as string;
+      const orgId: UserOrganizationIDQueryType['organizationId'] = (req.parsedQuery
+        .organizationId || req.user?.orgAdmin) as string;
       const users = await UserService.findAll(orgId);
       res.status(200).json({ users });
       return;
@@ -57,9 +57,7 @@ export const UserController = {
       const user = await UserService.findById(id!, filter);
 
       if (!user) {
-        res
-          .status(USER_NOT_FOUND.STATUS)
-          .json({ error: USER_NOT_FOUND.MESSAGE });
+        res.status(USER_NOT_FOUND.STATUS).json({ error: USER_NOT_FOUND.MESSAGE });
         return;
       }
       if (
@@ -95,9 +93,7 @@ export const UserController = {
       res.status(201).json({ user });
       return;
     } catch (error: any) {
-      res
-        .status(USER_EMAIL_EXISTS.STATUS)
-        .json({ error: USER_EMAIL_EXISTS.MESSAGE });
+      res.status(USER_EMAIL_EXISTS.STATUS).json({ error: USER_EMAIL_EXISTS.MESSAGE });
       return;
     }
   },
@@ -123,14 +119,12 @@ export const UserController = {
         process.env.JWT_SECRET!,
         {
           expiresIn: '24h',
-        }
+        },
       );
       res.status(200).json({ token });
       return;
     } catch (error: any) {
-      res
-        .status(USER_INVALID_CREDENTIALS.STATUS)
-        .json({ error: USER_INVALID_CREDENTIALS.MESSAGE });
+      res.status(USER_INVALID_CREDENTIALS.STATUS).json({ error: USER_INVALID_CREDENTIALS.MESSAGE });
       return;
     }
   },
@@ -143,9 +137,7 @@ export const UserController = {
       const user = await UserService.findById(id!);
 
       if (!user) {
-        res
-          .status(USER_NOT_FOUND.STATUS)
-          .json({ error: USER_NOT_FOUND.MESSAGE });
+        res.status(USER_NOT_FOUND.STATUS).json({ error: USER_NOT_FOUND.MESSAGE });
         return;
       }
 
@@ -168,9 +160,7 @@ export const UserController = {
 
       return;
     } catch (error: any) {
-      res
-        .status(USER_UPDATE_FAILED.STATUS)
-        .json({ error: USER_UPDATE_FAILED.MESSAGE });
+      res.status(USER_UPDATE_FAILED.STATUS).json({ error: USER_UPDATE_FAILED.MESSAGE });
       return;
     }
   },
@@ -215,10 +205,7 @@ export const UserController = {
         return;
       }
       const user = await UserService.findById(id!);
-      if (
-        req.user?.role === Role.ADMIN ||
-        req.user?.orgAdmin === user?.organization?.id
-      ) {
+      if (req.user?.role === Role.ADMIN || req.user?.orgAdmin === user?.organization?.id) {
         await UserService.delete(id!);
         res.status(204).json({
           message: 'User deleted successfully',

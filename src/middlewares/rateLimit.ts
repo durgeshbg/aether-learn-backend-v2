@@ -9,6 +9,6 @@ export const useRateLimit = (app: Application) => {
       standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
       legacyHeaders: false, // Disable the `X-RateLimit-*` headers
       message: 'Too many requests, please try again later.',
-    })
+    }),
   );
 };

@@ -1,8 +1,4 @@
-import type {
-  CreateUserType,
-  UserDetailsUpdateType,
-  UserFilterQueryType,
-} from './user.schema';
+import type { CreateUserType, UserDetailsUpdateType, UserFilterQueryType } from './user.schema';
 import { PrismaClient, Role } from '../../generated/prisma';
 import { compare } from 'bcrypt-ts';
 
@@ -22,9 +18,7 @@ export const userSelect = {
 
 export const UserService = {
   create: async (data: CreateUserType) => {
-    const connectIfOrgAdmin = data.orgAdmin
-      ? { connect: { id: data.organizationId } }
-      : undefined;
+    const connectIfOrgAdmin = data.orgAdmin ? { connect: { id: data.organizationId } } : undefined;
 
     return await prisma.user.create({
       data: {

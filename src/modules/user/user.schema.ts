@@ -22,10 +22,7 @@ export const UserDetailsUpdateSchema = z.object({
   firstName: z.string().min(1, 'First name is required').optional(),
   lastName: z.string().min(1, 'Last name is required').optional(),
   email: z.string().email().optional(),
-  password: z
-    .string()
-    .min(8, 'Password must be at least 8 characters long')
-    .optional(),
+  password: z.string().min(8, 'Password must be at least 8 characters long').optional(),
 });
 
 export const UserOrganizationUpdateSchema = z.object({
@@ -66,11 +63,7 @@ export const UserOrganizationIDQuerySchema = z.object({
 export type CreateUserType = z.infer<typeof CreateUserSchema>;
 export type UserDetailsUpdateType = z.infer<typeof UserDetailsUpdateSchema>;
 export type UserLoginType = z.infer<typeof UserLoginSchema>;
-export type UserOrganizationUpdateType = z.infer<
-  typeof UserOrganizationUpdateSchema
->;
+export type UserOrganizationUpdateType = z.infer<typeof UserOrganizationUpdateSchema>;
 export type UserIdParamType = z.infer<typeof UserIdParamSchema>;
 export type UserFilterQueryType = z.infer<typeof UserFilterQuerySchema>;
-export type UserOrganizationIDQueryType = z.infer<
-  typeof UserOrganizationIDQuerySchema
->;
+export type UserOrganizationIDQueryType = z.infer<typeof UserOrganizationIDQuerySchema>;

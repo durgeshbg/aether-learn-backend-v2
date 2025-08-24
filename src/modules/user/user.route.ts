@@ -1,15 +1,7 @@
 import express from 'express';
 import { UserController } from './user.controller';
-import {
-  adminMiddleware,
-  authMiddleware,
-  orgAdminMiddleware,
-} from '../../middlewares/auth';
-import {
-  validate,
-  validateParams,
-  validateQuery,
-} from '../../middlewares/validate';
+import { adminMiddleware, authMiddleware, orgAdminMiddleware } from '../../middlewares/auth';
+import { validate, validateParams, validateQuery } from '../../middlewares/validate';
 import {
   CreateUserSchema,
   UserIdParamSchema,
@@ -31,34 +23,25 @@ router.get(
   '/',
   orgAdminMiddleware,
   validateQuery(UserOrganizationIDQuerySchema),
-  UserController.findAll
+  UserController.findAll,
 );
 
-router.post(
-  '/',
-  orgAdminMiddleware,
-  validate(CreateUserSchema),
-  UserController.create
-);
+router.post('/', orgAdminMiddleware, validate(CreateUserSchema), UserController.create);
 
-router.get(
-  '/non-organization-users',
-  adminMiddleware,
-  UserController.findNonOrganizationUsers
-);
+router.get('/non-organization-users', adminMiddleware, UserController.findNonOrganizationUsers);
 
 router.get(
   '/:id',
   validateParams(UserIdParamSchema),
   validateQuery(UserFilterQuerySchema),
-  UserController.findById
+  UserController.findById,
 );
 
 router.put(
   '/:id',
   validateParams(UserIdParamSchema),
   validate(UserDetailsUpdateSchema),
-  UserController.updateDetails
+  UserController.updateDetails,
 );
 
 router.put(
@@ -66,7 +49,7 @@ router.put(
   adminMiddleware,
   validateParams(UserIdParamSchema),
   validate(UserOrganizationUpdateSchema),
-  UserController.updateOrganization
+  UserController.updateOrganization,
 );
 
 router.put(
@@ -74,14 +57,9 @@ router.put(
   adminMiddleware,
   validateParams(UserIdParamSchema),
   validate(UserRoleUpdateSchema),
-  UserController.updateRole
+  UserController.updateRole,
 );
 
-router.delete(
-  '/:id',
-  orgAdminMiddleware,
-  validateParams(UserIdParamSchema),
-  UserController.delete
-);
+router.delete('/:id', orgAdminMiddleware, validateParams(UserIdParamSchema), UserController.delete);
 
 export default router;

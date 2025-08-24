@@ -1,17 +1,9 @@
-import {
-  setupTests,
-  type UserOrgAdmin,
-  staticData,
-} from '../../utils/test-utils';
+import { setupTests, type UserOrgAdmin, staticData } from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import {
-  PrismaClient,
-  type Organization,
-  type User,
-} from '../../generated/prisma';
+import { PrismaClient, type Organization, type User } from '../../generated/prisma';
 import { UserErrors } from './user.errors';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
@@ -19,17 +11,12 @@ import { Role } from '../../generated/prisma';
 
 const url = '/api/v1/users';
 
-const {
-  USER_EMAIL_EXISTS,
-  USER_INVALID_CREDENTIALS,
-  USER_OWN_ACCOUNT_DELETION,
-  USER_FORBIDDEN,
-} = UserErrors;
+const { USER_EMAIL_EXISTS, USER_INVALID_CREDENTIALS, USER_OWN_ACCOUNT_DELETION, USER_FORBIDDEN } =
+  UserErrors;
 const { FORBIDDEN, UNAUTHORIZED } = AuthErrors;
 const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
 
-const { USER_TEST_EMAILS, USER_TEST_PASSWORD, ORGANIZATION_TEST_NAME } =
-  staticData;
+const { USER_TEST_EMAILS, USER_TEST_PASSWORD, ORGANIZATION_TEST_NAME } = staticData;
 
 describe('User', async () => {
   let cleanTestDB: () => Promise<void>;
@@ -53,35 +40,16 @@ describe('User', async () => {
 
     prisma = new PrismaClient();
 
-    admin = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.admin,
-      Role.ADMIN,
-      USER_TEST_PASSWORD
-    );
-    user = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    user2 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user2,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    organization = await testDB.seedOrganization(
-      prisma,
-      ORGANIZATION_TEST_NAME,
-      user.id
-    );
+    admin = await testDB.seedUser(prisma, USER_TEST_EMAILS.admin, Role.ADMIN, USER_TEST_PASSWORD);
+    user = await testDB.seedUser(prisma, USER_TEST_EMAILS.user, Role.USER, USER_TEST_PASSWORD);
+    user2 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user2, Role.USER, USER_TEST_PASSWORD);
+    organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     user3 = await testDB.seedUser(
       prisma,
       USER_TEST_EMAILS.user3,
       Role.USER,
       USER_TEST_PASSWORD,
-      organization.id
+      organization.id,
     );
 
     adminToken = testDB.genToken(admin);
@@ -112,10 +80,7 @@ describe('User', async () => {
         .post(`${url}/login`)
         .send({ email: USER_TEST_EMAILS.admin, password: 'wrongpassword' });
       expect(response.status).toBe(USER_INVALID_CREDENTIALS.STATUS);
-      expect(response.body).toHaveProperty(
-        'error',
-        USER_INVALID_CREDENTIALS.MESSAGE
-      );
+      expect(response.body).toHaveProperty('error', USER_INVALID_CREDENTIALS.MESSAGE);
     });
 
     test('Should login with valid credentials', async () => {
@@ -135,9 +100,7 @@ describe('User', async () => {
     });
 
     test('Should fetch all users with admin auth token', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.users).toBeInstanceOf(Array);
       expect(response.body.users).toHaveLength(4);
@@ -153,18 +116,14 @@ describe('User', async () => {
     });
 
     test('Should fetch if all users in org for org admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.users).toBeInstanceOf(Array);
       expect(response.body.users).toHaveLength(2);
     });
 
     test('Should not fetch users if not admin or not regular user', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body).toHaveProperty('error', FORBIDDEN.MESSAGE);
     });
@@ -229,19 +188,14 @@ describe('User', async () => {
         });
       expect(response.status).toBe(201);
       expect(response.body.user).toHaveProperty('id');
-      expect(response.body.user.organization).toHaveProperty(
-        'id',
-        organization.id
-      );
+      expect(response.body.user.organization).toHaveProperty('id', organization.id);
       expect(response.body.user.role).toBe(Role.USER); // Should default to USER
     });
   });
 
   describe('GET: /non-organization-users', () => {
     test('Should not fetch non-organization users without auth', async () => {
-      const response = await supertest(app).get(
-        `${url}/non-organization-users`
-      );
+      const response = await supertest(app).get(`${url}/non-organization-users`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body).toHaveProperty('error', UNAUTHORIZED.MESSAGE);
     });
@@ -416,10 +370,7 @@ describe('User', async () => {
           organizationId: organization.id, // Valid organization ID
         });
       expect(response.status).toBe(200);
-      expect(response.body.user.organization).toHaveProperty(
-        'id',
-        organization.id
-      );
+      expect(response.body.user.organization).toHaveProperty('id', organization.id);
     });
   });
 
@@ -472,10 +423,7 @@ describe('User', async () => {
         .delete(`${url}/${admin.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(USER_OWN_ACCOUNT_DELETION.STATUS);
-      expect(response.body).toHaveProperty(
-        'error',
-        USER_OWN_ACCOUNT_DELETION.MESSAGE
-      );
+      expect(response.body).toHaveProperty('error', USER_OWN_ACCOUNT_DELETION.MESSAGE);
     });
 
     test('Should delete user if org admin', async () => {

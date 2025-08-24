@@ -32,11 +32,7 @@ export const AuthErrors = {
   },
 };
 
-export const authMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
@@ -59,11 +55,7 @@ export const authMiddleware = (
   return;
 };
 
-export const adminMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const adminMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (req.user?.role !== 'ADMIN') {
     res.status(AuthErrors.FORBIDDEN.STATUS).json({
       error: AuthErrors.FORBIDDEN.MESSAGE,
@@ -74,11 +66,7 @@ export const adminMiddleware = (
   return;
 };
 
-export const userMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const userMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (req.user?.role !== 'USER') {
     res.status(AuthErrors.FORBIDDEN.STATUS).json({
       error: AuthErrors.FORBIDDEN.MESSAGE,
@@ -89,11 +77,7 @@ export const userMiddleware = (
   return;
 };
 
-export const orgAdminMiddleware = (
-  req: Request,
-  res: Response,
-  next: NextFunction
-) => {
+export const orgAdminMiddleware = (req: Request, res: Response, next: NextFunction) => {
   if (req.user?.role === Role.ADMIN) {
     next();
     return;

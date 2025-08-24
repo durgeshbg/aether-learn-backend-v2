@@ -9,6 +9,6 @@ export const useCors = (app: Application) => {
       allowedHeaders: ['Content-Type', 'Authorization'], // Allowed headers
       credentials: true, // Allow credentials (cookies, authorization headers, etc.)
       optionsSuccessStatus: 204, // For legacy browser support
-    })
+    }),
   );
 };

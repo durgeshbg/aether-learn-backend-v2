@@ -31,13 +31,10 @@ export const staticData = {
   QUESTION_TEST_ANSWER: 1,
 
   CODE_ASSESSMENT_TEST_TITLE: 'Test Code Assessment',
-  CODE_ASSESSMENT_TEST_DESCRIPTION:
-    'Write a function to return the sum of two numbers.',
-  CODE_ASSESSMENT_TEST_INSTRUCTIONS:
-    'Implement the function in the starter code.',
+  CODE_ASSESSMENT_TEST_DESCRIPTION: 'Write a function to return the sum of two numbers.',
+  CODE_ASSESSMENT_TEST_INSTRUCTIONS: 'Implement the function in the starter code.',
   CODE_ASSESSMENT_TEST_STARTER_CODE: 'function sum(a, b) {\n  return a + b;\n}',
-  CODE_ASSESSMENT_TEST_LANGUAGE_ID:
-    LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id,
+  CODE_ASSESSMENT_TEST_LANGUAGE_ID: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id,
 
   TEST_CASE_TEST_DESCRIPTION: 'Test case for sum function',
   TEST_CASE_TEST_INPUT: '1, 2',
@@ -71,7 +68,7 @@ export async function setupTests() {
     email: string,
     role: Role,
     password: string,
-    organizationId?: string
+    organizationId?: string,
   ) => {
     const hashedPassword = await hash(password, 10);
     return await prisma.user.create({
@@ -103,7 +100,7 @@ export async function setupTests() {
   const genToken = (
     user: User & {
       orgAdminOf: { id: string } | null;
-    }
+    },
   ) => {
     return jwt.sign(
       {
@@ -115,15 +112,11 @@ export async function setupTests() {
       process.env.JWT_SECRET!,
       {
         expiresIn: '24h',
-      }
+      },
     );
   };
 
-  const seedOrganization = async (
-    prisma: PrismaClient,
-    name: string,
-    orgAdminId: string
-  ) => {
+  const seedOrganization = async (prisma: PrismaClient, name: string, orgAdminId: string) => {
     return await prisma.organization.create({
       data: {
         name,
@@ -131,16 +124,12 @@ export async function setupTests() {
         orgAdminId,
         users: {
           connect: { id: orgAdminId },
-        }
+        },
       },
     });
   };
 
-  const seedCourse = async (
-    prisma: PrismaClient,
-    name: string,
-    organizationId?: string
-  ) => {
+  const seedCourse = async (prisma: PrismaClient, name: string, organizationId?: string) => {
     return await prisma.course.create({
       data: {
         name,
@@ -151,11 +140,7 @@ export async function setupTests() {
     });
   };
 
-  const seedLesson = async (
-    prisma: PrismaClient,
-    title: string,
-    courseId: string
-  ) => {
+  const seedLesson = async (prisma: PrismaClient, title: string, courseId: string) => {
     return await prisma.lesson.create({
       data: {
         title,
@@ -165,11 +150,7 @@ export async function setupTests() {
     });
   };
 
-  const seedModule = async (
-    prisma: PrismaClient,
-    lessonId: string,
-    title: string
-  ) => {
+  const seedModule = async (prisma: PrismaClient, lessonId: string, title: string) => {
     const languageId = LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id;
     if (!languageId) {
       throw new Error('Language JAVASCRIPT_NODE_18 not found in LANGUAGES_MAP');
@@ -184,11 +165,7 @@ export async function setupTests() {
     });
   };
 
-  const seedQuiz = async (
-    prisma: PrismaClient,
-    title: string,
-    courseId: string
-  ) => {
+  const seedQuiz = async (prisma: PrismaClient, title: string, courseId: string) => {
     return await prisma.quiz.create({
       data: {
         title,
@@ -203,7 +180,7 @@ export async function setupTests() {
     quizId: string,
     text: string,
     options: string[],
-    answer: number
+    answer: number,
   ) => {
     return await prisma.question.create({
       data: {
@@ -219,7 +196,7 @@ export async function setupTests() {
     prisma: PrismaClient,
     quizId: string,
     userId: string,
-    score: number = 0
+    score: number = 0,
   ) => {
     return await prisma.quizResult.create({
       data: {
@@ -237,7 +214,7 @@ export async function setupTests() {
     description: string,
     instructions: string,
     starterCode: string,
-    languageId?: number
+    languageId?: number,
   ) => {
     if (!languageId) {
       throw new Error('Language ID is required for code assessment');
@@ -260,7 +237,7 @@ export async function setupTests() {
     description: string,
     input: string,
     expected: string,
-    codeAssessmentId: string
+    codeAssessmentId: string,
   ) => {
     return await prisma.testCase.create({
       data: {
@@ -276,7 +253,7 @@ export async function setupTests() {
     prisma: PrismaClient,
     code: string,
     codeAssessmentId: string,
-    userId: string
+    userId: string,
   ) => {
     return await prisma.codeSolution.create({
       data: {
