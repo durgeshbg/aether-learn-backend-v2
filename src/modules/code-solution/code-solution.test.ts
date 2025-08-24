@@ -1,8 +1,4 @@
-import {
-  setupTests,
-  staticData,
-  type UserOrgAdmin,
-} from '../../utils/test-utils';
+import { setupTests, staticData, type UserOrgAdmin } from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
@@ -63,36 +59,12 @@ describe('CodeSolution', async () => {
     app = setupApp();
 
     prisma = new PrismaClient();
-    admin = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.admin,
-      Role.ADMIN,
-      USER_TEST_PASSWORD
-    );
-    user = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    user2 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user2,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    user3 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user3,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
+    admin = await testDB.seedUser(prisma, USER_TEST_EMAILS.admin, Role.ADMIN, USER_TEST_PASSWORD);
+    user = await testDB.seedUser(prisma, USER_TEST_EMAILS.user, Role.USER, USER_TEST_PASSWORD);
+    user2 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user2, Role.USER, USER_TEST_PASSWORD);
+    user3 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user3, Role.USER, USER_TEST_PASSWORD);
 
-    organization = await testDB.seedOrganization(
-      prisma,
-      ORGANIZATION_TEST_NAME,
-      user.id
-    );
+    organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
     codeAssessment = await testDB.seedCodeAssessment(
       prisma,
@@ -101,13 +73,13 @@ describe('CodeSolution', async () => {
       CODE_ASSESSMENT_TEST_DESCRIPTION,
       CODE_ASSESSMENT_TEST_INSTRUCTIONS,
       CODE_ASSESSMENT_TEST_STARTER_CODE,
-      CODE_ASSESSMENT_TEST_LANGUAGE_ID
+      CODE_ASSESSMENT_TEST_LANGUAGE_ID,
     );
     codeSolution = await testDB.seedCodeSolution(
       prisma,
       CODE_SOLUTION_TEST_CODE,
       codeAssessment.id,
-      user2.id
+      user2.id,
     );
 
     url = `/api/v1/courses/${course.id}/code-assessments/${codeAssessment.id}/code-solutions`;
@@ -130,18 +102,14 @@ describe('CodeSolution', async () => {
 
   describe('GET: /', () => {
     test('Should fetch all code solutions as admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.codeSolutions).toBeInstanceOf(Array);
       expect(response.body.codeSolutions.length).toBeGreaterThanOrEqual(1);
     });
 
     test('Should fetch all code solutions for assessment as org admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.codeSolutions).toBeInstanceOf(Array);
       expect(response.body.codeSolutions.length).toBeGreaterThanOrEqual(1);
@@ -153,9 +121,7 @@ describe('CodeSolution', async () => {
         .put(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.codeSolutions).toBeInstanceOf(Array);
       expect(response.body.codeSolutions.length).toBe(1);
@@ -168,9 +134,7 @@ describe('CodeSolution', async () => {
     });
 
     test('Should not fetch code solutions for users not having access to assessment', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.codeSolutions).toBeInstanceOf(Array);
       expect(response.body.codeSolutions.length).toBe(0);
@@ -215,9 +179,7 @@ describe('CodeSolution', async () => {
     });
 
     test('Should not create code solution without auth', async () => {
-      const response = await supertest(app)
-        .post(url)
-        .send({ code: 'print("Hello")' });
+      const response = await supertest(app).post(url).send({ code: 'print("Hello")' });
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });
@@ -318,9 +280,7 @@ describe('CodeSolution', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ status: CodeSolutionStatus.SUBMITTED });
       expect(response.status).toBe(200);
-      expect(response.body.codeSolution.status).toBe(
-        CodeSolutionStatus.SUBMITTED
-      );
+      expect(response.body.codeSolution.status).toBe(CodeSolutionStatus.SUBMITTED);
     });
 
     test('Should not update status as user', async () => {

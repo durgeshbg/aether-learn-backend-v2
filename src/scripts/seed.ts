@@ -45,7 +45,7 @@ async function main() {
 
   // Create Users
   const hashedPassword = await hash('password', 10);
-  const admin1 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'admin1@mail.com',
       password: hashedPassword,
@@ -55,7 +55,7 @@ async function main() {
     },
   });
 
-  const org1admin = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'org1admin@mail.com',
       password: hashedPassword,
@@ -67,7 +67,7 @@ async function main() {
     },
   });
 
-  const org2admin = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'org2admin@mail.com',
       password: hashedPassword,
@@ -79,7 +79,7 @@ async function main() {
     },
   });
 
-  const user1 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'user1@mail.com',
       password: hashedPassword,
@@ -89,7 +89,7 @@ async function main() {
     },
   });
 
-  const user2 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'user2@mail.com',
       password: hashedPassword,
@@ -99,7 +99,7 @@ async function main() {
     },
   });
 
-  const user3 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'user3@mail.com',
       password: hashedPassword,
@@ -109,7 +109,7 @@ async function main() {
     },
   });
 
-  const user4 = await prisma.user.create({
+  await prisma.user.create({
     data: {
       email: 'user4@mail.com',
       password: hashedPassword,
@@ -143,7 +143,7 @@ async function main() {
   });
 
   // Lessons and Modules
-  const lesson1 = await prisma.lesson.create({
+  await prisma.lesson.create({
     data: {
       title: 'Variables in JS',
       content: 'Understanding let, var, and const.',
@@ -173,7 +173,7 @@ async function main() {
     },
   });
 
-  const lesson2 = await prisma.lesson.create({
+  await prisma.lesson.create({
     data: {
       title: 'Node Event Loop',
       content: 'How the event loop works.',
@@ -256,7 +256,7 @@ async function main() {
     },
   });
 
-  const quizResult1 = await prisma.quizResult.create({
+  await prisma.quizResult.create({
     data: {
       userId: user1.id,
       quizId: quiz1.id,
@@ -264,7 +264,7 @@ async function main() {
     },
   });
 
-  const quizResult2 = await prisma.quizResult.create({
+  await prisma.quizResult.create({
     data: {
       userId: user2.id,
       quizId: quiz2.id,
@@ -324,7 +324,7 @@ async function main() {
     },
   });
 
-  const codeSolution1 = await prisma.codeSolution.create({
+  await prisma.codeSolution.create({
     data: {
       code: 'function fizzBuzz() { for(let i=1;i<=100;i++){ let out=""; if(i%3==0)out+="Fizz"; if(i%5==0)out+="Buzz"; console.log(out||i); } }',
       userId: user1.id,
@@ -334,7 +334,7 @@ async function main() {
     },
   });
 
-  const codeSolution2 = await prisma.codeSolution.create({
+  await prisma.codeSolution.create({
     data: {
       code: 'function isPalindrome(str) { return str === str.split("").reverse().join(""); }',
       userId: user2.id,

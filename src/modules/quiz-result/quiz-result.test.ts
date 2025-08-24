@@ -1,8 +1,4 @@
-import {
-  setupTests,
-  staticData,
-  type UserOrgAdmin,
-} from '../../utils/test-utils';
+import { setupTests, staticData, type UserOrgAdmin } from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
@@ -62,30 +58,11 @@ describe('QuizResult', async () => {
     app = setupApp();
 
     prisma = new PrismaClient();
-    admin = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.admin,
-      Role.ADMIN,
-      USER_TEST_PASSWORD
-    );
-    user = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    user2 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user2,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
+    admin = await testDB.seedUser(prisma, USER_TEST_EMAILS.admin, Role.ADMIN, USER_TEST_PASSWORD);
+    user = await testDB.seedUser(prisma, USER_TEST_EMAILS.user, Role.USER, USER_TEST_PASSWORD);
+    user2 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user2, Role.USER, USER_TEST_PASSWORD);
 
-    organization = await testDB.seedOrganization(
-      prisma,
-      ORGANIZATION_TEST_NAME,
-      user.id
-    );
+    organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
     quiz = await testDB.seedQuiz(prisma, QUIZ_TEST_TITLE, course.id);
     question = await testDB.seedQuestion(
@@ -93,7 +70,7 @@ describe('QuizResult', async () => {
       quiz.id,
       QUESTION_TEST_TEXT,
       QUESTION_TEST_OPTIONS,
-      QUESTION_TEST_ANSWER
+      QUESTION_TEST_ANSWER,
     );
     quizResult = await testDB.seedQuizResult(prisma, quiz.id, user2.id);
 
@@ -114,18 +91,14 @@ describe('QuizResult', async () => {
 
   describe('GET: /', () => {
     test('Should fetch all quiz results as admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.quizResults).toBeInstanceOf(Array);
       expect(response.body.quizResults.length).toBeGreaterThanOrEqual(1);
     });
 
     test('Should fetch all quiz results for quiz as org admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.quizResults).toBeInstanceOf(Array);
       expect(response.body.quizResults.length).toBeGreaterThanOrEqual(1);
@@ -138,9 +111,7 @@ describe('QuizResult', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
 
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.quizResults).toBeInstanceOf(Array);
       expect(response.body.quizResults.length).toBe(1);
@@ -153,9 +124,7 @@ describe('QuizResult', async () => {
     });
 
     test('Should not fetch quiz results for users not having access to quiz', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.quizResults).toBeInstanceOf(Array);
       expect(response.body.quizResults.length).toBe(0);

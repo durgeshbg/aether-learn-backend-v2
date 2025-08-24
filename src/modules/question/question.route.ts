@@ -13,39 +13,31 @@ const router = Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
-router.get(
-  '/',
-  validateParams(QuestionQuizCourseIdParamsSchema),
-  QuestionController.findAll
-);
+router.get('/', validateParams(QuestionQuizCourseIdParamsSchema), QuestionController.findAll);
 
 router.post(
   '/',
   adminMiddleware,
   validateParams(QuestionQuizCourseIdParamsSchema),
   validate(QuestionCreateSchema),
-  QuestionController.create
+  QuestionController.create,
 );
 
-router.get(
-  '/:id',
-  validateParams(QuestionIdParamsSchema),
-  QuestionController.findById
-);
+router.get('/:id', validateParams(QuestionIdParamsSchema), QuestionController.findById);
 
 router.put(
   '/:id',
   adminMiddleware,
   validateParams(QuestionIdParamsSchema),
   validate(QuestionUpdateSchema),
-  QuestionController.update
+  QuestionController.update,
 );
 
 router.delete(
   '/:id',
   adminMiddleware,
   validateParams(QuestionIdParamsSchema),
-  QuestionController.delete
+  QuestionController.delete,
 );
 
 export default router;

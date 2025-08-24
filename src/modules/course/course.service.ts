@@ -4,12 +4,7 @@ import type { CourseCreateType, CourseUpdateType } from './course.schema';
 const prisma = new PrismaClient();
 
 export const CourseService = {
-  async findAll(
-    userId?: string,
-    orgAdmin?: string | null,
-    role?: Role,
-    organizationId?: string
-  ) {
+  async findAll(userId?: string, orgAdmin?: string | null, role?: Role, organizationId?: string) {
     if (role === Role.ADMIN) {
       return await prisma.course.findMany({
         ...(organizationId && {
@@ -65,12 +60,7 @@ export const CourseService = {
     });
   },
 
-  async findById(
-    id: string,
-    userId?: string,
-    orgAdmin?: string | null,
-    role?: Role
-  ) {
+  async findById(id: string, userId?: string, orgAdmin?: string | null, role?: Role) {
     if (role === Role.ADMIN) {
       return await prisma.course.findUnique({
         where: { id },

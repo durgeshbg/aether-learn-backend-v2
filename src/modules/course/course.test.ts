@@ -1,17 +1,9 @@
-import {
-  setupTests,
-  staticData,
-  type UserOrgAdmin,
-} from '../../utils/test-utils';
+import { setupTests, staticData, type UserOrgAdmin } from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import {
-  PrismaClient,
-  type Course,
-  type Organization,
-} from '../../generated/prisma';
+import { PrismaClient, type Course, type Organization } from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { Role } from '../../generated/prisma';
@@ -22,12 +14,8 @@ const url = '/api/v1/courses';
 const { FORBIDDEN, UNAUTHORIZED } = AuthErrors;
 const { INVALID_DATA, INVALID_PARAMS, INVALID_QUERY } = ValidationErrors;
 const { COURSE_NOT_FOUND } = CourseErrors;
-const {
-  USER_TEST_EMAILS,
-  USER_TEST_PASSWORD,
-  ORGANIZATION_TEST_NAME,
-  COURSE_TEST_NAME,
-} = staticData;
+const { USER_TEST_EMAILS, USER_TEST_PASSWORD, ORGANIZATION_TEST_NAME, COURSE_TEST_NAME } =
+  staticData;
 
 describe('Course', async () => {
   let cleanTestDB: () => Promise<void>;
@@ -51,30 +39,11 @@ describe('Course', async () => {
 
     prisma = new PrismaClient();
 
-    admin = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.admin,
-      Role.ADMIN,
-      USER_TEST_PASSWORD
-    );
-    user = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    user2 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user2,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
+    admin = await testDB.seedUser(prisma, USER_TEST_EMAILS.admin, Role.ADMIN, USER_TEST_PASSWORD);
+    user = await testDB.seedUser(prisma, USER_TEST_EMAILS.user, Role.USER, USER_TEST_PASSWORD);
+    user2 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user2, Role.USER, USER_TEST_PASSWORD);
 
-    organization = await testDB.seedOrganization(
-      prisma,
-      ORGANIZATION_TEST_NAME,
-      user.id
-    );
+    organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
     course2 = await testDB.seedCourse(prisma, 'Temp');
 
@@ -99,9 +68,7 @@ describe('Course', async () => {
     });
 
     test('Should fetch all courses for admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.courses).toBeInstanceOf(Array);
       expect(response.body.courses.length).toEqual(2);
@@ -117,18 +84,14 @@ describe('Course', async () => {
     });
 
     test('Should fetch all courses for organization admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.courses).toBeInstanceOf(Array);
       expect(response.body.courses.length).toEqual(1);
     });
 
     test('Should not be visible for regular user not part of organization', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.courses).toBeInstanceOf(Array);
       expect(response.body.courses.length).toBe(0);
@@ -167,9 +130,7 @@ describe('Course', async () => {
   describe('GET: /non-organization-courses', () => {
     test('Should fetch non-organization courses as admin', async () => {
       const response = await supertest(app)
-        .get(
-          `${url}/non-organization-courses?organizationId=${organization.id}`
-        )
+        .get(`${url}/non-organization-courses?organizationId=${organization.id}`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.courses).toBeInstanceOf(Array);
@@ -186,9 +147,7 @@ describe('Course', async () => {
 
     test('Should not fetch non-organization courses as non admin', async () => {
       const response = await supertest(app)
-        .get(
-          `${url}/non-organization-courses?organizationId=${organization.id}`
-        )
+        .get(`${url}/non-organization-courses?organizationId=${organization.id}`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);

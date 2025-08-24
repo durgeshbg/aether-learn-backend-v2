@@ -13,39 +13,31 @@ const router = Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
-router.get(
-  '/',
-  validateParams(LessonCourseIdParamsSchema),
-  LessonController.findAll
-);
+router.get('/', validateParams(LessonCourseIdParamsSchema), LessonController.findAll);
 
 router.post(
   '/',
   adminMiddleware,
   validateParams(LessonCourseIdParamsSchema),
   validate(LessonCreateSchema),
-  LessonController.create
+  LessonController.create,
 );
 
-router.get(
-  '/:id',
-  validateParams(LessonIdParamsSchema),
-  LessonController.findById
-);
+router.get('/:id', validateParams(LessonIdParamsSchema), LessonController.findById);
 
 router.put(
   '/:id',
   adminMiddleware,
   validateParams(LessonIdParamsSchema),
   validate(LessonUpdateSchema),
-  LessonController.update
+  LessonController.update,
 );
 
 router.delete(
   '/:id',
   adminMiddleware,
   validateParams(LessonIdParamsSchema),
-  LessonController.delete
+  LessonController.delete,
 );
 
 export default router;

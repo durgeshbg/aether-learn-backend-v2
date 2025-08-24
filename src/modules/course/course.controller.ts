@@ -24,12 +24,7 @@ export const CourseController = {
       const { organizationId }: CourseOrganizationIDQueryType = req.parsedQuery;
       const role = req.user?.role;
       const orgAdmin = req.user?.orgAdmin;
-      const courses = await CourseService.findAll(
-        userId,
-        orgAdmin,
-        role,
-        organizationId
-      );
+      const courses = await CourseService.findAll(userId, orgAdmin, role, organizationId);
       res.status(200).json({ courses });
     } catch (error: any) {
       res.status(COURSES_FETCH_FAILED.STATUS).json({
@@ -40,12 +35,9 @@ export const CourseController = {
 
   findAllNonOrganizationCourses: async (req: Request, res: Response) => {
     try {
-      const { organizationId }: CourseOrganizationIDQueryRequiredType =
-        req.parsedQuery;
+      const { organizationId }: CourseOrganizationIDQueryRequiredType = req.parsedQuery;
 
-      const courses = await CourseService.findAllNonOrganizationCourses(
-        organizationId
-      );
+      const courses = await CourseService.findAllNonOrganizationCourses(organizationId);
       res.status(200).json({ courses });
     } catch (error: any) {
       res.status(COURSES_FETCH_FAILED.STATUS).json({

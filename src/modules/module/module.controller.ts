@@ -20,21 +20,18 @@ const {
 export const ModuleController = {
   findAll: async (req: Request, res: Response) => {
     try {
-      const { courseId, lessonId } =
-        req.params as CourseLessonModuleIdParamsType;
+      const { courseId, lessonId } = req.params as CourseLessonModuleIdParamsType;
       const userId = req.user?.id;
       const modules = await ModuleService.findAll(
         lessonId,
         courseId,
         userId,
         req.user?.role,
-        req.user?.orgAdmin
+        req.user?.orgAdmin,
       );
       res.status(200).json({ modules });
     } catch (error) {
-      res
-        .status(MODULES_FETCH_FAILED.STATUS)
-        .json({ error: MODULES_FETCH_FAILED.MESSAGE });
+      res.status(MODULES_FETCH_FAILED.STATUS).json({ error: MODULES_FETCH_FAILED.MESSAGE });
     }
   },
 
@@ -45,9 +42,7 @@ export const ModuleController = {
       const newModule = await ModuleService.create(lessonId, moduleData);
       res.status(201).json({ module: newModule });
     } catch (error) {
-      res
-        .status(MODULE_CREATE_FAILED.STATUS)
-        .json({ error: MODULE_CREATE_FAILED.MESSAGE });
+      res.status(MODULE_CREATE_FAILED.STATUS).json({ error: MODULE_CREATE_FAILED.MESSAGE });
     }
   },
 
@@ -63,19 +58,15 @@ export const ModuleController = {
         courseId,
         userId,
         userRole,
-        userOrgAdmin
+        userOrgAdmin,
       );
       if (!module) {
-        res
-          .status(MODULE_NOT_FOUND.STATUS)
-          .json({ error: MODULE_NOT_FOUND.MESSAGE });
+        res.status(MODULE_NOT_FOUND.STATUS).json({ error: MODULE_NOT_FOUND.MESSAGE });
         return;
       }
       res.status(200).json({ module });
     } catch (error) {
-      res
-        .status(MODULE_FETCH_FAILED.STATUS)
-        .json({ error: MODULE_FETCH_FAILED.MESSAGE });
+      res.status(MODULE_FETCH_FAILED.STATUS).json({ error: MODULE_FETCH_FAILED.MESSAGE });
     }
   },
 
@@ -83,21 +74,13 @@ export const ModuleController = {
     const { id, courseId, lessonId } = req.params as ModuleIdParamsType;
     const moduleData: ModuleUpdateType = req.body;
     try {
-      const updatedModule = await ModuleService.update(
-        id,
-        lessonId,
-        moduleData
-      );
+      const updatedModule = await ModuleService.update(id, lessonId, moduleData);
       if (!updatedModule) {
-        res
-          .status(MODULE_NOT_FOUND.STATUS)
-          .json({ error: MODULE_NOT_FOUND.MESSAGE });
+        res.status(MODULE_NOT_FOUND.STATUS).json({ error: MODULE_NOT_FOUND.MESSAGE });
       }
       res.status(200).json({ module: updatedModule });
     } catch (error) {
-      res
-        .status(MODULE_UPDATE_FAILED.STATUS)
-        .json({ error: MODULE_UPDATE_FAILED.MESSAGE });
+      res.status(MODULE_UPDATE_FAILED.STATUS).json({ error: MODULE_UPDATE_FAILED.MESSAGE });
     }
   },
 
@@ -106,15 +89,11 @@ export const ModuleController = {
     try {
       const deletedModule = await ModuleService.delete(id, lessonId);
       if (!deletedModule) {
-        res
-          .status(MODULE_NOT_FOUND.STATUS)
-          .json({ error: MODULE_NOT_FOUND.MESSAGE });
+        res.status(MODULE_NOT_FOUND.STATUS).json({ error: MODULE_NOT_FOUND.MESSAGE });
       }
       res.status(204).send();
     } catch (error) {
-      res
-        .status(MODULE_DELETE_FAILED.STATUS)
-        .json({ error: MODULE_DELETE_FAILED.MESSAGE });
+      res.status(MODULE_DELETE_FAILED.STATUS).json({ error: MODULE_DELETE_FAILED.MESSAGE });
     }
   },
 };

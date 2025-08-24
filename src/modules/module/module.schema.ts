@@ -4,21 +4,14 @@ export const ModuleCreateSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
   code: z.string().optional(),
-  languageId: z
-    .number()
-    .int()
-    .positive('Language ID must be a positive integer'),
+  languageId: z.number().int().positive('Language ID must be a positive integer'),
 });
 
 export const ModuleUpdateSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   content: z.string().min(1, 'Content is required').optional(),
   code: z.string().optional(),
-  languageId: z
-    .number()
-    .int()
-    .positive('Language ID must be a positive integer')
-    .optional(),
+  languageId: z.number().int().positive('Language ID must be a positive integer').optional(),
 });
 
 export const CourseLessonModuleIdParamSchema = z.object({
@@ -35,6 +28,4 @@ export const ModuleIdParamsSchema = z.object({
 export type ModuleCreateType = z.infer<typeof ModuleCreateSchema>;
 export type ModuleUpdateType = z.infer<typeof ModuleUpdateSchema>;
 export type ModuleIdParamsType = z.infer<typeof ModuleIdParamsSchema>;
-export type CourseLessonModuleIdParamsType = z.infer<
-  typeof CourseLessonModuleIdParamSchema
->;
+export type CourseLessonModuleIdParamsType = z.infer<typeof CourseLessonModuleIdParamSchema>;

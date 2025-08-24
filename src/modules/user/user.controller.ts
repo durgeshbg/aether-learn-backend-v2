@@ -33,18 +33,18 @@ export const UserController = {
       const users = await UserService.findAll(orgId);
       res.status(200).json({ users });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
       return;
     }
   },
 
-  findNonOrganizationUsers: async (req: Request, res: Response) => {
+  findNonOrganizationUsers: async (_req: Request, res: Response) => {
     try {
       const users = await UserService.findNonOrganizationUsers();
       res.status(200).json({ users });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
       return;
     }
@@ -72,7 +72,7 @@ export const UserController = {
         error: USER_FORBIDDEN.MESSAGE,
       });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
       return;
     }
@@ -92,7 +92,7 @@ export const UserController = {
       const user = await UserService.create(data);
       res.status(201).json({ user });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(USER_EMAIL_EXISTS.STATUS).json({ error: USER_EMAIL_EXISTS.MESSAGE });
       return;
     }
@@ -123,7 +123,7 @@ export const UserController = {
       );
       res.status(200).json({ token });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(USER_INVALID_CREDENTIALS.STATUS).json({ error: USER_INVALID_CREDENTIALS.MESSAGE });
       return;
     }
@@ -159,7 +159,7 @@ export const UserController = {
       });
 
       return;
-    } catch (error: any) {
+    } catch {
       res.status(USER_UPDATE_FAILED.STATUS).json({ error: USER_UPDATE_FAILED.MESSAGE });
       return;
     }
@@ -172,7 +172,7 @@ export const UserController = {
       const user = await UserService.updateOrganization(id!, organizationId);
       res.status(200).json({ user });
       return;
-    } catch (error: any) {
+    } catch {
       res
         .status(USER_INVALID_ORGANIZATION.STATUS)
         .json({ error: USER_INVALID_ORGANIZATION.MESSAGE });
@@ -187,7 +187,7 @@ export const UserController = {
       const user = await UserService.updateRole(id!, role);
       res.status(200).json({ user });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(USER_UPDATE_FAILED.STATUS).json({
         error: USER_UPDATE_FAILED.MESSAGE,
       });
@@ -216,7 +216,7 @@ export const UserController = {
         });
       }
       return;
-    } catch (error: any) {
+    } catch {
       res.status(USER_DELETE_FAILED.STATUS).json({
         error: USER_DELETE_FAILED.MESSAGE,
       });

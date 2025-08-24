@@ -28,7 +28,7 @@ export const QuizResultController = {
         courseId,
         userId,
         orgAdmin,
-        userRole
+        userRole,
       );
       res.status(200).json({ quizResults });
     } catch (error) {
@@ -51,11 +51,7 @@ export const QuizResultController = {
           score += 1;
         }
       });
-      const newQuizResult = await QuizResultService.create(
-        quizId,
-        userId,
-        score
-      );
+      const newQuizResult = await QuizResultService.create(quizId, userId, score);
       res.status(201).json({ quizResult: newQuizResult });
     } catch (error) {
       res
@@ -76,19 +72,15 @@ export const QuizResultController = {
         courseId,
         userId,
         userOrgAdmin,
-        userRole
+        userRole,
       );
       if (!quizResult) {
-        res
-          .status(QUIZ_RESULT_NOT_FOUND.STATUS)
-          .json({ error: QUIZ_RESULT_NOT_FOUND.MESSAGE });
+        res.status(QUIZ_RESULT_NOT_FOUND.STATUS).json({ error: QUIZ_RESULT_NOT_FOUND.MESSAGE });
         return;
       }
       res.status(200).json({ quizResult });
     } catch (error) {
-      res
-        .status(QUIZ_RESULT_FETCH_FAILED.STATUS)
-        .json({ error: QUIZ_RESULT_FETCH_FAILED.MESSAGE });
+      res.status(QUIZ_RESULT_FETCH_FAILED.STATUS).json({ error: QUIZ_RESULT_FETCH_FAILED.MESSAGE });
     }
   },
 

@@ -7,25 +7,20 @@ export const QuestionCreateSchema = z
     explanation: z.string().optional(),
     answer: z.number().int(),
   })
-  .superRefine(
-    (data: { options: string[]; answer: number }, ctx: z.RefinementCtx) => {
-      if (data.answer < 1 || data.answer > data.options.length) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ['answer'],
-          message: `Invalid index of the options array (1 to ${data.options.length})`,
-        });
-      }
+  .superRefine((data: { options: string[]; answer: number }, ctx: z.RefinementCtx) => {
+    if (data.answer < 1 || data.answer > data.options.length) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ['answer'],
+        message: `Invalid index of the options array (1 to ${data.options.length})`,
+      });
     }
-  );
+  });
 
 export const QuestionUpdateSchema = z
   .object({
     text: z.string().min(1, 'Question cannot be empty').optional(),
-    options: z
-      .array(z.string())
-      .min(2, 'At least two options are required')
-      .optional(),
+    options: z.array(z.string()).min(2, 'At least two options are required').optional(),
     answer: z.number().int().optional(),
     explanation: z.string().optional(),
   })
@@ -70,7 +65,5 @@ export const QuestionIdParamsSchema = z.object({
 
 export type QuestionCreateType = z.infer<typeof QuestionCreateSchema>;
 export type QuestionUpdateType = z.infer<typeof QuestionUpdateSchema>;
-export type QuestionQuizCourseIdParamsType = z.infer<
-  typeof QuestionQuizCourseIdParamsSchema
->;
+export type QuestionQuizCourseIdParamsType = z.infer<typeof QuestionQuizCourseIdParamsSchema>;
 export type QuestionIdParamsType = z.infer<typeof QuestionIdParamsSchema>;

@@ -8,7 +8,7 @@ export const QuizResultService = {
     courseId: string,
     userId?: string,
     orgAdmin?: string | null,
-    role?: string
+    role?: string,
   ) => {
     if (role === 'ADMIN') {
       return await prisma.quizResult.findMany({
@@ -87,7 +87,7 @@ export const QuizResultService = {
     courseId: string,
     userId?: string,
     orgAdmin?: string | null,
-    role?: string
+    role?: string,
   ) => {
     if (role === 'ADMIN') {
       return await prisma.quizResult.findUnique({

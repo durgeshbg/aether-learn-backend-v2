@@ -14,31 +14,23 @@ const router = Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
-router.get(
-  '/',
-  validateParams(CodeSolutionAssesmentIdParamSchema),
-  CodeSolutionController.findAll
-);
+router.get('/', validateParams(CodeSolutionAssesmentIdParamSchema), CodeSolutionController.findAll);
 
 router.post(
   '/',
   validateParams(CodeSolutionAssesmentIdParamSchema),
   validate(CodeSolutionCreateSchema),
-  CodeSolutionController.create
+  CodeSolutionController.create,
 );
 
-router.get(
-  '/:id',
-  validateParams(CodeSolutionIdParamSchema),
-  CodeSolutionController.findById
-);
+router.get('/:id', validateParams(CodeSolutionIdParamSchema), CodeSolutionController.findById);
 
 router.put(
   '/:id/score',
   adminMiddleware,
   validateParams(CodeSolutionIdParamSchema),
   validate(CodeSolutionScoreUpdateSchema),
-  CodeSolutionController.updateScore
+  CodeSolutionController.updateScore,
 );
 
 router.put(
@@ -46,7 +38,7 @@ router.put(
   adminMiddleware,
   validateParams(CodeSolutionIdParamSchema),
   validate(CodeSolutionStatusUpdateSchema),
-  CodeSolutionController.updateStatus
+  CodeSolutionController.updateStatus,
 );
 
 export default router;

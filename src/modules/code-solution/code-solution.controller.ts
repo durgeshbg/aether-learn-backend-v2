@@ -20,8 +20,7 @@ const {
 export const CodeSolutionController = {
   findAll: async (req: Request, res: Response) => {
     try {
-      const { courseId, codeAssessmentId } =
-        req.params as CodeSolutionAssesmentIdParamType;
+      const { courseId, codeAssessmentId } = req.params as CodeSolutionAssesmentIdParamType;
       const userId = req.user?.id;
       const orgAdmin = req.user?.orgAdmin;
       const userRole = req.user?.role;
@@ -30,7 +29,7 @@ export const CodeSolutionController = {
         courseId,
         userId,
         orgAdmin,
-        userRole
+        userRole,
       );
       res.status(200).json({ codeSolutions });
     } catch (error) {
@@ -41,15 +40,14 @@ export const CodeSolutionController = {
   },
 
   create: async (req: Request, res: Response) => {
-    const { courseId, codeAssessmentId } =
-      req.params as CodeSolutionAssesmentIdParamType;
+    const { courseId, codeAssessmentId } = req.params as CodeSolutionAssesmentIdParamType;
     const userId = req?.user?.id!;
     const codeSolutionData: CodeSolutionCreateType = req.body;
     try {
       const newCodeSolution = await CodeSolutionService.create(
         codeSolutionData,
         codeAssessmentId,
-        userId
+        userId,
       );
       res.status(201).json({ codeSolution: newCodeSolution });
     } catch (error) {
@@ -60,8 +58,7 @@ export const CodeSolutionController = {
   },
 
   findById: async (req: Request, res: Response) => {
-    const { id, codeAssessmentId, courseId } =
-      req.params as CodeSolutionIdParamType;
+    const { id, codeAssessmentId, courseId } = req.params as CodeSolutionIdParamType;
     const userId = req.user?.id;
     const orgAdmin = req.user?.orgAdmin;
     const userRole = req.user?.role;
@@ -72,12 +69,10 @@ export const CodeSolutionController = {
         courseId,
         userId,
         orgAdmin,
-        userRole
+        userRole,
       );
       if (!codeSolution) {
-        res
-          .status(CODE_SOLUTION_NOT_FOUND.STATUS)
-          .json({ error: CODE_SOLUTION_NOT_FOUND.MESSAGE });
+        res.status(CODE_SOLUTION_NOT_FOUND.STATUS).json({ error: CODE_SOLUTION_NOT_FOUND.MESSAGE });
         return;
       }
       res.status(200).json({ codeSolution });
@@ -89,14 +84,13 @@ export const CodeSolutionController = {
   },
 
   updateStatus: async (req: Request, res: Response) => {
-    const { id, codeAssessmentId, courseId } =
-      req.params as CodeSolutionIdParamType;
+    const { id, codeAssessmentId, courseId } = req.params as CodeSolutionIdParamType;
     const statusData: CodeSolutionStatusUpdateType = req.body;
     try {
       const updatedCodeSolution = await CodeSolutionService.updateStatus(
         id,
         codeAssessmentId,
-        statusData
+        statusData,
       );
       res.status(200).json({ codeSolution: updatedCodeSolution });
     } catch (error) {
@@ -107,14 +101,13 @@ export const CodeSolutionController = {
   },
 
   updateScore: async (req: Request, res: Response) => {
-    const { id, codeAssessmentId, courseId } =
-      req.params as CodeSolutionIdParamType;
+    const { id, codeAssessmentId, courseId } = req.params as CodeSolutionIdParamType;
     const scoreData: CodeSolutionScoreUpdateType = req.body;
     try {
       const updatedCodeSolution = await CodeSolutionService.updateScore(
         id,
         codeAssessmentId,
-        scoreData
+        scoreData,
       );
       res.status(200).json({ codeSolution: updatedCodeSolution });
     } catch (error) {

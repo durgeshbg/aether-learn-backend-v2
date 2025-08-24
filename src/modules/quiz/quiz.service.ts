@@ -4,12 +4,7 @@ import type { QuizCreateType, QuizUpdateType } from './quiz.schema';
 const prisma = new PrismaClient();
 
 export const QuizService = {
-  async findAll(
-    courseId: string,
-    userId?: string,
-    orgAdmin?: string | null,
-    role?: string
-  ) {
+  async findAll(courseId: string, userId?: string, orgAdmin?: string | null, role?: string) {
     if (role === 'ADMIN') {
       return await prisma.quiz.findMany({
         where: { courseId },
@@ -55,7 +50,7 @@ export const QuizService = {
     courseId: string,
     userId?: string,
     orgAdmin?: string | null,
-    role?: string
+    role?: string,
   ) {
     if (role === 'ADMIN') {
       return await prisma.quiz.findUnique({
@@ -94,10 +89,7 @@ export const QuizService = {
         },
       },
     });
-    return (
-      user?.organization?.courses[0]?.quizzes.find((quiz) => quiz.id === id) ||
-      null
-    );
+    return user?.organization?.courses[0]?.quizzes.find((quiz) => quiz.id === id) || null;
   },
 
   async create(courseId: string, quizData: QuizCreateType) {

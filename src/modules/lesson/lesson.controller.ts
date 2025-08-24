@@ -24,12 +24,7 @@ export const LessonController = {
       const userId = req.user?.id;
       const orgAdmin = req.user?.orgAdmin;
       const userRole = req.user?.role;
-      const lessons = await LessonService.findAll(
-        courseId,
-        userId,
-        orgAdmin,
-        userRole
-      );
+      const lessons = await LessonService.findAll(courseId, userId, orgAdmin, userRole);
 
       res.status(200).json({
         lessons,
@@ -51,7 +46,7 @@ export const LessonController = {
         courseId,
         userId,
         req.user?.orgAdmin,
-        req.user?.role
+        req.user?.role,
       );
       if (!lesson) {
         res.status(LESSON_NOT_FOUND.STATUS).json({
@@ -84,11 +79,7 @@ export const LessonController = {
     try {
       const { id, courseId } = req.params as LessonIdParamsType;
       const lessonData: LessonUpdateType = req.body;
-      const updatedLesson = await LessonService.update(
-        id,
-        courseId,
-        lessonData
-      );
+      const updatedLesson = await LessonService.update(id, courseId, lessonData);
       if (!updatedLesson) {
         res.status(LESSON_NOT_FOUND.STATUS).json({
           error: LESSON_NOT_FOUND.MESSAGE,

@@ -7,55 +7,38 @@ import {
   CourseUpdateSchema,
 } from './course.schema';
 import { CourseController } from './course.controller';
-import {
-  validate,
-  validateParams,
-  validateQuery,
-} from '../../middlewares/validate';
+import { validate, validateParams, validateQuery } from '../../middlewares/validate';
 
 const router = Router();
 
 router.use(authMiddleware);
 
-router.get(
-  '/',
-  validateQuery(CourseOrganizationIDQuerySchema),
-  CourseController.findAll
-);
+router.get('/', validateQuery(CourseOrganizationIDQuerySchema), CourseController.findAll);
 
-router.post(
-  '/',
-  adminMiddleware,
-  validate(CourseCreateSchema),
-  CourseController.create
-);
+router.post('/', adminMiddleware, validate(CourseCreateSchema), CourseController.create);
 
 router.get(
   '/non-organization-courses',
   adminMiddleware,
   validateQuery(CourseOrganizationIDQuerySchema),
-  CourseController.findAllNonOrganizationCourses
+  CourseController.findAllNonOrganizationCourses,
 );
 
-router.get(
-  '/:id',
-  validateParams(CourseIdParamSchema),
-  CourseController.findById
-);
+router.get('/:id', validateParams(CourseIdParamSchema), CourseController.findById);
 
 router.put(
   '/:id',
   adminMiddleware,
   validateParams(CourseIdParamSchema),
   validate(CourseUpdateSchema),
-  CourseController.update
+  CourseController.update,
 );
 
 router.delete(
   '/:id',
   adminMiddleware,
   validateParams(CourseIdParamSchema),
-  CourseController.delete
+  CourseController.delete,
 );
 
 export default router;

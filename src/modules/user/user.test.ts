@@ -3,7 +3,7 @@ import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import { PrismaClient, type Organization, type User } from '../../generated/prisma';
+import { PrismaClient, type Organization } from '../../generated/prisma';
 import { UserErrors } from './user.errors';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';

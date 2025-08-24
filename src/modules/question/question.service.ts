@@ -9,7 +9,7 @@ export const QuestionService = {
     courseId: string,
     userId?: string,
     orgAdmin?: string | null,
-    role?: Role
+    role?: Role,
   ) => {
     if (role === 'ADMIN') {
       return await prisma.question.findMany({
@@ -74,7 +74,7 @@ export const QuestionService = {
     courseId: string,
     userId?: string,
     orgAdmin?: string | null,
-    role?: Role
+    role?: Role,
   ) => {
     if (role === 'ADMIN') {
       return await prisma.question.findUnique({
@@ -122,16 +122,12 @@ export const QuestionService = {
 
     return (
       user?.organization?.courses[0]?.quizzes[0]?.questions.find(
-        (question) => question.id === id
+        (question) => question.id === id,
       ) || null
     );
   },
 
-  update: async (
-    id: string,
-    quizId: string,
-    questionData: QuestionUpdateType
-  ) => {
+  update: async (id: string, quizId: string, questionData: QuestionUpdateType) => {
     return await prisma.question.update({
       where: { id, quizId },
       data: questionData,

@@ -25,9 +25,7 @@ export const CourseOrganizationIDQueryRequiredSchema = z.object({
 export type CourseCreateType = z.infer<typeof CourseCreateSchema>;
 export type CourseUpdateType = z.infer<typeof CourseUpdateSchema>;
 export type CourseIdParamType = z.infer<typeof CourseIdParamSchema>;
-export type CourseOrganizationIDQueryType = z.infer<
-  typeof CourseOrganizationIDQuerySchema
->;
+export type CourseOrganizationIDQueryType = z.infer<typeof CourseOrganizationIDQuerySchema>;
 export type CourseOrganizationIDQueryRequiredType = z.infer<
   typeof CourseOrganizationIDQueryRequiredSchema
 >;

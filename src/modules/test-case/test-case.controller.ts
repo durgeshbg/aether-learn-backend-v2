@@ -20,8 +20,7 @@ const {
 export const TestCaseController = {
   findAll: async (req: Request, res: Response) => {
     try {
-      const { courseId, codeAssessmentId } =
-        req.params as CourseCodeAssessmentTestCaseIdParamsType;
+      const { courseId, codeAssessmentId } = req.params as CourseCodeAssessmentTestCaseIdParamsType;
       const userId = req.user?.id;
       const orgAdmin = req.user?.orgAdmin;
       const userRole = req.user?.role;
@@ -30,36 +29,27 @@ export const TestCaseController = {
         courseId,
         userId,
         orgAdmin,
-        userRole
+        userRole,
       );
       res.status(200).json({ testCases });
     } catch (error) {
-      res
-        .status(TEST_CASES_FETCH_FAILED.STATUS)
-        .json({ error: TEST_CASES_FETCH_FAILED.MESSAGE });
+      res.status(TEST_CASES_FETCH_FAILED.STATUS).json({ error: TEST_CASES_FETCH_FAILED.MESSAGE });
     }
   },
 
   create: async (req: Request, res: Response) => {
-    const { courseId, codeAssessmentId } =
-      req.params as CourseCodeAssessmentTestCaseIdParamsType;
+    const { courseId, codeAssessmentId } = req.params as CourseCodeAssessmentTestCaseIdParamsType;
     const testCaseData: TestCaseCreateType = req.body;
     try {
-      const newTestCase = await TestCaseService.create(
-        codeAssessmentId,
-        testCaseData
-      );
+      const newTestCase = await TestCaseService.create(codeAssessmentId, testCaseData);
       res.status(201).json({ testCase: newTestCase });
     } catch (error) {
-      res
-        .status(TEST_CASE_CREATE_FAILED.STATUS)
-        .json({ error: TEST_CASE_CREATE_FAILED.MESSAGE });
+      res.status(TEST_CASE_CREATE_FAILED.STATUS).json({ error: TEST_CASE_CREATE_FAILED.MESSAGE });
     }
   },
 
   findById: async (req: Request, res: Response) => {
-    const { id, courseId, codeAssessmentId } =
-      req.params as TestCaseIdParamsType;
+    const { id, courseId, codeAssessmentId } = req.params as TestCaseIdParamsType;
     const userId = req.user?.id;
     const userRole = req.user?.role;
     const userOrgAdmin = req.user?.orgAdmin;
@@ -70,64 +60,43 @@ export const TestCaseController = {
         courseId,
         userId,
         userOrgAdmin,
-        userRole
+        userRole,
       );
       if (!testCase) {
-        res
-          .status(TEST_CASE_NOT_FOUND.STATUS)
-          .json({ error: TEST_CASE_NOT_FOUND.MESSAGE });
+        res.status(TEST_CASE_NOT_FOUND.STATUS).json({ error: TEST_CASE_NOT_FOUND.MESSAGE });
         return;
       }
       res.status(200).json({ testCase });
     } catch (error) {
-      res
-        .status(TEST_CASE_FETCH_FAILED.STATUS)
-        .json({ error: TEST_CASE_FETCH_FAILED.MESSAGE });
+      res.status(TEST_CASE_FETCH_FAILED.STATUS).json({ error: TEST_CASE_FETCH_FAILED.MESSAGE });
     }
   },
 
   update: async (req: Request, res: Response) => {
-    const { id, courseId, codeAssessmentId } =
-      req.params as TestCaseIdParamsType;
+    const { id, courseId, codeAssessmentId } = req.params as TestCaseIdParamsType;
     const testCaseData: TestCaseUpdateType = req.body;
     try {
-      const updatedTestCase = await TestCaseService.update(
-        id,
-        codeAssessmentId,
-        testCaseData
-      );
+      const updatedTestCase = await TestCaseService.update(id, codeAssessmentId, testCaseData);
       if (!updatedTestCase) {
-        res
-          .status(TEST_CASE_NOT_FOUND.STATUS)
-          .json({ error: TEST_CASE_NOT_FOUND.MESSAGE });
+        res.status(TEST_CASE_NOT_FOUND.STATUS).json({ error: TEST_CASE_NOT_FOUND.MESSAGE });
         return;
       }
       res.status(200).json({ testCase: updatedTestCase });
     } catch (error) {
-      res
-        .status(TEST_CASE_UPDATE_FAILED.STATUS)
-        .json({ error: TEST_CASE_UPDATE_FAILED.MESSAGE });
+      res.status(TEST_CASE_UPDATE_FAILED.STATUS).json({ error: TEST_CASE_UPDATE_FAILED.MESSAGE });
     }
   },
   delete: async (req: Request, res: Response) => {
-    const { id, courseId, codeAssessmentId } =
-      req.params as TestCaseIdParamsType;
+    const { id, courseId, codeAssessmentId } = req.params as TestCaseIdParamsType;
     try {
-      const deletedTestCase = await TestCaseService.delete(
-        id,
-        codeAssessmentId
-      );
+      const deletedTestCase = await TestCaseService.delete(id, codeAssessmentId);
       if (!deletedTestCase) {
-        res
-          .status(TEST_CASE_NOT_FOUND.STATUS)
-          .json({ error: TEST_CASE_NOT_FOUND.MESSAGE });
+        res.status(TEST_CASE_NOT_FOUND.STATUS).json({ error: TEST_CASE_NOT_FOUND.MESSAGE });
         return;
       }
       res.status(204).json(deletedTestCase);
     } catch (error) {
-      res
-        .status(TEST_CASE_DELETE_FAILED.STATUS)
-        .json({ error: TEST_CASE_DELETE_FAILED.MESSAGE });
+      res.status(TEST_CASE_DELETE_FAILED.STATUS).json({ error: TEST_CASE_DELETE_FAILED.MESSAGE });
     }
   },
 };

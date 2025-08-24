@@ -9,11 +9,9 @@ type User = {
   orgAdmin?: string | null;
 };
 
-declare global {
-  namespace Express {
-    interface Request {
-      user?: User;
-    }
+declare module 'express' {
+  interface Request {
+    user?: User;
   }
 }
 

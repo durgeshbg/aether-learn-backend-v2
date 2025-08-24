@@ -28,7 +28,7 @@ export const CodeAssessmentController = {
         courseId,
         uesrId,
         orgAdmin,
-        userRole
+        userRole,
       );
       res.status(200).json({ codeAssessments });
     } catch (error: any) {
@@ -49,7 +49,7 @@ export const CodeAssessmentController = {
         courseId,
         uesrId,
         orgAdmin,
-        userRole
+        userRole,
       );
       if (!codeAssessment) {
         res.status(CODE_ASSESSMENT_NOT_FOUND.STATUS).json({
@@ -69,10 +69,7 @@ export const CodeAssessmentController = {
     try {
       const { courseId } = req.params as CodeAssessmentCourseIdParamsType;
       const codeAssessmentData: CodeAssessmentCreateType = req.body;
-      const codeAssessment = await CodeAssessmentService.create(
-        courseId,
-        codeAssessmentData
-      );
+      const codeAssessment = await CodeAssessmentService.create(courseId, codeAssessmentData);
       res.status(201).json({ codeAssessment });
     } catch (error: any) {
       res.status(CODE_ASSESSMENT_CREATE_FAILED.STATUS).json({
@@ -88,7 +85,7 @@ export const CodeAssessmentController = {
       const updatedCodeAssessment = await CodeAssessmentService.update(
         id,
         courseId,
-        codeAssessmentData
+        codeAssessmentData,
       );
       if (!updatedCodeAssessment) {
         res.status(CODE_ASSESSMENT_NOT_FOUND.STATUS).json({

@@ -1,7 +1,4 @@
-import type {
-  CreateOrganizationType,
-  OrganizationUpdateType,
-} from './organization.schema';
+import type { CreateOrganizationType, OrganizationUpdateType } from './organization.schema';
 import { PrismaClient } from '../../generated/prisma';
 import { userSelect } from '../user/user.service';
 
@@ -70,13 +67,9 @@ export const OrganizationService = {
   },
 
   removeUsers: async (id: string, userIds: string[]) => {
-    const existingUsers = await prisma.organization
-      .findUnique({ where: { id } })
-      .users();
+    const existingUsers = await prisma.organization.findUnique({ where: { id } }).users();
     const existingUserIds = existingUsers?.map((user) => user.id) || [];
-    const usersToRemove = existingUserIds.filter((uid) =>
-      userIds.includes(uid)
-    );
+    const usersToRemove = existingUserIds.filter((uid) => userIds.includes(uid));
 
     return await prisma.organization.update({
       where: { id },
@@ -120,13 +113,9 @@ export const OrganizationService = {
   },
 
   removeCourses: async (id: string, courseIds: string[]) => {
-    const existingCourses = await prisma.organization
-      .findUnique({ where: { id } })
-      .courses();
+    const existingCourses = await prisma.organization.findUnique({ where: { id } }).courses();
     const existingCourseIds = existingCourses?.map((course) => course.id) || [];
-    const coursesToRemove = existingCourseIds.filter((cid) =>
-      courseIds.includes(cid)
-    );
+    const coursesToRemove = existingCourseIds.filter((cid) => courseIds.includes(cid));
 
     return await prisma.organization.update({
       where: { id },

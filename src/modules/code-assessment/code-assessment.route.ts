@@ -16,7 +16,7 @@ router.use(authMiddleware);
 router.get(
   '/',
   validateParams(CodeAssessmentCourseIdParamsSchema),
-  CodeAssessmentController.findAll
+  CodeAssessmentController.findAll,
 );
 
 router.post(
@@ -24,28 +24,24 @@ router.post(
   adminMiddleware,
   validateParams(CodeAssessmentCourseIdParamsSchema),
   validate(CodeAssessmentCreateSchema),
-  CodeAssessmentController.create
+  CodeAssessmentController.create,
 );
 
-router.get(
-  '/:id',
-  validateParams(CodeAssessmentIdParamsSchema),
-  CodeAssessmentController.findById
-);
+router.get('/:id', validateParams(CodeAssessmentIdParamsSchema), CodeAssessmentController.findById);
 
 router.put(
   '/:id',
   adminMiddleware,
   validateParams(CodeAssessmentIdParamsSchema),
   validate(CodeAssessmentUpdateSchema),
-  CodeAssessmentController.update
+  CodeAssessmentController.update,
 );
 
 router.delete(
   '/:id',
   adminMiddleware,
   validateParams(CodeAssessmentIdParamsSchema),
-  CodeAssessmentController.delete
+  CodeAssessmentController.delete,
 );
 
 export default router;

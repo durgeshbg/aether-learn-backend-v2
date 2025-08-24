@@ -1,18 +1,10 @@
 import { PrismaClient } from '../../generated/prisma';
-import type {
-  CodeAssessmentCreateType,
-  CodeAssessmentUpdateType,
-} from './code-assessment.schema';
+import type { CodeAssessmentCreateType, CodeAssessmentUpdateType } from './code-assessment.schema';
 
 const prisma = new PrismaClient();
 
 export const CodeAssessmentService = {
-  async findAll(
-    courseId: string,
-    userId?: string,
-    orgAdmin?: string | null,
-    role?: string
-  ) {
+  async findAll(courseId: string, userId?: string, orgAdmin?: string | null, role?: string) {
     if (role === 'ADMIN') {
       return await prisma.codeAssessment.findMany({
         where: { courseId },
@@ -55,7 +47,7 @@ export const CodeAssessmentService = {
     courseId: string,
     userId?: string,
     orgAdmin?: string | null,
-    role?: string
+    role?: string,
   ) {
     if (role === 'ADMIN') {
       return await prisma.codeAssessment.findFirst({
@@ -93,9 +85,8 @@ export const CodeAssessmentService = {
     });
 
     return (
-      user?.organization?.courses[0]?.codeAssessments.find(
-        (assessment) => assessment.id === id
-      ) || null
+      user?.organization?.courses[0]?.codeAssessments.find((assessment) => assessment.id === id) ||
+      null
     );
   },
 
@@ -115,11 +106,7 @@ export const CodeAssessmentService = {
     });
   },
 
-  async update(
-    id: string,
-    courseId: string,
-    codeAssessmentData: CodeAssessmentUpdateType
-  ) {
+  async update(id: string, courseId: string, codeAssessmentData: CodeAssessmentUpdateType) {
     return await prisma.codeAssessment.update({
       where: { id, courseId },
       data: {

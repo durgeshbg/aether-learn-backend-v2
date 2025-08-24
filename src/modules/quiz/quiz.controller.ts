@@ -24,12 +24,7 @@ export const QuizController = {
       const uesrId = req.user?.id;
       const orgAdmin = req.user?.orgAdmin;
       const userRole = req.user?.role;
-      const quizzes = await QuizService.findAll(
-        courseId,
-        uesrId,
-        orgAdmin,
-        userRole
-      );
+      const quizzes = await QuizService.findAll(courseId, uesrId, orgAdmin, userRole);
       res.status(200).json({ quizzes });
     } catch (error: any) {
       res.status(QUIZZES_FETCH_FAILED.STATUS).json({
@@ -44,13 +39,7 @@ export const QuizController = {
       const userId = req.user?.id;
       const orgAdmin = req.user?.orgAdmin;
       const userRole = req.user?.role;
-      const quiz = await QuizService.findById(
-        id,
-        courseId,
-        userId,
-        orgAdmin,
-        userRole
-      );
+      const quiz = await QuizService.findById(id, courseId, userId, orgAdmin, userRole);
       if (!quiz) {
         res.status(QUIZ_NOT_FOUND.STATUS).json({
           error: QUIZ_NOT_FOUND.MESSAGE,

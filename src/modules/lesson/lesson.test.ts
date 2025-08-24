@@ -1,18 +1,9 @@
-import {
-  setupTests,
-  staticData,
-  type UserOrgAdmin,
-} from '../../utils/test-utils';
+import { setupTests, staticData, type UserOrgAdmin } from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import {
-  PrismaClient,
-  type Course,
-  type Lesson,
-  type Organization,
-} from '../../generated/prisma';
+import { PrismaClient, type Course, type Lesson, type Organization } from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { LessonErrors } from './lesson.errors';
@@ -53,30 +44,11 @@ describe('Lesson', async () => {
 
     prisma = new PrismaClient();
 
-    admin = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.admin,
-      Role.ADMIN,
-      USER_TEST_PASSWORD
-    );
-    user = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    user2 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user2,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
+    admin = await testDB.seedUser(prisma, USER_TEST_EMAILS.admin, Role.ADMIN, USER_TEST_PASSWORD);
+    user = await testDB.seedUser(prisma, USER_TEST_EMAILS.user, Role.USER, USER_TEST_PASSWORD);
+    user2 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user2, Role.USER, USER_TEST_PASSWORD);
 
-    organization = await testDB.seedOrganization(
-      prisma,
-      ORGANIZATION_TEST_NAME,
-      user.id
-    );
+    organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
     lesson = await testDB.seedLesson(prisma, LESSON_TEST_TITLE, course.id);
 
@@ -97,18 +69,14 @@ describe('Lesson', async () => {
 
   describe('GET: /', () => {
     test('Should fetch all lessons in course for admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.lessons).toBeInstanceOf(Array);
       expect(response.body.lessons.length).toBeGreaterThan(0);
     });
 
     test('Should fetch all lessons in course for organization admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.lessons).toBeInstanceOf(Array);
       expect(response.body.lessons.length).toBeGreaterThan(0);
@@ -121,9 +89,7 @@ describe('Lesson', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
 
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.lessons).toBeInstanceOf(Array);
       expect(response.body.lessons.length).toBeGreaterThan(0);
@@ -135,10 +101,8 @@ describe('Lesson', async () => {
         .send({ userIds: [user2.id] });
     });
 
-    test('Should not fetch lessons for regular user not part of org', async () => {      
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+    test('Should not fetch lessons for regular user not part of org', async () => {
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.lessons).toBeInstanceOf(Array);
       expect(response.body.lessons.length).toBe(0);
@@ -185,9 +149,7 @@ describe('Lesson', async () => {
     });
 
     test('Should not create lesson without auth', async () => {
-      const response = await supertest(app)
-        .post(url)
-        .send({ title: 'Test', content: 'Test' });
+      const response = await supertest(app).post(url).send({ title: 'Test', content: 'Test' });
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });

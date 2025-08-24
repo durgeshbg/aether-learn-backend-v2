@@ -1,8 +1,4 @@
-import {
-  setupTests,
-  staticData,
-  type UserOrgAdmin,
-} from '../../utils/test-utils';
+import { setupTests, staticData, type UserOrgAdmin } from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
@@ -58,37 +54,14 @@ describe('Module', async () => {
     app = setupApp();
 
     prisma = new PrismaClient();
-    admin = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.admin,
-      Role.ADMIN,
-      USER_TEST_PASSWORD
-    );
-    user = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    user2 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user2,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
+    admin = await testDB.seedUser(prisma, USER_TEST_EMAILS.admin, Role.ADMIN, USER_TEST_PASSWORD);
+    user = await testDB.seedUser(prisma, USER_TEST_EMAILS.user, Role.USER, USER_TEST_PASSWORD);
+    user2 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user2, Role.USER, USER_TEST_PASSWORD);
 
-    organization = await testDB.seedOrganization(
-      prisma,
-      ORGANIZATION_TEST_NAME,
-      user.id
-    );
+    organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
     lesson = await testDB.seedLesson(prisma, LESSON_TEST_TITLE, course.id);
-    module = await testDB.seedModule(
-      prisma,
-      lesson.id,
-      staticData.MODULE_TEST_TITLE
-    );
+    module = await testDB.seedModule(prisma, lesson.id, staticData.MODULE_TEST_TITLE);
 
     url += `/${course.id}/lessons/${lesson.id}/modules`;
 
@@ -107,18 +80,14 @@ describe('Module', async () => {
 
   describe('GET: /', () => {
     test('Should fetch all modules in lesson as admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.modules).toHaveLength(1);
       expect(response.body.modules[0]).toHaveProperty('id', module.id);
     });
 
     test('Should fetch all modules in lesson for organization admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.modules).toHaveLength(1);
       expect(response.body.modules[0]).toHaveProperty('id', module.id);
@@ -131,9 +100,7 @@ describe('Module', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
 
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.modules).toHaveLength(1);
       expect(response.body.modules[0]).toHaveProperty('id', module.id);
@@ -146,9 +113,7 @@ describe('Module', async () => {
     });
 
     test('Should not fetch modules for user not in organization', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.modules).toHaveLength(0);
     });
@@ -199,7 +164,7 @@ describe('Module', async () => {
     test('Should not create module with invalid lesson id', async () => {
       const response = await supertest(app)
         .post(
-          `/api/v1/courses/cmch6sat2000gxqxenh7e3yi7/lessons/cmch6sat2000gxqxenh7e3yi7/modules` // Mack dummy cuids
+          `/api/v1/courses/cmch6sat2000gxqxenh7e3yi7/lessons/cmch6sat2000gxqxenh7e3yi7/modules`, // Mack dummy cuids
         )
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
@@ -320,9 +285,7 @@ describe('Module', async () => {
     });
 
     test('Should not update module without auth', async () => {
-      const response = await supertest(app)
-        .put(`${url}/${module.id}`)
-        .send({ title: 'Module' });
+      const response = await supertest(app).put(`${url}/${module.id}`).send({ title: 'Module' });
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });

@@ -1,8 +1,5 @@
 import { PrismaClient, Role } from '../../generated/prisma';
-import type {
-  TestCaseCreateType,
-  TestCaseUpdateType,
-} from './test-case.schema';
+import type { TestCaseCreateType, TestCaseUpdateType } from './test-case.schema';
 
 const prisma = new PrismaClient();
 
@@ -12,7 +9,7 @@ export const TestCaseService = {
     courseId: string,
     userId?: string,
     orgAdmin?: string | null,
-    role?: Role
+    role?: Role,
   ) {
     if (role === 'ADMIN') {
       return await prisma.testCase.findMany({
@@ -71,7 +68,7 @@ export const TestCaseService = {
     courseId: string,
     userId?: string,
     userOrgAdmin?: string | null,
-    userRole?: Role
+    userRole?: Role,
   ) {
     if (userRole === 'ADMIN') {
       return await prisma.testCase.findUnique({
@@ -119,7 +116,7 @@ export const TestCaseService = {
 
     return (
       user?.organization?.courses[0]?.codeAssessments[0]?.testCases.find(
-        (testCase) => testCase.id === id
+        (testCase) => testCase.id === id,
       ) || null
     );
   },
@@ -133,11 +130,7 @@ export const TestCaseService = {
     });
   },
 
-  async update(
-    id: string,
-    codeAssessmentId: string,
-    testCaseData: TestCaseUpdateType
-  ) {
+  async update(id: string, codeAssessmentId: string, testCaseData: TestCaseUpdateType) {
     return await prisma.testCase.update({
       where: { id, assessmentId: codeAssessmentId },
       data: testCaseData,

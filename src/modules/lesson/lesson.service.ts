@@ -4,12 +4,7 @@ import type { LessonCreateType, LessonUpdateType } from './lesson.schema';
 const prisma = new PrismaClient();
 
 export const LessonService = {
-  async findAll(
-    courseId: string,
-    userId?: string,
-    orgAdmin?: string | null,
-    role?: string
-  ) {
+  async findAll(courseId: string, userId?: string, orgAdmin?: string | null, role?: string) {
     if (role === 'ADMIN') {
       return await prisma.lesson.findMany({
         where: { courseId },
@@ -49,7 +44,7 @@ export const LessonService = {
     courseId: string,
     userId?: string,
     orgAdmin?: string | null,
-    role?: Role
+    role?: Role,
   ) {
     if (role === 'ADMIN') {
       return await prisma.lesson.findUnique({
@@ -83,11 +78,7 @@ export const LessonService = {
         },
       },
     });
-    return (
-      user?.organization?.courses[0]?.lessons.find(
-        (lesson) => lesson.id === id
-      ) || null
-    );
+    return user?.organization?.courses[0]?.lessons.find((lesson) => lesson.id === id) || null;
   },
 
   async create(courseId: string, lessonData: LessonCreateType) {

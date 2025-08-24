@@ -14,7 +14,7 @@ export const CodeSolutionService = {
     courseId: string,
     userId?: string,
     orgAdmin?: string | null,
-    role?: string
+    role?: string,
   ) => {
     if (role === 'ADMIN') {
       return await prisma.codeSolution.findMany({
@@ -63,9 +63,7 @@ export const CodeSolutionService = {
       },
     });
 
-    return (
-      user?.organization?.courses[0]?.codeAssessments[0]?.codeSolutions || []
-    );
+    return user?.organization?.courses[0]?.codeAssessments[0]?.codeSolutions || [];
   },
 
   findById: async (
@@ -74,7 +72,7 @@ export const CodeSolutionService = {
     courseId: string,
     userId?: string,
     orgAdmin?: string | null,
-    role?: string
+    role?: string,
   ) => {
     if (role === 'ADMIN') {
       return await prisma.codeSolution.findUnique({
@@ -117,11 +115,7 @@ export const CodeSolutionService = {
     });
   },
 
-  create: async (
-    data: CodeSolutionCreateType,
-    codeAssessmentId: string,
-    userId: string
-  ) => {
+  create: async (data: CodeSolutionCreateType, codeAssessmentId: string, userId: string) => {
     return await prisma.codeSolution.create({
       data: {
         code: data.code,
@@ -134,7 +128,7 @@ export const CodeSolutionService = {
   updateStatus: async (
     codeSolutionId: string,
     codeAssessmentId: string,
-    statusData: CodeSolutionStatusUpdateType
+    statusData: CodeSolutionStatusUpdateType,
   ) => {
     return await prisma.codeSolution.update({
       where: { id: codeSolutionId, assessmentId: codeAssessmentId },
@@ -145,7 +139,7 @@ export const CodeSolutionService = {
   updateScore: async (
     codeSolutionId: string,
     codeAssessmentId: string,
-    scoreData: CodeSolutionScoreUpdateType
+    scoreData: CodeSolutionScoreUpdateType,
   ) => {
     return await prisma.codeSolution.update({
       where: { id: codeSolutionId, assessmentId: codeAssessmentId },

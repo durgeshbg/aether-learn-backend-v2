@@ -11,10 +11,10 @@
     "db:generate": "bunx prisma generate --schema=./prisma/schema.prisma",
     "db:studio": "bunx prisma studio --schema=./prisma/schema.prisma",
     "db:seed": "bun run src/scripts/seed.ts",
-    "lint": "eslint src/**/*.ts",
-    "lint:fix": "eslint src/**/*.ts --fix",
-    "format": "prettier --write src/**/*.ts",
-    "format:check": "prettier --check src/**/*.ts"
+    "lint": "bunx eslint src/**/*.ts",
+    "lint:fix": "bunx eslint src/**/*.ts --fix",
+    "format": "bunx prettier --write src/**/*.ts",
+    "format:check": "bunx prettier --check src/**/*.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
@@ -57,8 +57,8 @@
   },
   "lint-staged": {
     "src/**/*.ts": [
-      "eslint --fix",
-      "prettier --write"
+      "bunx eslint --fix",
+      "bunx prettier --write"
     ]
   }
 }

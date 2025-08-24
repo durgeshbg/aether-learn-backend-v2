@@ -1,15 +1,7 @@
 import express from 'express';
 import { OrganizationController } from './organization.controller';
-import {
-  adminMiddleware,
-  authMiddleware,
-  orgAdminMiddleware,
-} from '../../middlewares/auth';
-import {
-  validate,
-  validateParams,
-  validateQuery,
-} from '../../middlewares/validate';
+import { adminMiddleware, authMiddleware, orgAdminMiddleware } from '../../middlewares/auth';
+import { validate, validateParams, validateQuery } from '../../middlewares/validate';
 import {
   CreateOrganizationSchema,
   OrgAdminUpdateScehma,
@@ -30,35 +22,31 @@ router.get(
   '/search',
   adminMiddleware,
   validateQuery(OrganizationNameQuerySchema),
-  OrganizationController.findByName
+  OrganizationController.findByName,
 );
 
 router.post(
   '/',
   adminMiddleware,
   validate(CreateOrganizationSchema),
-  OrganizationController.create
+  OrganizationController.create,
 );
 
-router.get(
-  '/:id',
-  validateParams(OrganizationIdParamSchema),
-  OrganizationController.findById
-);
+router.get('/:id', validateParams(OrganizationIdParamSchema), OrganizationController.findById);
 
 router.put(
   '/:id',
   orgAdminMiddleware,
   validateParams(OrganizationIdParamSchema),
   validate(OrganizationUpdateSchema),
-  OrganizationController.update
+  OrganizationController.update,
 );
 
 router.delete(
   '/:id',
   adminMiddleware,
   validateParams(OrganizationIdParamSchema),
-  OrganizationController.delete
+  OrganizationController.delete,
 );
 
 // Admin update
@@ -67,7 +55,7 @@ router.put(
   orgAdminMiddleware,
   validateParams(OrganizationIdParamSchema),
   validate(OrgAdminUpdateScehma),
-  OrganizationController.updateOrgAdmin
+  OrganizationController.updateOrgAdmin,
 );
 
 // Users
@@ -75,7 +63,7 @@ router.get(
   '/:id/users',
   orgAdminMiddleware,
   validateParams(OrganizationIdParamSchema),
-  OrganizationController.findAllUsers
+  OrganizationController.findAllUsers,
 );
 
 router.put(
@@ -83,7 +71,7 @@ router.put(
   adminMiddleware,
   validateParams(OrganizationIdParamSchema),
   validate(OrganizationUserUpdateSchema),
-  OrganizationController.addUsers
+  OrganizationController.addUsers,
 );
 
 router.delete(
@@ -91,14 +79,14 @@ router.delete(
   adminMiddleware,
   validateParams(OrganizationIdParamSchema),
   validate(OrganizationUserUpdateSchema),
-  OrganizationController.removeUsers
+  OrganizationController.removeUsers,
 );
 
 // Courses
 router.get(
   '/:id/courses',
   validateParams(OrganizationIdParamSchema),
-  OrganizationController.findAllCourses
+  OrganizationController.findAllCourses,
 );
 
 router.put(
@@ -106,7 +94,7 @@ router.put(
   adminMiddleware,
   validateParams(OrganizationIdParamSchema),
   validate(OrganizationCourseUpdateSchema),
-  OrganizationController.addCourses
+  OrganizationController.addCourses,
 );
 
 router.delete(
@@ -114,7 +102,7 @@ router.delete(
   adminMiddleware,
   validateParams(OrganizationIdParamSchema),
   validate(OrganizationCourseUpdateSchema),
-  OrganizationController.removeCourses
+  OrganizationController.removeCourses,
 );
 
 export default router;

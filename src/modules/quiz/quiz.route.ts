@@ -13,18 +13,14 @@ const router = Router({ mergeParams: true });
 
 router.use(authMiddleware);
 
-router.get(
-  '/',
-  validateParams(QuizCourseIdParamsSchema),
-  QuizController.findAll
-);
+router.get('/', validateParams(QuizCourseIdParamsSchema), QuizController.findAll);
 
 router.post(
   '/',
   adminMiddleware,
   validateParams(QuizCourseIdParamsSchema),
   validate(QuizCreateSchema),
-  QuizController.create
+  QuizController.create,
 );
 
 router.get('/:id', validateParams(QuizIdParamsSchema), QuizController.findById);
@@ -34,14 +30,9 @@ router.put(
   adminMiddleware,
   validateParams(QuizIdParamsSchema),
   validate(QuizUpdateSchema),
-  QuizController.update
+  QuizController.update,
 );
 
-router.delete(
-  '/:id',
-  adminMiddleware,
-  validateParams(QuizIdParamsSchema),
-  QuizController.delete
-);
+router.delete('/:id', adminMiddleware, validateParams(QuizIdParamsSchema), QuizController.delete);
 
 export default router;

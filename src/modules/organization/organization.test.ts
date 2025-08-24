@@ -1,17 +1,9 @@
-import {
-  setupTests,
-  staticData,
-  type UserOrgAdmin,
-} from '../../utils/test-utils';
+import { setupTests, staticData, type UserOrgAdmin } from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import {
-  PrismaClient,
-  type Course,
-  type Organization,
-} from '../../generated/prisma';
+import { PrismaClient, type Course, type Organization } from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { Role } from '../../generated/prisma';
@@ -21,14 +13,9 @@ const url = '/api/v1/organizations';
 
 const { FORBIDDEN } = AuthErrors;
 const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
-const { ORGANIZATION_COURSE_ACCESS_FORBIDDEN, ORGANIZATION_FETCH_FORBIDDEN } =
-  OrganizationErrors;
-const {
-  USER_TEST_EMAILS,
-  USER_TEST_PASSWORD,
-  ORGANIZATION_TEST_NAME,
-  COURSE_TEST_NAME,
-} = staticData;
+const { ORGANIZATION_COURSE_ACCESS_FORBIDDEN, ORGANIZATION_FETCH_FORBIDDEN } = OrganizationErrors;
+const { USER_TEST_EMAILS, USER_TEST_PASSWORD, ORGANIZATION_TEST_NAME, COURSE_TEST_NAME } =
+  staticData;
 
 describe('Organization', async () => {
   let cleanTestDB: () => Promise<void>;
@@ -55,35 +42,11 @@ describe('Organization', async () => {
 
     prisma = new PrismaClient();
 
-    admin = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.admin,
-      Role.ADMIN,
-      USER_TEST_PASSWORD
-    );
-    user = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    user2 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user2,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    user3 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user3,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
-    organization = await testDB.seedOrganization(
-      prisma,
-      ORGANIZATION_TEST_NAME,
-      user.id
-    );
+    admin = await testDB.seedUser(prisma, USER_TEST_EMAILS.admin, Role.ADMIN, USER_TEST_PASSWORD);
+    user = await testDB.seedUser(prisma, USER_TEST_EMAILS.user, Role.USER, USER_TEST_PASSWORD);
+    user2 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user2, Role.USER, USER_TEST_PASSWORD);
+    user3 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user3, Role.USER, USER_TEST_PASSWORD);
+    organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     orgToDelete = await testDB.seedOrganization(prisma, 'Delete', user2.id);
     course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
     course2 = await testDB.seedCourse(prisma, COURSE_TEST_NAME + ' 2');
@@ -104,25 +67,19 @@ describe('Organization', async () => {
 
   describe('GET: /', () => {
     test('Should fetch all organizations for admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body.organizations)).toBe(true);
     });
 
     test('Should not fetch all organizations if not admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
     });
 
     test('Should not fetch organizations if regular user', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
     });
@@ -370,9 +327,7 @@ describe('Organization', async () => {
         .get(`${url}/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(usersResponse.status).toBe(200);
-      expect(
-        usersResponse.body.users.some((user: any) => user.id === user2.id)
-      ).toBe(true);
+      expect(usersResponse.body.users.some((user: any) => user.id === user2.id)).toBe(true);
     });
   });
 
@@ -416,9 +371,7 @@ describe('Organization', async () => {
         .get(`${url}/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(usersResponse.status).toBe(200);
-      expect(
-        usersResponse.body.users.some((user: any) => user.id === user2.id)
-      ).toBe(false);
+      expect(usersResponse.body.users.some((user: any) => user.id === user2.id)).toBe(false);
     });
   });
 
@@ -451,9 +404,7 @@ describe('Organization', async () => {
         .set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body.courses)).toBe(true);
-      expect(
-        response.body.courses.some((course: any) => course.id === course.id)
-      ).toBe(true);
+      expect(response.body.courses.some((course: any) => course.id === course.id)).toBe(true);
 
       // remove user2 from organization
       await supertest(app)
@@ -475,9 +426,7 @@ describe('Organization', async () => {
         .get(`${url}/${organization.id}/courses`)
         .set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(ORGANIZATION_COURSE_ACCESS_FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(
-        ORGANIZATION_COURSE_ACCESS_FORBIDDEN.MESSAGE
-      );
+      expect(response.body.error).toBe(ORGANIZATION_COURSE_ACCESS_FORBIDDEN.MESSAGE);
     });
   });
 
@@ -515,12 +464,8 @@ describe('Organization', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ courseIds: [course.id, course2.id] });
       expect(response.status).toBe(200);
-      expect(
-        response.body.courses.some((c: Course) => c.id === course.id)
-      ).toBe(true);
-      expect(
-        response.body.courses.some((c: Course) => c.id === course2.id)
-      ).toBe(true);
+      expect(response.body.courses.some((c: Course) => c.id === course.id)).toBe(true);
+      expect(response.body.courses.some((c: Course) => c.id === course2.id)).toBe(true);
     });
   });
 
@@ -558,12 +503,8 @@ describe('Organization', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ courseIds: [course.id, course2.id] });
       expect(response.status).toBe(200);
-      expect(response.body.courses.some((c: any) => c.id === course.id)).toBe(
-        false
-      );
-      expect(response.body.courses.some((c: any) => c.id === course2.id)).toBe(
-        false
-      );
+      expect(response.body.courses.some((c: any) => c.id === course.id)).toBe(false);
+      expect(response.body.courses.some((c: any) => c.id === course2.id)).toBe(false);
     });
   });
 });

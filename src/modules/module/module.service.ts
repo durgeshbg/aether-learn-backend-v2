@@ -9,7 +9,7 @@ export const ModuleService = {
     courseId: string,
     userId?: string,
     role?: Role,
-    orgAdmin?: string | null
+    orgAdmin?: string | null,
   ) => {
     if (role === Role.ADMIN) {
       return await prisma.module.findMany({ where: { lessonId } });
@@ -69,7 +69,7 @@ export const ModuleService = {
     courseId: string,
     userId?: string,
     role?: Role,
-    orgAdmin?: string | null
+    orgAdmin?: string | null,
   ) => {
     if (role === Role.ADMIN) {
       return await prisma.module.findUnique({
@@ -112,16 +112,10 @@ export const ModuleService = {
     });
 
     return (
-      user?.organization?.courses[0]?.lessons[0]?.modules.find(
-        (module) => module.id === id
-      ) || null
+      user?.organization?.courses[0]?.lessons[0]?.modules.find((module) => module.id === id) || null
     );
   },
-  update: async (
-    id: string,
-    lessonId: string,
-    moduleData: ModuleUpdateType
-  ) => {
+  update: async (id: string, lessonId: string, moduleData: ModuleUpdateType) => {
     return await prisma.module.update({
       where: { id, lessonId },
       data: moduleData,

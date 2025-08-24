@@ -30,13 +30,7 @@ export const CodeSolutionIdParamSchema = z.object({
 });
 
 export type CodeSolutionCreateType = z.infer<typeof CodeSolutionCreateSchema>;
-export type CodeSolutionStatusUpdateType = z.infer<
-  typeof CodeSolutionStatusUpdateSchema
->;
-export type CodeSolutionScoreUpdateType = z.infer<
-  typeof CodeSolutionScoreUpdateSchema
->;
-export type CodeSolutionAssesmentIdParamType = z.infer<
-  typeof CodeSolutionAssesmentIdParamSchema
->;
+export type CodeSolutionStatusUpdateType = z.infer<typeof CodeSolutionStatusUpdateSchema>;
+export type CodeSolutionScoreUpdateType = z.infer<typeof CodeSolutionScoreUpdateSchema>;
+export type CodeSolutionAssesmentIdParamType = z.infer<typeof CodeSolutionAssesmentIdParamSchema>;
 export type CodeSolutionIdParamType = z.infer<typeof CodeSolutionIdParamSchema>;

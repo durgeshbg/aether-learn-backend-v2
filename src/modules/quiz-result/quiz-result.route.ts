@@ -18,20 +18,16 @@ router.post(
   '/',
   validateParams(QuizResultQuizIdParamsSchema),
   validate(QuizResultCreateSchema),
-  QuizResultController.create
+  QuizResultController.create,
 );
 
-router.get(
-  '/:id',
-  validateParams(QuizResultIdParamsSchema),
-  QuizResultController.findById
-);
+router.get('/:id', validateParams(QuizResultIdParamsSchema), QuizResultController.findById);
 
 router.delete(
   '/:id',
   adminMiddleware,
   validateParams(QuizResultIdParamsSchema),
-  QuizResultController.delete
+  QuizResultController.delete,
 );
 
 export default router;

@@ -23,18 +23,10 @@ export const QuestionController = {
       const userId = req.user?.id;
       const orgAdmin = req.user?.orgAdmin;
       const userRole = req.user?.role;
-      const questions = await QuestionService.findAll(
-        quizId,
-        courseId,
-        userId,
-        orgAdmin,
-        userRole
-      );
+      const questions = await QuestionService.findAll(quizId, courseId, userId, orgAdmin, userRole);
       res.status(200).json({ questions });
     } catch (error) {
-      res
-        .status(QUESTIONS_FETCH_FAILED.STATUS)
-        .json({ error: QUESTIONS_FETCH_FAILED.MESSAGE });
+      res.status(QUESTIONS_FETCH_FAILED.STATUS).json({ error: QUESTIONS_FETCH_FAILED.MESSAGE });
     }
   },
 
@@ -45,9 +37,7 @@ export const QuestionController = {
       const newQuestion = await QuestionService.create(quizId, questionData);
       res.status(201).json({ question: newQuestion });
     } catch (error) {
-      res
-        .status(QUESTION_CREATE_FAILED.STATUS)
-        .json({ error: QUESTION_CREATE_FAILED.MESSAGE });
+      res.status(QUESTION_CREATE_FAILED.STATUS).json({ error: QUESTION_CREATE_FAILED.MESSAGE });
     }
   },
 
@@ -63,19 +53,15 @@ export const QuestionController = {
         courseId,
         userId,
         userOrgAdmin,
-        userRole
+        userRole,
       );
       if (!question) {
-        res
-          .status(QUESTION_NOT_FOUND.STATUS)
-          .json({ error: QUESTION_NOT_FOUND.MESSAGE });
+        res.status(QUESTION_NOT_FOUND.STATUS).json({ error: QUESTION_NOT_FOUND.MESSAGE });
         return;
       }
       res.status(200).json({ question });
     } catch (error) {
-      res
-        .status(QUESTION_FETCH_FAILED.STATUS)
-        .json({ error: QUESTION_FETCH_FAILED.MESSAGE });
+      res.status(QUESTION_FETCH_FAILED.STATUS).json({ error: QUESTION_FETCH_FAILED.MESSAGE });
     }
   },
 
@@ -83,21 +69,13 @@ export const QuestionController = {
     const { id, courseId, quizId } = req.params as QuestionIdParamsType;
     const questionData: QuestionUpdateType = req.body;
     try {
-      const updatedQuestion = await QuestionService.update(
-        id,
-        quizId,
-        questionData
-      );
+      const updatedQuestion = await QuestionService.update(id, quizId, questionData);
       if (!updatedQuestion) {
-        res
-          .status(QUESTION_NOT_FOUND.STATUS)
-          .json({ error: QUESTION_NOT_FOUND.MESSAGE });
+        res.status(QUESTION_NOT_FOUND.STATUS).json({ error: QUESTION_NOT_FOUND.MESSAGE });
       }
       res.status(200).json({ question: updatedQuestion });
     } catch (error) {
-      res
-        .status(QUESTION_UPDATE_FAILED.STATUS)
-        .json({ error: QUESTION_UPDATE_FAILED.MESSAGE });
+      res.status(QUESTION_UPDATE_FAILED.STATUS).json({ error: QUESTION_UPDATE_FAILED.MESSAGE });
     }
   },
 
@@ -106,15 +84,11 @@ export const QuestionController = {
     try {
       const deletedQuestion = await QuestionService.delete(id, quizId);
       if (!deletedQuestion) {
-        res
-          .status(QUESTION_NOT_FOUND.STATUS)
-          .json({ error: QUESTION_NOT_FOUND.MESSAGE });
+        res.status(QUESTION_NOT_FOUND.STATUS).json({ error: QUESTION_NOT_FOUND.MESSAGE });
       }
       res.status(204).json({ message: 'Question deleted successfully' });
     } catch (error) {
-      res
-        .status(QUESTION_DELETE_FAILED.STATUS)
-        .json({ error: QUESTION_DELETE_FAILED.MESSAGE });
+      res.status(QUESTION_DELETE_FAILED.STATUS).json({ error: QUESTION_DELETE_FAILED.MESSAGE });
     }
   },
 };

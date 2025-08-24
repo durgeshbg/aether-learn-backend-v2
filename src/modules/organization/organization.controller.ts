@@ -135,10 +135,7 @@ export const OrganizationController = {
       const { id } = req.params as OrganizationIdParamType;
       if (req.user?.orgAdmin === id || req.user?.role === 'ADMIN') {
         const { userId }: OrgAdminUpdateType = req.body;
-        const organization = await OrganizationService.updateOrgAdmin(
-          id!,
-          userId
-        );
+        const organization = await OrganizationService.updateOrgAdmin(id!, userId);
         res.status(200).json({ organization });
         return;
       }
@@ -231,10 +228,7 @@ export const OrganizationController = {
     try {
       const { id } = req.params;
       const { courseIds }: OrganizationCourseUpdateType = req.body;
-      const organization = await OrganizationService.removeCourses(
-        id!,
-        courseIds
-      );
+      const organization = await OrganizationService.removeCourses(id!, courseIds);
       res.status(200).json({ courses: organization.courses });
       return;
     } catch (error: any) {

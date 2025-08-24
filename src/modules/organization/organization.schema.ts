@@ -8,10 +8,7 @@ export const CreateOrganizationSchema = z.object({
   address: z.string().optional(),
   phone: z.string().optional(),
   email: z.string().email('Invalid email format').optional(),
-  orgAdminId: z
-    .string()
-    .cuid('Invalid organization admin ID format')
-    .optional(),
+  orgAdminId: z.string().cuid('Invalid organization admin ID format').optional(),
 });
 
 export const OrganizationUpdateSchema = CreateOrganizationSchema.extend({
@@ -41,13 +38,7 @@ export const OrganizationNameQuerySchema = z.object({
 export type CreateOrganizationType = z.infer<typeof CreateOrganizationSchema>;
 export type OrganizationUpdateType = z.infer<typeof OrganizationUpdateSchema>;
 export type OrganizationIdParamType = z.infer<typeof OrganizationIdParamSchema>;
-export type OrganizationUserUpdateType = z.infer<
-  typeof OrganizationUserUpdateSchema
->;
-export type OrganizationCourseUpdateType = z.infer<
-  typeof OrganizationCourseUpdateSchema
->;
+export type OrganizationUserUpdateType = z.infer<typeof OrganizationUserUpdateSchema>;
+export type OrganizationCourseUpdateType = z.infer<typeof OrganizationCourseUpdateSchema>;
 export type OrgAdminUpdateType = z.infer<typeof OrgAdminUpdateScehma>;
-export type OrganizationNameQueryType = z.infer<
-  typeof OrganizationNameQuerySchema
->;
+export type OrganizationNameQueryType = z.infer<typeof OrganizationNameQuerySchema>;

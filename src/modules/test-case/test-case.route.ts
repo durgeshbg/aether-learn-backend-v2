@@ -17,7 +17,7 @@ router.use(authMiddleware);
 router.get(
   '/',
   validateParams(CourseCodeAssessmentTestCaseIdParamsSchema),
-  TestCaseController.findAll
+  TestCaseController.findAll,
 );
 
 router.post(
@@ -25,28 +25,24 @@ router.post(
   adminMiddleware,
   validateParams(CourseCodeAssessmentTestCaseIdParamsSchema),
   validate(TestCaseCreateSchema),
-  TestCaseController.create
+  TestCaseController.create,
 );
 
-router.get(
-  '/:id',
-  validateParams(TestCaseIdParamsSchema),
-  TestCaseController.findById
-);
+router.get('/:id', validateParams(TestCaseIdParamsSchema), TestCaseController.findById);
 
 router.put(
   '/:id',
   adminMiddleware,
   validateParams(TestCaseIdParamsSchema),
   validate(TestCaseUpdateSchema),
-  TestCaseController.update
+  TestCaseController.update,
 );
 
 router.delete(
   '/:id',
   adminMiddleware,
   validateParams(TestCaseIdParamsSchema),
-  TestCaseController.delete
+  TestCaseController.delete,
 );
 
 export default router;

@@ -1,12 +1,10 @@
-import type { ZodSchema } from 'zod';
+import type { output, ZodIssue, ZodSchema } from 'zod';
 import { ZodError } from 'zod';
 import type { Request, Response, NextFunction } from 'express';
 
-declare global {
-  namespace Express {
-    interface Request {
-      parsedQuery?: any;
-    }
+declare module 'express-serve-static-core' {
+  interface Request {
+    parsedQuery?: output<ZodSchema> | undefined;
   }
 }
 
@@ -36,7 +34,7 @@ export const validate = (schema: ZodSchema) => {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const errorMessages = error.issues.map((issue: any) => ({
+        const errorMessages = error.issues.map((issue: ZodIssue) => ({
           message: `${issue.path.join('.')} is ${issue.message}`,
         }));
         res.status(ValidationErrors.INVALID_DATA.STATUS).json({
@@ -59,7 +57,7 @@ export const validateParams = (schema: ZodSchema) => {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const errorMessages = error.issues.map((issue: any) => ({
+        const errorMessages = error.issues.map((issue: ZodIssue) => ({
           message: `${issue.path.join('.')} is ${issue.message}`,
         }));
         res.status(ValidationErrors.INVALID_PARAMS.STATUS).json({
@@ -82,7 +80,7 @@ export const validateQuery = (schema: ZodSchema) => {
       next();
     } catch (error) {
       if (error instanceof ZodError) {
-        const errorMessages = error.issues.map((issue: any) => ({
+        const errorMessages = error.issues.map((issue: ZodIssue) => ({
           message: `${issue.path.join('.')} is ${issue.message}`,
         }));
         res.status(ValidationErrors.INVALID_QUERY.STATUS).json({

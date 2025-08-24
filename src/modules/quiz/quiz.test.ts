@@ -1,18 +1,9 @@
-import {
-  setupTests,
-  staticData,
-  type UserOrgAdmin,
-} from '../../utils/test-utils';
+import { setupTests, staticData, type UserOrgAdmin } from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import {
-  PrismaClient,
-  type Course,
-  type Organization,
-  type Quiz,
-} from '../../generated/prisma';
+import { PrismaClient, type Course, type Organization, type Quiz } from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { Role } from '../../generated/prisma';
@@ -56,31 +47,12 @@ describe('Quiz', async () => {
 
     prisma = new PrismaClient();
 
-    admin = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.admin,
-      Role.ADMIN,
-      USER_TEST_PASSWORD
-    );
-    user = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
+    admin = await testDB.seedUser(prisma, USER_TEST_EMAILS.admin, Role.ADMIN, USER_TEST_PASSWORD);
+    user = await testDB.seedUser(prisma, USER_TEST_EMAILS.user, Role.USER, USER_TEST_PASSWORD);
 
-    user2 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user2,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
+    user2 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user2, Role.USER, USER_TEST_PASSWORD);
 
-    organization = await testDB.seedOrganization(
-      prisma,
-      ORGANIZATION_TEST_NAME,
-      user.id
-    );
+    organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
     quiz = await testDB.seedQuiz(prisma, QUIZ_TEST_TITLE, course.id);
 
@@ -101,18 +73,14 @@ describe('Quiz', async () => {
 
   describe('GET: /', () => {
     test('Should fetch all quizzes in course for admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.quizzes).toBeInstanceOf(Array);
       expect(response.body.quizzes.length).toBeGreaterThan(0);
     });
 
     test('Should fetch all quizzes in course for organization admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.quizzes).toBeInstanceOf(Array);
       expect(response.body.quizzes.length).toBeGreaterThan(0);
@@ -125,9 +93,7 @@ describe('Quiz', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
 
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.quizzes).toBeInstanceOf(Array);
       expect(response.body.quizzes.length).toBeGreaterThan(0);
@@ -140,9 +106,7 @@ describe('Quiz', async () => {
     });
 
     test('Should not fetch quizzes for regular user not part of org', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.quizzes).toBeInstanceOf(Array);
       expect(response.body.quizzes.length).toBe(0);

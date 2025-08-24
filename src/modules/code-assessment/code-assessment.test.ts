@@ -1,8 +1,4 @@
-import {
-  setupTests,
-  staticData,
-  type UserOrgAdmin,
-} from '../../utils/test-utils';
+import { setupTests, staticData, type UserOrgAdmin } from '../../utils/test-utils';
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
@@ -60,31 +56,12 @@ describe('CodeAssessment', async () => {
 
     prisma = new PrismaClient();
 
-    admin = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.admin,
-      Role.ADMIN,
-      USER_TEST_PASSWORD
-    );
-    user = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
+    admin = await testDB.seedUser(prisma, USER_TEST_EMAILS.admin, Role.ADMIN, USER_TEST_PASSWORD);
+    user = await testDB.seedUser(prisma, USER_TEST_EMAILS.user, Role.USER, USER_TEST_PASSWORD);
 
-    user2 = await testDB.seedUser(
-      prisma,
-      USER_TEST_EMAILS.user2,
-      Role.USER,
-      USER_TEST_PASSWORD
-    );
+    user2 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user2, Role.USER, USER_TEST_PASSWORD);
 
-    organization = await testDB.seedOrganization(
-      prisma,
-      ORGANIZATION_TEST_NAME,
-      user.id
-    );
+    organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
     codeAssessment = await testDB.seedCodeAssessment(
       prisma,
@@ -93,7 +70,7 @@ describe('CodeAssessment', async () => {
       CODE_ASSESSMENT_TEST_DESCRIPTION,
       CODE_ASSESSMENT_TEST_INSTRUCTIONS,
       CODE_ASSESSMENT_TEST_STARTER_CODE,
-      CODE_ASSESSMENT_TEST_LANGUAGE_ID
+      CODE_ASSESSMENT_TEST_LANGUAGE_ID,
     );
 
     adminToken = testDB.genToken(admin);
@@ -113,18 +90,14 @@ describe('CodeAssessment', async () => {
 
   describe('GET: /', () => {
     test('Should fetch all code assessments in course for admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${adminToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.codeAssessments).toBeInstanceOf(Array);
       expect(response.body.codeAssessments.length).toBeGreaterThan(0);
     });
 
     test('Should fetch all code assessments in course for organization admin', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${userToken}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.codeAssessments).toBeInstanceOf(Array);
       expect(response.body.codeAssessments.length).toBeGreaterThan(0);
@@ -137,9 +110,7 @@ describe('CodeAssessment', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
 
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.codeAssessments).toBeInstanceOf(Array);
       expect(response.body.codeAssessments.length).toBeGreaterThan(0);
@@ -152,9 +123,7 @@ describe('CodeAssessment', async () => {
     });
 
     test('Should not fetch code assessments for regular user not part of org', async () => {
-      const response = await supertest(app)
-        .get(url)
-        .set('Authorization', `Bearer ${user2Token}`);
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.codeAssessments).toBeInstanceOf(Array);
       expect(response.body.codeAssessments.length).toBe(0);
@@ -234,9 +203,7 @@ describe('CodeAssessment', async () => {
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.codeAssessment).toHaveProperty('id');
-      expect(response.body.codeAssessment.title).toBe(
-        CODE_ASSESSMENT_TEST_TITLE
-      );
+      expect(response.body.codeAssessment.title).toBe(CODE_ASSESSMENT_TEST_TITLE);
     });
 
     test('Should fetch code assessment by ID as organization admin', async () => {
@@ -245,9 +212,7 @@ describe('CodeAssessment', async () => {
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.codeAssessment).toHaveProperty('id');
-      expect(response.body.codeAssessment.title).toBe(
-        CODE_ASSESSMENT_TEST_TITLE
-      );
+      expect(response.body.codeAssessment.title).toBe(CODE_ASSESSMENT_TEST_TITLE);
     });
 
     test('Should fetch code assessment by ID as regular user part of org', async () => {
@@ -262,9 +227,7 @@ describe('CodeAssessment', async () => {
         .set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.codeAssessment).toHaveProperty('id');
-      expect(response.body.codeAssessment.title).toBe(
-        CODE_ASSESSMENT_TEST_TITLE
-      );
+      expect(response.body.codeAssessment.title).toBe(CODE_ASSESSMENT_TEST_TITLE);
 
       // Clean up: remove user2 from organization
       await supertest(app)
@@ -303,9 +266,7 @@ describe('CodeAssessment', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ title: 'Updated Code Assessment' });
       expect(response.status).toBe(200);
-      expect(response.body.codeAssessment.title).toBe(
-        'Updated Code Assessment'
-      );
+      expect(response.body.codeAssessment.title).toBe('Updated Code Assessment');
     });
 
     test('Should not update code assessment with invalid data', async () => {
@@ -381,9 +342,7 @@ describe('CodeAssessment', async () => {
     });
 
     test('Should not delete code assessment without auth', async () => {
-      const response = await supertest(app).delete(
-        `${url}/${codeAssessment.id}`
-      );
+      const response = await supertest(app).delete(`${url}/${codeAssessment.id}`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });
