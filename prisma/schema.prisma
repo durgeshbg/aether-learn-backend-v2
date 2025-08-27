@@ -114,6 +114,9 @@ model Course {
   codeAssessments CodeAssessment[] @relation("CourseCodeAssessments")
   organizations   Organization[]
 
+  lessonsCount         Int @default(0)
+  quizzesCount         Int @default(0)
+  codeAssessmentsCount Int @default(0)
   enrolledCourseProgress EnrolledCourseProgress[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

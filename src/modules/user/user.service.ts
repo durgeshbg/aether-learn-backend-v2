@@ -263,9 +263,21 @@ export const UserService = {
         organization: true,
         enrolledCourseProgress: {
           include: {
-            completedAssessments: true,
-            completedModules: true,
-            completedQuizzes: true,
+            completedAssessments: {
+              select: {
+                id: true,
+              },
+            },
+            completedModules: {
+              select: {
+                id: true,
+              },
+            },
+            completedQuizzes: {
+              select: {
+                id: true,
+              },
+            },
           },
         },
       },
