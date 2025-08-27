@@ -71,7 +71,17 @@ export async function setupTests() {
     organizationId?: string,
   ) => {
     const hashedPassword = await hash(password, 10);
-    return await prisma.user.create({
+
+    if (organizationId) {
+      await prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+          usersCount: { increment: 1 },
+        },
+      });
+    }
+
+    return (await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
@@ -125,11 +135,21 @@ export async function setupTests() {
         users: {
           connect: { id: orgAdminId },
         },
+        usersCount: 1,
       },
     });
   };
 
   const seedCourse = async (prisma: PrismaClient, name: string, organizationId?: string) => {
+    if (organizationId) {
+      await prisma.organization.update({
+        where: { id: organizationId },
+        data: {
+          coursesCount: { increment: 1 },
+        },
+      });
+    }
+
     return await prisma.course.create({
       data: {
         name,

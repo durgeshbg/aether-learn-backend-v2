@@ -60,9 +60,26 @@ export const OrganizationService = {
       select: { id: true },
     });
 
-    return await prisma.organization.update({
+    const updatedOrganization = await prisma.organization.update({
       where: { id },
       data: { users: { connect: validUserIds } },
+      select: {
+        _count: {
+          select: { users: true },
+        },
+      },
+    });
+    return await prisma.organization.update({
+      where: { id },
+      data: { usersCount: updatedOrganization._count.users },
+      select: {
+        id: true,
+        name: true,
+        users: {
+          select: userSelect,
+        },
+        usersCount: true,
+      },
     });
   },
 
@@ -71,12 +88,30 @@ export const OrganizationService = {
     const existingUserIds = existingUsers?.map((user) => user.id) || [];
     const usersToRemove = existingUserIds.filter((uid) => userIds.includes(uid));
 
-    return await prisma.organization.update({
+    const updatedOrganization = await prisma.organization.update({
       where: { id },
       data: {
         users: {
           disconnect: usersToRemove.map((uid) => ({ id: uid })),
         },
+      },
+      select: {
+        _count: {
+          select: { users: true },
+        },
+      },
+    });
+
+    return await prisma.organization.update({
+      where: { id },
+      data: { usersCount: updatedOrganization._count.users },
+      select: {
+        id: true,
+        name: true,
+        users: {
+          select: userSelect,
+        },
+        usersCount: true,
       },
     });
   },
@@ -96,9 +131,20 @@ export const OrganizationService = {
       select: { id: true },
     });
 
+    const updatedOrganization = await prisma.organization.update({
+      where: { id },
+      data: {
+        courses: { connect: validCourseIds },
+      },
+      select: {
+        _count: {
+          select: { courses: true },
+        },
+      },
+    });
     return await prisma.organization.update({
       where: { id },
-      data: { courses: { connect: validCourseIds } },
+      data: { coursesCount: updatedOrganization._count.courses },
       select: {
         id: true,
         name: true,
@@ -108,6 +154,7 @@ export const OrganizationService = {
             name: true,
           },
         },
+        coursesCount: true,
       },
     });
   },
@@ -117,13 +164,22 @@ export const OrganizationService = {
     const existingCourseIds = existingCourses?.map((course) => course.id) || [];
     const coursesToRemove = existingCourseIds.filter((cid) => courseIds.includes(cid));
 
-    return await prisma.organization.update({
+    const updatedOrganization = await prisma.organization.update({
       where: { id },
       data: {
         courses: {
           disconnect: coursesToRemove.map((cid) => ({ id: cid })),
         },
       },
+      select: {
+        _count: {
+          select: { courses: true },
+        },
+      },
+    });
+    return await prisma.organization.update({
+      where: { id },
+      data: { coursesCount: updatedOrganization._count.courses },
       select: {
         id: true,
         name: true,
@@ -133,6 +189,7 @@ export const OrganizationService = {
             name: true,
           },
         },
+        coursesCount: true,
       },
     });
   },

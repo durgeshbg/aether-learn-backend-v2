@@ -99,6 +99,9 @@ model Organization {
   users   User[]   @relation("OrganizationUsers")
   courses Course[]
 
+  usersCount   Int @default(0)
+  coursesCount Int @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }

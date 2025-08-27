@@ -321,6 +321,7 @@ describe('Organization', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
       expect(response.status).toBe(200);
+      expect(response.body.organization.usersCount).toBe(2); // orgAdmin + user2
 
       // Verify user was added
       const usersResponse = await supertest(app)
@@ -365,6 +366,7 @@ describe('Organization', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
       expect(response.status).toBe(200);
+      expect(response.body.organization.usersCount).toBe(1); // only orgAdmin remains
 
       // Verify user was removed
       const usersResponse = await supertest(app)
@@ -464,6 +466,7 @@ describe('Organization', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ courseIds: [course.id, course2.id] });
       expect(response.status).toBe(200);
+      expect(response.body.organization.coursesCount).toBe(2);
       expect(response.body.organization.courses.some((c: Course) => c.id === course.id)).toBe(true);
       expect(response.body.organization.courses.some((c: Course) => c.id === course2.id)).toBe(
         true,
@@ -505,6 +508,7 @@ describe('Organization', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ courseIds: [course.id, course2.id] });
       expect(response.status).toBe(200);
+      expect(response.body.organization.coursesCount).toBe(0);
       expect(response.body.organization.courses.some((c: Course) => c.id === course.id)).toBe(
         false,
       );
