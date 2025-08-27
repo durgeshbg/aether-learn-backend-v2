@@ -108,12 +108,18 @@ export const ModuleService = {
             },
           },
         },
+        bookmarkedModules: true,
       },
     });
 
-    return (
-      user?.organization?.courses[0]?.lessons[0]?.modules.find((module) => module.id === id) || null
-    );
+    const module =
+      user?.organization?.courses[0]?.lessons[0]?.modules.find((module) => module.id === id) ||
+      null;
+    const isBookmarked = user?.bookmarkedModules.some((b) => b.moduleId === module?.id) || false;
+
+    if (!module) return null;
+
+    return { ...module, isBookmarked };
   },
   update: async (id: string, lessonId: string, moduleData: ModuleUpdateType) => {
     return await prisma.module.update({

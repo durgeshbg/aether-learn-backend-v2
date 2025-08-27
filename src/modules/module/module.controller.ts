@@ -30,7 +30,7 @@ export const ModuleController = {
         req.user?.orgAdmin,
       );
       res.status(200).json({ modules });
-    } catch (error) {
+    } catch {
       res.status(MODULES_FETCH_FAILED.STATUS).json({ error: MODULES_FETCH_FAILED.MESSAGE });
     }
   },
@@ -41,7 +41,7 @@ export const ModuleController = {
     try {
       const newModule = await ModuleService.create(lessonId, moduleData);
       res.status(201).json({ module: newModule });
-    } catch (error) {
+    } catch {
       res.status(MODULE_CREATE_FAILED.STATUS).json({ error: MODULE_CREATE_FAILED.MESSAGE });
     }
   },
@@ -65,7 +65,7 @@ export const ModuleController = {
         return;
       }
       res.status(200).json({ module });
-    } catch (error) {
+    } catch {
       res.status(MODULE_FETCH_FAILED.STATUS).json({ error: MODULE_FETCH_FAILED.MESSAGE });
     }
   },
@@ -79,7 +79,7 @@ export const ModuleController = {
         res.status(MODULE_NOT_FOUND.STATUS).json({ error: MODULE_NOT_FOUND.MESSAGE });
       }
       res.status(200).json({ module: updatedModule });
-    } catch (error) {
+    } catch {
       res.status(MODULE_UPDATE_FAILED.STATUS).json({ error: MODULE_UPDATE_FAILED.MESSAGE });
     }
   },
@@ -92,7 +92,7 @@ export const ModuleController = {
         res.status(MODULE_NOT_FOUND.STATUS).json({ error: MODULE_NOT_FOUND.MESSAGE });
       }
       res.status(204).send();
-    } catch (error) {
+    } catch {
       res.status(MODULE_DELETE_FAILED.STATUS).json({ error: MODULE_DELETE_FAILED.MESSAGE });
     }
   },
