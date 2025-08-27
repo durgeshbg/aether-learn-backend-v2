@@ -3,7 +3,13 @@ import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import { PrismaClient, type Organization } from '../../generated/prisma';
+import {
+  PrismaClient,
+  type Course,
+  type Lesson,
+  type Module,
+  type Organization,
+} from '../../generated/prisma';
 import { UserErrors } from './user.errors';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
@@ -11,8 +17,15 @@ import { Role } from '../../generated/prisma';
 
 const url = '/api/v1/users';
 
-const { USER_EMAIL_EXISTS, USER_INVALID_CREDENTIALS, USER_OWN_ACCOUNT_DELETION, USER_FORBIDDEN } =
-  UserErrors;
+const {
+  USER_EMAIL_EXISTS,
+  USER_INVALID_CREDENTIALS,
+  USER_OWN_ACCOUNT_DELETION,
+  USER_FORBIDDEN,
+  USER_COURSE_ENROLLMENT_FAILED,
+  USER_MODULE_BOOKMARK_FAILED,
+  USER_MARK_AS_COMPLETE_FAILED,
+} = UserErrors;
 const { FORBIDDEN, UNAUTHORIZED } = AuthErrors;
 const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
 
@@ -31,6 +44,12 @@ describe('User', async () => {
   let user2Token: string;
   let user3Token: string;
   let organization: Organization;
+  let course: Course;
+  let noAccessCourse: Course;
+  let lesson: Lesson;
+  let noAccessLesson: Lesson;
+  let module: Module;
+  let noAccessModule: Module;
 
   beforeAll(async () => {
     const testDB = await setupTests();
@@ -44,6 +63,12 @@ describe('User', async () => {
     user = await testDB.seedUser(prisma, USER_TEST_EMAILS.user, Role.USER, USER_TEST_PASSWORD);
     user2 = await testDB.seedUser(prisma, USER_TEST_EMAILS.user2, Role.USER, USER_TEST_PASSWORD);
     organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
+    course = await testDB.seedCourse(prisma, 'Test Course', organization.id);
+    noAccessCourse = await testDB.seedCourse(prisma, 'No Access Course');
+    lesson = await testDB.seedLesson(prisma, 'Test Lesson', course.id);
+    noAccessLesson = await testDB.seedLesson(prisma, 'No Access Lesson', noAccessCourse.id);
+    module = await testDB.seedModule(prisma, lesson.id, 'Test Module');
+    noAccessModule = await testDB.seedModule(prisma, noAccessLesson.id, 'No Access Module');
     user3 = await testDB.seedUser(
       prisma,
       USER_TEST_EMAILS.user3,
@@ -89,6 +114,238 @@ describe('User', async () => {
         .send({ email: USER_TEST_EMAILS.admin, password: USER_TEST_PASSWORD });
       expect(response.status).toBe(200);
       expect(response.body).toHaveProperty('token');
+    });
+  });
+
+  describe('PUT: /enroll-course', () => {
+    test('Should not enroll in course without auth token', async () => {
+      const response = await supertest(app).put(`${url}/enroll-course`).send({
+        courseId: 'course_1234567890abcdef',
+      });
+      expect(response.status).toBe(UNAUTHORIZED.STATUS);
+      expect(response.body).toHaveProperty('error', UNAUTHORIZED.MESSAGE);
+    });
+    test('Should not enroll in course with missing courseId', async () => {
+      const response = await supertest(app)
+        .put(`${url}/enroll-course`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({});
+      expect(response.status).toBe(INVALID_DATA.STATUS);
+      expect(response.body).toHaveProperty('error', INVALID_DATA.MESSAGE);
+    });
+    test('Should not enroll in course with invalid course id with auth', async () => {
+      const response = await supertest(app)
+        .put(`${url}/enroll-course`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          courseId: 'course1',
+        });
+      expect(response.status).toBe(INVALID_DATA.STATUS);
+      expect(response.body).toHaveProperty('error', INVALID_DATA.MESSAGE);
+    });
+    test('Should not enroll in course which the organization does not have access', async () => {
+      const response = await supertest(app)
+        .put(`${url}/enroll-course`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          courseId: noAccessCourse.id,
+        });
+      expect(response.status).toBe(USER_COURSE_ENROLLMENT_FAILED.STATUS);
+      expect(response.body).toHaveProperty('error', USER_COURSE_ENROLLMENT_FAILED.MESSAGE);
+    });
+    test('Should enroll and unenroll in course with valid course id with auth and access to course', async () => {
+      const response = await supertest(app)
+        .put(`${url}/enroll-course`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          courseId: course.id,
+          enroll: true,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.enrollmentData).toHaveProperty('userId', user.id);
+      expect(response.body.enrollmentData).toHaveProperty('courseId', course.id);
+
+      const response2 = await supertest(app)
+        .put(`${url}/enroll-course`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          courseId: course.id,
+          enroll: false,
+        });
+
+      expect(response2.status).toBe(204);
+    });
+    test('Should ensure enrollment is idempotent', async () => {
+      const response = await supertest(app)
+        .put(`${url}/enroll-course`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          courseId: course.id,
+          enroll: true,
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body.enrollmentData).toHaveProperty('userId', user.id);
+      expect(response.body.enrollmentData).toHaveProperty('courseId', course.id);
+
+      const response2 = await supertest(app)
+        .put(`${url}/enroll-course`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          courseId: course.id,
+          enroll: true,
+        });
+
+      expect(response2.status).toBe(200);
+      expect(response2.body.enrollmentData).toHaveProperty('userId', user.id);
+      expect(response2.body.enrollmentData).toHaveProperty('courseId', course.id);
+    });
+  });
+
+  describe('PUT: /bookmark-module', () => {
+    test('Should not bookmark module without auth token', async () => {
+      const response = await supertest(app).put(`${url}/bookmark-module`).send({
+        moduleId: 'module_1234567890abcdef',
+      });
+      expect(response.status).toBe(UNAUTHORIZED.STATUS);
+      expect(response.body).toHaveProperty('error', UNAUTHORIZED.MESSAGE);
+    });
+    test('Should not bookmark module with missing moduleId', async () => {
+      const response = await supertest(app)
+        .put(`${url}/bookmark-module`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({});
+      expect(response.status).toBe(INVALID_DATA.STATUS);
+      expect(response.body).toHaveProperty('error', INVALID_DATA.MESSAGE);
+    });
+    test('Should not bookmark module with invalid module id with auth', async () => {
+      const response = await supertest(app)
+        .put(`${url}/bookmark-module`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          moduleId: 'module1',
+        });
+      expect(response.status).toBe(INVALID_DATA.STATUS);
+      expect(response.body).toHaveProperty('error', INVALID_DATA.MESSAGE);
+    });
+    test('Should not bookmark module which the organization does not have access', async () => {
+      const response = await supertest(app)
+        .put(`${url}/bookmark-module`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          moduleId: noAccessModule.id,
+        });
+      expect(response.status).toBe(USER_MODULE_BOOKMARK_FAILED.STATUS);
+      expect(response.body).toHaveProperty('error', USER_MODULE_BOOKMARK_FAILED.MESSAGE);
+    });
+    test('Should bookmark and remove bookmark from module with valid module id with auth and access to  module', async () => {
+      const response = await supertest(app)
+        .put(`${url}/bookmark-module`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          moduleId: module.id,
+          bookmark: true,
+        });
+      expect(response.status).toBe(200);
+      expect(response.body.bookmark).toHaveProperty('userId', user.id);
+      expect(response.body.bookmark).toHaveProperty('moduleId', module.id);
+
+      const response2 = await supertest(app)
+        .put(`${url}/bookmark-module`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          moduleId: module.id,
+          bookmark: false,
+        });
+      expect(response2.status).toBe(204);
+    });
+    test('Should ensure bookmark is idempotent', async () => {
+      const response = await supertest(app)
+        .put(`${url}/bookmark-module`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          moduleId: module.id,
+          bookmark: true,
+        });
+      expect(response.status).toBe(200);
+      expect(response.body.bookmark).toHaveProperty('userId', user.id);
+      expect(response.body.bookmark).toHaveProperty('moduleId', module.id);
+
+      const response2 = await supertest(app)
+        .put(`${url}/bookmark-module`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          moduleId: module.id,
+          bookmark: true,
+        });
+      expect(response2.status).toBe(200);
+      expect(response2.body.bookmark).toHaveProperty('userId', user.id);
+      expect(response2.body.bookmark).toHaveProperty('moduleId', module.id);
+    });
+  });
+
+  describe('PUT: /mark-module-as-complete', () => {
+    test('Should not mark module as complete without auth token', async () => {
+      const response = await supertest(app).put(`${url}/mark-module-as-complete`).send({
+        moduleId: 'module_1234567890abcdef',
+      });
+      expect(response.status).toBe(UNAUTHORIZED.STATUS);
+      expect(response.body).toHaveProperty('error', UNAUTHORIZED.MESSAGE);
+    });
+
+    test('Should not mark module as complete with missing data', async () => {
+      const response = await supertest(app)
+        .put(`${url}/mark-module-as-complete`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({});
+      expect(response.status).toBe(INVALID_DATA.STATUS);
+      expect(response.body).toHaveProperty('error', INVALID_DATA.MESSAGE);
+    });
+
+    test('Should not mark module as complete with invalid module id with auth', async () => {
+      const response = await supertest(app)
+        .put(`${url}/mark-module-as-complete`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          moduleId: 'module1',
+        });
+      expect(response.status).toBe(INVALID_DATA.STATUS);
+      expect(response.body).toHaveProperty('error', INVALID_DATA.MESSAGE);
+    });
+    test('Should not mark as complete module if not enrolled in course', async () => {
+      const response = await supertest(app)
+        .put(`${url}/mark-module-as-complete`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          courseId: noAccessCourse.id,
+          moduleId: noAccessModule.id,
+          complete: true,
+        });
+      expect(response.status).toBe(USER_MARK_AS_COMPLETE_FAILED.STATUS);
+      expect(response.body).toHaveProperty('error', USER_MARK_AS_COMPLETE_FAILED.MESSAGE);
+    });
+
+    test('Should mark as complete for accessible module, quiz', async () => {
+      await supertest(app)
+        .put(`${url}/enroll-course`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          courseId: course.id,
+          enroll: true,
+        });
+      const response = await supertest(app)
+        .put(`${url}/mark-module-as-complete`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          courseId: course.id,
+          moduleId: module.id,
+          complete: true,
+        });
+      expect(response.status).toBe(200);
+      expect(response.body.progress.completedModules.some((m: Module) => m.id === module.id)).toBe(
+        true,
+      );
     });
   });
 
@@ -260,6 +517,63 @@ describe('User', async () => {
     test('Should not fetch user if user himself tries to access another user', async () => {
       const response = await supertest(app)
         .get(`${url}/${user2.id}`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(USER_FORBIDDEN.STATUS);
+      expect(response.body).toHaveProperty('error', USER_FORBIDDEN.MESSAGE);
+    });
+  });
+
+  describe('GET: /:id/progress', () => {
+    beforeAll(async () => {
+      await supertest(app)
+        .put(`${url}/enroll-course`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          courseId: course.id,
+          enroll: true,
+        });
+    });
+
+    test('Should fetch user progress by ID with admin token', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${user.id}/progress`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.progress[0]).toHaveProperty('completedModules');
+      expect(response.body.progress[0]).toHaveProperty('completedQuizzes');
+      expect(response.body.progress[0]).toHaveProperty('completedAssessments');
+    });
+    test('Should fetch user progress if org admin', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${user3.id}/progress`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.progress).toBeInstanceOf(Array);
+    });
+    test('Should fetch user progress if user himself', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${user.id}/progress`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.progress).toBeInstanceOf(Array);
+    });
+    test('Should not fetch user progress by invalid ID', async () => {
+      const response = await supertest(app)
+        .get(`${url}/invalid-id/progress`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body).toHaveProperty('error', INVALID_PARAMS.MESSAGE);
+    });
+    test('Should not fetch user progress if not admin or org admin or himself', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${user.id}/progress`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(USER_FORBIDDEN.STATUS);
+      expect(response.body).toHaveProperty('error', USER_FORBIDDEN.MESSAGE);
+    });
+    test('Should not fetch user if user not part of organization of org admin', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${user2.id}/progress`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(USER_FORBIDDEN.STATUS);
       expect(response.body).toHaveProperty('error', USER_FORBIDDEN.MESSAGE);
