@@ -17,6 +17,8 @@ async function main() {
   await prisma.quizResult.deleteMany({});
   await prisma.testCase.deleteMany({});
   await prisma.user.deleteMany({});
+  await prisma.bookmarkModule.deleteMany({});
+  await prisma.enrolledCourseProgress.deleteMany({});
 
   // Create Organizations
   const org1 = await prisma.organization.create({
@@ -79,7 +81,7 @@ async function main() {
     },
   });
 
-  await prisma.user.create({
+  const user1 = await prisma.user.create({
     data: {
       email: 'user1@mail.com',
       password: hashedPassword,
@@ -89,7 +91,7 @@ async function main() {
     },
   });
 
-  await prisma.user.create({
+  const user2 = await prisma.user.create({
     data: {
       email: 'user2@mail.com',
       password: hashedPassword,
@@ -143,7 +145,7 @@ async function main() {
   });
 
   // Lessons and Modules
-  await prisma.lesson.create({
+  const lesson1 = await prisma.lesson.create({
     data: {
       title: 'Variables in JS',
       content: 'Understanding let, var, and const.',
@@ -171,9 +173,10 @@ async function main() {
         ],
       },
     },
+    include: { modules: true },
   });
 
-  await prisma.lesson.create({
+  const lesson2 = await prisma.lesson.create({
     data: {
       title: 'Node Event Loop',
       content: 'How the event loop works.',
@@ -201,6 +204,7 @@ async function main() {
         ],
       },
     },
+    include: { modules: true },
   });
 
   // Quizzes and Questions
@@ -341,6 +345,32 @@ async function main() {
       assessmentId: assessment2.id,
       status: CodeSolutionStatus.SUBMITTED,
       score: 95,
+    },
+  });
+
+  // Bookmarked Modules
+  if (user1 && lesson1.modules[0]?.id && lesson2.modules[1]?.id) {
+    await prisma.bookmarkModule.create({
+      data: {
+        userId: user1.id,
+        moduleId: lesson1.modules[0].id,
+      },
+    });
+
+    await prisma.bookmarkModule.create({
+      data: {
+        userId: user1.id,
+        moduleId: lesson2.modules[1].id,
+      },
+    });
+  }
+
+  // Enrolled Course
+  await prisma.enrolledCourseProgress.create({
+    data: {
+      userId: user1.id,
+      courseId: course1.id,
+      nextModuleId: lesson1.modules[0]?.id || null,
     },
   });
 }

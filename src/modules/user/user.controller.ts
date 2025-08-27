@@ -8,6 +8,9 @@ import type {
   UserDetailsUpdateType,
   UserFilterQueryType,
   UserOrganizationIDQueryType,
+  UserBookMarkModuleUpdateType,
+  UserCourseEnrollmentUpdateType,
+  UserMarkAsCompleteUpdateType,
 } from './user.schema';
 import { hash } from 'bcrypt-ts';
 import { UserErrors } from './user.errors';
@@ -23,6 +26,9 @@ const {
   USER_OWN_ACCOUNT_DELETION,
   USER_FORBIDDEN,
   USER_INVALID_ORGANIZATION,
+  USER_COURSE_ENROLLMENT_FAILED,
+  USER_MODULE_BOOKMARK_FAILED,
+  USER_MARK_AS_COMPLETE_FAILED,
 } = UserErrors;
 
 export const UserController = {
@@ -68,6 +74,30 @@ export const UserController = {
         res.status(200).json({ user });
         return;
       }
+      res.status(USER_FORBIDDEN.STATUS).json({
+        error: USER_FORBIDDEN.MESSAGE,
+      });
+      return;
+    } catch {
+      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
+      return;
+    }
+  },
+
+  findUserProgress: async (req: Request, res: Response) => {
+    try {
+      const userId = req.params?.id;
+      const user = await UserService.findUserProgress(userId!);
+
+      if (
+        req.user?.role === Role.ADMIN ||
+        req.user?.orgAdmin === user?.organization?.id ||
+        userId === req.user?.id
+      ) {
+        res.status(200).json({ progress: user?.enrolledCourseProgress || [] });
+        return;
+      }
+
       res.status(USER_FORBIDDEN.STATUS).json({
         error: USER_FORBIDDEN.MESSAGE,
       });
@@ -125,6 +155,60 @@ export const UserController = {
       return;
     } catch {
       res.status(USER_INVALID_CREDENTIALS.STATUS).json({ error: USER_INVALID_CREDENTIALS.MESSAGE });
+      return;
+    }
+  },
+
+  updateCourseEnrollment: async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      const { courseId, enroll }: UserCourseEnrollmentUpdateType = req.body;
+      const enrollmentData = await UserService.updateCourseEnrollment(userId!, courseId, enroll);
+      if (enroll) {
+        res.status(200).json({ enrollmentData });
+      } else {
+        res.status(204).json();
+      }
+
+      return;
+    } catch {
+      res.status(USER_COURSE_ENROLLMENT_FAILED.STATUS).json({
+        error: USER_COURSE_ENROLLMENT_FAILED.MESSAGE,
+      });
+      return;
+    }
+  },
+
+  updateBookMarkModule: async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      const { moduleId, bookmark }: UserBookMarkModuleUpdateType = req.body;
+      const userBookmark = await UserService.updateBookMarkModule(userId!, moduleId, bookmark);
+      if (bookmark) {
+        res.status(200).json({ bookmark: userBookmark });
+      } else {
+        res.status(204).json();
+      }
+      return;
+    } catch {
+      res.status(USER_MODULE_BOOKMARK_FAILED.STATUS).json({
+        error: USER_MODULE_BOOKMARK_FAILED.MESSAGE,
+      });
+      return;
+    }
+  },
+
+  updateModuleMarkAsComplete: async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      const parsedBody: UserMarkAsCompleteUpdateType = req.body;
+      const userCourseProgress = await UserService.updateModuleMarkAsComplete(userId!, parsedBody);
+      res.status(200).json({ progress: userCourseProgress });
+      return;
+    } catch {
+      res.status(USER_MARK_AS_COMPLETE_FAILED.STATUS).json({
+        error: USER_MARK_AS_COMPLETE_FAILED.MESSAGE,
+      });
       return;
     }
   },

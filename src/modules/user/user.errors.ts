@@ -35,4 +35,16 @@ export const UserErrors = {
     STATUS: 403,
     MESSAGE: 'Forbidden access.',
   },
+  USER_COURSE_ENROLLMENT_FAILED: {
+    STATUS: 403,
+    MESSAGE: "You don't belong to the organization offering this course.",
+  },
+  USER_MODULE_BOOKMARK_FAILED: {
+    STATUS: 403,
+    MESSAGE: "You don't have access to bookmark this module.",
+  },
+  USER_MARK_AS_COMPLETE_FAILED: {
+    STATUS: 400,
+    MESSAGE: 'You need to enroll in the course first.',
+  },
 };

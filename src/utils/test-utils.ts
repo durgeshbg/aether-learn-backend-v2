@@ -94,7 +94,7 @@ export async function setupTests() {
           },
         },
       },
-    });
+    })) as UserOrgAdmin;
   };
 
   const genToken = (

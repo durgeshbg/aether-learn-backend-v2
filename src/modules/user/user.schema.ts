@@ -29,6 +29,22 @@ export const UserOrganizationUpdateSchema = z.object({
   organizationId: z.string().cuid('Invalid organization ID format'),
 });
 
+export const UserCourseEnrollmentUpdateSchema = z.object({
+  courseId: z.string().cuid('Invalid course ID format'),
+  enroll: z.boolean().default(true),
+});
+
+export const UserBookMarkModuleUpdateSchema = z.object({
+  moduleId: z.string().cuid('Invalid module ID format'),
+  bookmark: z.boolean().default(true),
+});
+
+export const UserMarkAsCompleteUpdateSchema = z.object({
+  courseId: z.string().cuid('Invalid course ID'),
+  moduleId: z.string().cuid('Invalid module ID').optional(),
+  complete: z.boolean(),
+});
+
 export const UserLoginSchema = z.object({
   email: z.string().email(),
   password: z.string().min(8, 'Password must be at least 8 characters long'),
@@ -67,3 +83,6 @@ export type UserOrganizationUpdateType = z.infer<typeof UserOrganizationUpdateSc
 export type UserIdParamType = z.infer<typeof UserIdParamSchema>;
 export type UserFilterQueryType = z.infer<typeof UserFilterQuerySchema>;
 export type UserOrganizationIDQueryType = z.infer<typeof UserOrganizationIDQuerySchema>;
+export type UserCourseEnrollmentUpdateType = z.infer<typeof UserCourseEnrollmentUpdateSchema>;
+export type UserBookMarkModuleUpdateType = z.infer<typeof UserBookMarkModuleUpdateSchema>;
+export type UserMarkAsCompleteUpdateType = z.infer<typeof UserMarkAsCompleteUpdateSchema>;

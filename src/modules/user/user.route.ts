@@ -11,6 +11,9 @@ import {
   UserOrganizationUpdateSchema,
   UserOrganizationIDQuerySchema,
   UserFilterQuerySchema,
+  UserCourseEnrollmentUpdateSchema,
+  UserBookMarkModuleUpdateSchema,
+  UserMarkAsCompleteUpdateSchema,
 } from './user.schema';
 
 const router = express.Router();
@@ -18,6 +21,24 @@ const router = express.Router();
 router.post('/login', validate(UserLoginSchema), UserController.login);
 
 router.use(authMiddleware);
+
+router.put(
+  '/enroll-course',
+  validate(UserCourseEnrollmentUpdateSchema),
+  UserController.updateCourseEnrollment,
+);
+
+router.put(
+  '/bookmark-module',
+  validate(UserBookMarkModuleUpdateSchema),
+  UserController.updateBookMarkModule,
+);
+
+router.put(
+  '/mark-module-as-complete',
+  validate(UserMarkAsCompleteUpdateSchema),
+  UserController.updateModuleMarkAsComplete,
+);
 
 router.get(
   '/',
@@ -36,6 +57,8 @@ router.get(
   validateQuery(UserFilterQuerySchema),
   UserController.findById,
 );
+
+router.get('/:id/progress', validateParams(UserIdParamSchema), UserController.findUserProgress);
 
 router.put(
   '/:id',

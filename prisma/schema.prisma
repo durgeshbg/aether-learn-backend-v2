@@ -40,10 +40,47 @@ model User {
   quizResults   QuizResult[]   @relation("UserResult")
   codeSolutions CodeSolution[] @relation("UserCodeSolutions")
 
+  bookmarkedModules      BookmarkModule[]
+  enrolledCourseProgress EnrolledCourseProgress[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([email], name: "idx_user_email")
+}
+
+model EnrolledCourseProgress {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  completedModules     Module[]
+  completedQuizzes     Quiz[]
+  completedAssessments CodeAssessment[]
+
+  nextModuleId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
+}
+
+model BookmarkModule {
+  id String @id @default(cuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  moduleId String
+  module   Module @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, moduleId])
 }
 
 model Organization {
@@ -77,6 +114,7 @@ model Course {
   codeAssessments CodeAssessment[] @relation("CourseCodeAssessments")
   organizations   Organization[]
 
+  enrolledCourseProgress EnrolledCourseProgress[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -108,6 +146,9 @@ model Module {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  bookmarkedUsers          BookmarkModule[]
+  EnrolledCourseProgress   EnrolledCourseProgress? @relation(fields: [enrolledCourseProgressId], references: [id])
+  enrolledCourseProgressId String?
 }
 
 model Quiz {
@@ -123,6 +164,8 @@ model Quiz {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  EnrolledCourseProgress   EnrolledCourseProgress? @relation(fields: [enrolledCourseProgressId], references: [id])
+  enrolledCourseProgressId String?
 }
 
 model Question {
@@ -170,6 +213,8 @@ model CodeAssessment {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  EnrolledCourseProgress   EnrolledCourseProgress? @relation(fields: [enrolledCourseProgressId], references: [id])
+  enrolledCourseProgressId String?
 }
 
 model TestCase {
@@ -199,6 +244,4 @@ model CodeSolution {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([userId, assessmentId])
 }

@@ -1,4 +1,9 @@
-import type { CreateUserType, UserDetailsUpdateType, UserFilterQueryType } from './user.schema';
+import type {
+  CreateUserType,
+  UserDetailsUpdateType,
+  UserFilterQueryType,
+  UserMarkAsCompleteUpdateType,
+} from './user.schema';
 import { PrismaClient, Role } from '../../generated/prisma';
 import { compare } from 'bcrypt-ts';
 
@@ -54,6 +59,138 @@ export const UserService = {
       return null;
     }
     return user;
+  },
+
+  updateBookMarkModule: async (userId: string, moduleId: string, bookmark: boolean) => {
+    const module = await prisma.module.findFirst({
+      where: {
+        id: moduleId,
+        lesson: {
+          course: {
+            organizations: {
+              some: {
+                users: {
+                  some: {
+                    id: userId,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!module) {
+      throw new Error(
+        'Module not found or user does not belong to the organization offering the course.',
+      );
+    }
+
+    if (bookmark) {
+      const bookmark = await prisma.bookmarkModule.upsert({
+        where: {
+          userId_moduleId: {
+            userId,
+            moduleId,
+          },
+        },
+        update: {},
+        create: {
+          userId,
+          moduleId,
+        },
+      });
+      return bookmark;
+    } else {
+      return await prisma.bookmarkModule.deleteMany({
+        where: { userId, moduleId },
+      });
+    }
+  },
+
+  updateCourseEnrollment: async (userId: string, courseId: string, enroll: boolean) => {
+    const course = await prisma.course.findFirst({
+      where: {
+        id: courseId,
+        organizations: {
+          some: {
+            users: {
+              some: {
+                id: userId,
+              },
+            },
+          },
+        },
+      },
+      include: { lessons: { include: { modules: true } } },
+    });
+
+    if (!course) {
+      throw new Error(
+        'Course not found or user does not belong to the organization offering the course.',
+      );
+    }
+
+    if (enroll) {
+      const enrollment = await prisma.enrolledCourseProgress.upsert({
+        where: {
+          userId_courseId: {
+            userId,
+            courseId,
+          },
+        },
+        update: {},
+        create: {
+          userId,
+          courseId,
+          nextModuleId: course.lessons[0]?.modules[0]?.id || null,
+        },
+      });
+      return enrollment;
+    } else {
+      return await prisma.enrolledCourseProgress.deleteMany({
+        where: { userId, courseId },
+      });
+    }
+  },
+
+  updateModuleMarkAsComplete: async (id: string, parsedBody: UserMarkAsCompleteUpdateType) => {
+    const isEnrolled = await prisma.enrolledCourseProgress.findFirst({
+      where: {
+        userId: id,
+        courseId: parsedBody.courseId,
+      },
+    });
+
+    if (!isEnrolled) {
+      throw new Error('You did not enroll in this course.');
+    }
+
+    const mode = parsedBody.complete ? 'connect' : 'disconnect';
+
+    return prisma.enrolledCourseProgress.update({
+      where: {
+        userId_courseId: {
+          courseId: parsedBody.courseId,
+          userId: id,
+        },
+      },
+      data: {
+        completedModules: {
+          [mode]: {
+            id: parsedBody.moduleId,
+          },
+        },
+      },
+      include: {
+        completedModules: {
+          select: {
+            id: true,
+          },
+        },
+      },
+    });
   },
 
   updateDetails: async (id: string, data: UserDetailsUpdateType) => {
@@ -114,6 +251,24 @@ export const UserService = {
     return await prisma.user.findUnique({
       where: { email },
       select: userSelect,
+    });
+  },
+
+  findUserProgress: (userId: string) => {
+    return prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+      include: {
+        organization: true,
+        enrolledCourseProgress: {
+          include: {
+            completedAssessments: true,
+            completedModules: true,
+            completedQuizzes: true,
+          },
+        },
+      },
     });
   },
 };
