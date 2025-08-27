@@ -31,7 +31,7 @@ export const QuizResultController = {
         userRole,
       );
       res.status(200).json({ quizResults });
-    } catch (error) {
+    } catch {
       res
         .status(QUIZ_RESULTS_FETCH_FAILED.STATUS)
         .json({ error: QUIZ_RESULTS_FETCH_FAILED.MESSAGE });
@@ -40,7 +40,7 @@ export const QuizResultController = {
 
   create: async (req: Request, res: Response) => {
     const { quizId, courseId } = req.params as QuizResultQuizIdParamsType;
-    const userId = req.user?.id!;
+    const userId = req.user?.id;
     const quizResultData: QuizResultCreateType = req.body;
     try {
       const questions = await QuestionService.findAll(quizId, courseId, userId);
@@ -51,9 +51,9 @@ export const QuizResultController = {
           score += 1;
         }
       });
-      const newQuizResult = await QuizResultService.create(quizId, userId, score);
+      const newQuizResult = await QuizResultService.create(quizId, userId!, courseId, score);
       res.status(201).json({ quizResult: newQuizResult });
-    } catch (error) {
+    } catch {
       res
         .status(QUIZ_RESULT_CREATE_FAILED.STATUS)
         .json({ error: QUIZ_RESULT_CREATE_FAILED.MESSAGE });
@@ -79,7 +79,7 @@ export const QuizResultController = {
         return;
       }
       res.status(200).json({ quizResult });
-    } catch (error) {
+    } catch {
       res.status(QUIZ_RESULT_FETCH_FAILED.STATUS).json({ error: QUIZ_RESULT_FETCH_FAILED.MESSAGE });
     }
   },
@@ -89,7 +89,7 @@ export const QuizResultController = {
     try {
       await QuizResultService.delete(id, quizId);
       res.status(204).send();
-    } catch (error) {
+    } catch {
       res
         .status(QUIZ_RESULT_DELETE_FAILED.STATUS)
         .json({ error: QUIZ_RESULT_DELETE_FAILED.MESSAGE });

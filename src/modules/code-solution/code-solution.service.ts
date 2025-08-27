@@ -1,5 +1,4 @@
 import { PrismaClient } from '../../generated/prisma';
-import { userSelect } from '../user/user.service';
 import type {
   CodeSolutionCreateType,
   CodeSolutionScoreUpdateType,
@@ -115,14 +114,35 @@ export const CodeSolutionService = {
     });
   },
 
-  create: async (data: CodeSolutionCreateType, codeAssessmentId: string, userId: string) => {
-    return await prisma.codeSolution.create({
+  create: async (
+    data: CodeSolutionCreateType,
+    codeAssessmentId: string,
+    courseId: string,
+    userId: string,
+  ) => {
+    const codeSolution = await prisma.codeSolution.create({
       data: {
         code: data.code,
         assessmentId: codeAssessmentId,
         userId,
       },
     });
+
+    await prisma.enrolledCourseProgress.update({
+      where: {
+        userId_courseId: {
+          userId,
+          courseId,
+        },
+      },
+      data: {
+        completedAssessments: {
+          connect: { id: codeAssessmentId },
+        },
+      },
+    });
+
+    return codeSolution;
   },
 
   updateStatus: async (

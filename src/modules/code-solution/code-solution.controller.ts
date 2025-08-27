@@ -32,7 +32,7 @@ export const CodeSolutionController = {
         userRole,
       );
       res.status(200).json({ codeSolutions });
-    } catch (error) {
+    } catch {
       res
         .status(CODE_SOLUTIONS_FETCH_FAILED.STATUS)
         .json({ error: CODE_SOLUTIONS_FETCH_FAILED.MESSAGE });
@@ -41,16 +41,17 @@ export const CodeSolutionController = {
 
   create: async (req: Request, res: Response) => {
     const { courseId, codeAssessmentId } = req.params as CodeSolutionAssesmentIdParamType;
-    const userId = req?.user?.id!;
+    const userId = req?.user?.id;
     const codeSolutionData: CodeSolutionCreateType = req.body;
     try {
       const newCodeSolution = await CodeSolutionService.create(
         codeSolutionData,
         codeAssessmentId,
-        userId,
+        courseId,
+        userId!,
       );
       res.status(201).json({ codeSolution: newCodeSolution });
-    } catch (error) {
+    } catch {
       res
         .status(CODE_SOLUTION_CREATE_FAILED.STATUS)
         .json({ error: CODE_SOLUTION_CREATE_FAILED.MESSAGE });
@@ -76,7 +77,7 @@ export const CodeSolutionController = {
         return;
       }
       res.status(200).json({ codeSolution });
-    } catch (error) {
+    } catch {
       res
         .status(CODE_SOLUTION_FETCH_FAILED.STATUS)
         .json({ error: CODE_SOLUTION_FETCH_FAILED.MESSAGE });
@@ -84,7 +85,7 @@ export const CodeSolutionController = {
   },
 
   updateStatus: async (req: Request, res: Response) => {
-    const { id, codeAssessmentId, courseId } = req.params as CodeSolutionIdParamType;
+    const { id, codeAssessmentId } = req.params as CodeSolutionIdParamType;
     const statusData: CodeSolutionStatusUpdateType = req.body;
     try {
       const updatedCodeSolution = await CodeSolutionService.updateStatus(
@@ -93,7 +94,7 @@ export const CodeSolutionController = {
         statusData,
       );
       res.status(200).json({ codeSolution: updatedCodeSolution });
-    } catch (error) {
+    } catch {
       res
         .status(CODE_SOLUTION_UPDATE_FAILED.STATUS)
         .json({ error: CODE_SOLUTION_UPDATE_FAILED.MESSAGE });
@@ -101,7 +102,7 @@ export const CodeSolutionController = {
   },
 
   updateScore: async (req: Request, res: Response) => {
-    const { id, codeAssessmentId, courseId } = req.params as CodeSolutionIdParamType;
+    const { id, codeAssessmentId } = req.params as CodeSolutionIdParamType;
     const scoreData: CodeSolutionScoreUpdateType = req.body;
     try {
       const updatedCodeSolution = await CodeSolutionService.updateScore(
@@ -110,7 +111,7 @@ export const CodeSolutionController = {
         scoreData,
       );
       res.status(200).json({ codeSolution: updatedCodeSolution });
-    } catch (error) {
+    } catch {
       res
         .status(CODE_SOLUTION_UPDATE_FAILED.STATUS)
         .json({ error: CODE_SOLUTION_UPDATE_FAILED.MESSAGE });

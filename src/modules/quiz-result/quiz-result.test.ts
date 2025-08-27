@@ -14,13 +14,11 @@ import {
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { Role } from '../../generated/prisma';
-import { QuizResultErrors } from './quiz-result.errors';
 
 let url = '/api/v1/quizzes';
 
 const { UNAUTHORIZED, FORBIDDEN } = AuthErrors;
 const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
-const { QUIZ_RESULT_NOT_FOUND } = QuizResultErrors;
 
 const {
   USER_TEST_EMAILS,
@@ -106,7 +104,7 @@ describe('QuizResult', async () => {
 
     test('Should fecth all quiz results for quiz as user who has access to quiz', async () => {
       // add user2 to the organization
-      const a = await supertest(app)
+      await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
@@ -140,10 +138,16 @@ describe('QuizResult', async () => {
   describe('POST: /', () => {
     test('Should create a new quiz result with valid data', async () => {
       // add user2 to the organization
-      const a = await supertest(app)
+      await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
+
+      // Enroll user2 to the course
+      await supertest(app)
+        .put('/api/v1/users/enroll-course')
+        .set('Authorization', `Bearer ${user2Token}`)
+        .send({ courseId: course.id });
 
       // Create a question for the quiz
       const response = await supertest(app)
@@ -155,6 +159,16 @@ describe('QuizResult', async () => {
       expect(response.status).toBe(201);
       expect(response.body.quizResult).toHaveProperty('id');
       expect(response.body.quizResult.score).toBe(1);
+
+      // Verify if quiz is completed for user2
+      const response2 = await supertest(app)
+        .get(`/api/v1/users/${user2.id}/progress`)
+        .set('Authorization', `Bearer ${user2Token}`);
+
+      expect(response2.status).toBe(200);
+      expect(response2.body.progress[0].completedQuizzes.some((q: Quiz) => q.id === quiz.id)).toBe(
+        true,
+      );
 
       // remove user2 from the organization
       await supertest(app)

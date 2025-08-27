@@ -117,7 +117,7 @@ describe('CodeSolution', async () => {
 
     test('Should fetch all code solutions for assessment as user who has access to assessment', async () => {
       // add user2 to the organization
-      const a = await supertest(app)
+      await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
@@ -149,11 +149,17 @@ describe('CodeSolution', async () => {
 
   describe('POST: /', () => {
     test('Should create a new code solution as user', async () => {
-      // add user2 to the organization
+      // add user3 to the organization
       await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user3.id] });
+
+      // enroll user3 in the course
+      await supertest(app)
+        .put('/api/v1/users/enroll-course')
+        .set('Authorization', `Bearer ${user3Token}`)
+        .send({ courseId: course.id });
 
       const response = await supertest(app)
         .post(url)
@@ -161,6 +167,17 @@ describe('CodeSolution', async () => {
         .send({ code: 'print("Hello")' });
       expect(response.status).toBe(201);
       expect(response.body.codeSolution).toHaveProperty('id');
+
+      // Check progress of code assessment is completed.
+      const response2 = await supertest(app)
+        .get(`/api/v1/users/${user3.id}/progress`)
+        .set('Authorization', `Bearer ${user3Token}`);
+      expect(response2.status).toBe(200);
+      expect(
+        response2.body.progress[0].completedAssessments.find(
+          (a: CodeAssessment) => a.id === codeAssessment.id,
+        ),
+      ).toBeDefined();
 
       // remove user2 from the organization
       await supertest(app)

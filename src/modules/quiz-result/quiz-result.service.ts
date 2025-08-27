@@ -60,8 +60,8 @@ export const QuizResultService = {
     return user?.organization?.courses[0]?.quizzes[0]?.quizResults || [];
   },
 
-  create: async (quizId: string, userId: string, score: number = 0) => {
-    return await prisma.quizResult.create({
+  create: async (quizId: string, userId: string, courseId: string, score: number = 0) => {
+    const quizResult = await prisma.quizResult.create({
       data: {
         quizId,
         userId,
@@ -79,6 +79,22 @@ export const QuizResultService = {
         },
       },
     });
+
+    await prisma.enrolledCourseProgress.update({
+      where: {
+        userId_courseId: {
+          userId,
+          courseId,
+        },
+      },
+      data: {
+        completedQuizzes: {
+          connect: { id: quizId },
+        },
+      },
+    });
+
+    return quizResult;
   },
 
   findById: async (
