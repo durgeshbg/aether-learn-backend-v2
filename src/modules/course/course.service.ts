@@ -32,7 +32,7 @@ export const CourseService = {
     }
 
     if (userId) {
-      return await prisma.course.findMany({
+      const courses = await prisma.course.findMany({
         where: {
           organizations: {
             some: {
@@ -45,6 +45,20 @@ export const CourseService = {
           },
         },
       });
+      const enrollerCourses = await prisma.enrolledCourseProgress.findMany({
+        where: {
+          userId,
+          courseId: { in: courses.map((c) => c.id) },
+        },
+        include: {
+          course: true,
+        },
+      });
+
+      return courses.map((c) => ({
+        ...c,
+        enrolled: enrollerCourses.some((ec) => ec.courseId === c.id),
+      }));
     }
   },
 
@@ -74,7 +88,7 @@ export const CourseService = {
     }
 
     if (userId) {
-      return await prisma.course.findUnique({
+      const course = await prisma.course.findUnique({
         where: {
           id,
           organizations: {
@@ -88,6 +102,13 @@ export const CourseService = {
           },
         },
       });
+
+      if (!course) return null;
+
+      const enrollment = await prisma.enrolledCourseProgress.findUnique({
+        where: { userId_courseId: { userId, courseId: id } },
+      });
+      return { ...course, enrolled: !!enrollment };
     }
   },
 

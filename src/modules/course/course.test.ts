@@ -29,7 +29,6 @@ describe('Course', async () => {
   let user2Token: string;
   let organization: Organization;
   let course: Course;
-  let course2: Course;
 
   beforeAll(async () => {
     const testDB = await setupTests();
@@ -45,7 +44,6 @@ describe('Course', async () => {
 
     organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
-    course2 = await testDB.seedCourse(prisma, 'Temp');
 
     adminToken = testDB.genToken(admin);
     userToken = testDB.genToken({
@@ -71,7 +69,7 @@ describe('Course', async () => {
       const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.courses).toBeInstanceOf(Array);
-      expect(response.body.courses.length).toEqual(2);
+      expect(response.body.courses.length).toEqual(1);
     });
 
     test('Should fetch all courses for admin with org id query param', async () => {
@@ -175,7 +173,7 @@ describe('Course', async () => {
 
     test('Should fech course by ID for regular user part of organization', async () => {
       // user2 to organization
-      const r = await supertest(app)
+      await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });

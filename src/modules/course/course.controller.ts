@@ -26,7 +26,7 @@ export const CourseController = {
       const orgAdmin = req.user?.orgAdmin;
       const courses = await CourseService.findAll(userId, orgAdmin, role, organizationId);
       res.status(200).json({ courses });
-    } catch (error: any) {
+    } catch {
       res.status(COURSES_FETCH_FAILED.STATUS).json({
         error: COURSES_FETCH_FAILED.MESSAGE,
       });
@@ -39,7 +39,7 @@ export const CourseController = {
 
       const courses = await CourseService.findAllNonOrganizationCourses(organizationId);
       res.status(200).json({ courses });
-    } catch (error: any) {
+    } catch {
       res.status(COURSES_FETCH_FAILED.STATUS).json({
         error: COURSES_FETCH_FAILED.MESSAGE,
       });
@@ -61,7 +61,7 @@ export const CourseController = {
       }
 
       res.status(200).json({ course });
-    } catch (error: any) {
+    } catch {
       res.status(COURSE_FETCH_FAILED.STATUS).json({
         error: COURSE_FETCH_FAILED.MESSAGE,
       });
@@ -73,7 +73,7 @@ export const CourseController = {
       const courseData: CourseCreateType = req.body;
       const course = await CourseService.create(courseData);
       res.status(201).json({ course });
-    } catch (error: any) {
+    } catch {
       res.status(COURSE_CREATE_FAILED.STATUS).json({
         error: COURSE_CREATE_FAILED.MESSAGE,
       });
@@ -91,7 +91,7 @@ export const CourseController = {
         });
       }
       res.status(200).json({ course: updatedCourse });
-    } catch (error: any) {
+    } catch {
       res.status(COURSE_UPDATE_FAILED.STATUS).json({
         error: COURSE_UPDATE_FAILED.MESSAGE,
       });
@@ -108,7 +108,7 @@ export const CourseController = {
         });
       }
       res.status(204).send();
-    } catch (error: any) {
+    } catch {
       res.status(COURSE_DELETE_FAILED.STATUS).json({
         error: COURSE_DELETE_FAILED.MESSAGE,
       });
