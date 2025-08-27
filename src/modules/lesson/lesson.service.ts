@@ -82,7 +82,7 @@ export const LessonService = {
   },
 
   async create(courseId: string, lessonData: LessonCreateType) {
-    return await prisma.lesson.create({
+    const lesson = await prisma.lesson.create({
       data: {
         title: lessonData.title,
         content: lessonData.content,
@@ -92,6 +92,15 @@ export const LessonService = {
         course: true,
       },
     });
+
+    await prisma.course.update({
+      where: { id: courseId },
+      data: {
+        lessonsCount: { increment: 1 },
+      },
+    });
+
+    return lesson;
   },
 
   async update(id: string, courseId: string, lessonData: LessonUpdateType) {

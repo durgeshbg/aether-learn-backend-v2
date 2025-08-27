@@ -91,7 +91,7 @@ export const CodeAssessmentService = {
   },
 
   async create(courseId: string, codeAssessmentData: CodeAssessmentCreateType) {
-    return await prisma.codeAssessment.create({
+    const codeAssessment = await prisma.codeAssessment.create({
       data: {
         title: codeAssessmentData.title,
         description: codeAssessmentData.description,
@@ -104,6 +104,17 @@ export const CodeAssessmentService = {
         course: true,
       },
     });
+
+    await prisma.course.update({
+      where: { id: courseId },
+      data: {
+        codeAssessmentsCount: {
+          increment: 1,
+        },
+      },
+    });
+
+    return codeAssessment;
   },
 
   async update(id: string, courseId: string, codeAssessmentData: CodeAssessmentUpdateType) {

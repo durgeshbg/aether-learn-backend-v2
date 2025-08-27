@@ -131,6 +131,13 @@ describe('Quiz', async () => {
       expect(response.status).toBe(201);
       expect(response.body.quiz).toHaveProperty('id');
       expect(response.body.quiz.title).toBe('Test Quiz');
+
+      // Verify quizcount incremented in course
+      const response2 = await supertest(app)
+        .get(`/api/v1/courses/${course.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response2.status).toBe(200);
+      expect(response2.body.course.quizzesCount).toBe(2);
     });
 
     test('Should not create quiz with invalid data', async () => {

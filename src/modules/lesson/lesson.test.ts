@@ -95,7 +95,7 @@ describe('Lesson', async () => {
       expect(response.body.lessons.length).toBeGreaterThan(0);
 
       // Clean up: remove user2 from organization
-      const r = await supertest(app)
+      await supertest(app)
         .delete(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
@@ -128,6 +128,13 @@ describe('Lesson', async () => {
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
       expect(response.body.title).toBe('Test Lesson');
+
+      // Verify lesson count incremented in course
+      const response2 = await supertest(app)
+        .get(`/api/v1/courses/${course.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response2.status).toBe(200);
+      expect(response2.body.course.lessonsCount).toBe(2); // 1 initial + 1 new
     });
 
     test('Should not create lesson with invalid data', async () => {

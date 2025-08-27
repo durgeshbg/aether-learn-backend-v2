@@ -141,6 +141,13 @@ export async function setupTests() {
   };
 
   const seedLesson = async (prisma: PrismaClient, title: string, courseId: string) => {
+    await prisma.course.update({
+      where: { id: courseId },
+      data: {
+        lessonsCount: { increment: 1 },
+      },
+    });
+
     return await prisma.lesson.create({
       data: {
         title,
@@ -166,6 +173,12 @@ export async function setupTests() {
   };
 
   const seedQuiz = async (prisma: PrismaClient, title: string, courseId: string) => {
+    await prisma.course.update({
+      where: { id: courseId },
+      data: {
+        quizzesCount: { increment: 1 },
+      },
+    });
     return await prisma.quiz.create({
       data: {
         title,
@@ -219,6 +232,13 @@ export async function setupTests() {
     if (!languageId) {
       throw new Error('Language ID is required for code assessment');
     }
+
+    await prisma.course.update({
+      where: { id: courseId },
+      data: {
+        codeAssessmentsCount: { increment: 1 },
+      },
+    });
 
     return await prisma.codeAssessment.create({
       data: {

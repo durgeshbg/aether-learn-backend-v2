@@ -93,7 +93,7 @@ export const QuizService = {
   },
 
   async create(courseId: string, quizData: QuizCreateType) {
-    return await prisma.quiz.create({
+    const quiz = await prisma.quiz.create({
       data: {
         title: quizData.title,
         description: quizData.description,
@@ -103,6 +103,15 @@ export const QuizService = {
         course: true,
       },
     });
+
+    await prisma.course.update({
+      where: { id: courseId },
+      data: {
+        quizzesCount: { increment: 1 },
+      },
+    });
+
+    return quiz;
   },
 
   async update(id: string, courseId: string, quizData: QuizUpdateType) {

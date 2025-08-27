@@ -151,6 +151,13 @@ describe('CodeAssessment', async () => {
       expect(response.status).toBe(201);
       expect(response.body.codeAssessment).toHaveProperty('id');
       expect(response.body.codeAssessment.title).toBe('Test Code Assessment');
+
+      // Verify that code assessment count in course is incremented
+      const response2 = await supertest(app)
+        .get(`/api/v1/courses/${course.id}`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response2.status).toBe(200);
+      expect(response2.body.course.codeAssessmentsCount).toBe(2);
     });
 
     test('Should not create code assessment with invalid data', async () => {
