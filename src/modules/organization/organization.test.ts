@@ -3,7 +3,7 @@ import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import { PrismaClient, type Course, type Organization } from '../../generated/prisma';
+import { PrismaClient, type Course, type Organization, type User } from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { Role } from '../../generated/prisma';
@@ -327,7 +327,7 @@ describe('Organization', async () => {
         .get(`${url}/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(usersResponse.status).toBe(200);
-      expect(usersResponse.body.users.some((user: any) => user.id === user2.id)).toBe(true);
+      expect(usersResponse.body.users.some((user: User) => user.id === user2.id)).toBe(true);
     });
   });
 
@@ -371,7 +371,7 @@ describe('Organization', async () => {
         .get(`${url}/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(usersResponse.status).toBe(200);
-      expect(usersResponse.body.users.some((user: any) => user.id === user2.id)).toBe(false);
+      expect(usersResponse.body.users.some((user: User) => user.id === user2.id)).toBe(false);
     });
   });
 
@@ -404,7 +404,7 @@ describe('Organization', async () => {
         .set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(Array.isArray(response.body.courses)).toBe(true);
-      expect(response.body.courses.some((course: any) => course.id === course.id)).toBe(true);
+      expect(response.body.courses.some((course: Course) => course.id === course.id)).toBe(true);
 
       // remove user2 from organization
       await supertest(app)
@@ -464,8 +464,10 @@ describe('Organization', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ courseIds: [course.id, course2.id] });
       expect(response.status).toBe(200);
-      expect(response.body.courses.some((c: Course) => c.id === course.id)).toBe(true);
-      expect(response.body.courses.some((c: Course) => c.id === course2.id)).toBe(true);
+      expect(response.body.organization.courses.some((c: Course) => c.id === course.id)).toBe(true);
+      expect(response.body.organization.courses.some((c: Course) => c.id === course2.id)).toBe(
+        true,
+      );
     });
   });
 
@@ -503,8 +505,12 @@ describe('Organization', async () => {
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ courseIds: [course.id, course2.id] });
       expect(response.status).toBe(200);
-      expect(response.body.courses.some((c: any) => c.id === course.id)).toBe(false);
-      expect(response.body.courses.some((c: any) => c.id === course2.id)).toBe(false);
+      expect(response.body.organization.courses.some((c: Course) => c.id === course.id)).toBe(
+        false,
+      );
+      expect(response.body.organization.courses.some((c: Course) => c.id === course2.id)).toBe(
+        false,
+      );
     });
   });
 });

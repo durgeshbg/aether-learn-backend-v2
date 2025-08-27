@@ -15,10 +15,6 @@ export const OrganizationErrors = {
     STATUS: 403,
     MESSAGE: 'You do not have access to this organization',
   },
-  ORGANIZATION_NAME_INVALID: {
-    STATUS: 400,
-    MESSAGE: 'Invalid organization name',
-  },
   ORGANIZATIONS_NOT_FOUND: {
     STATUS: 404,
     MESSAGE: 'No organizations found',

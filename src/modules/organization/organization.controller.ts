@@ -16,7 +16,6 @@ const {
   ORGANIZATION_NOT_FOUND,
   ORGANIZATION_FETCH_FAILED,
   ORGANIZATION_FETCH_FORBIDDEN,
-  ORGANIZATION_NAME_INVALID,
   ORGANIZATIONS_NOT_FOUND,
   ORGANIZATION_SEARCH_FAILED,
   ORGANIZATION_CREATE_FAILED,
@@ -33,11 +32,11 @@ const {
 } = OrganizationErrors;
 
 export const OrganizationController = {
-  findAll: async (req: Request, res: Response) => {
+  findAll: async (_req: Request, res: Response) => {
     try {
       const organizations = await OrganizationService.findAll();
       res.status(200).json({ organizations });
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATIONS_FETCH_FAILED.STATUS).json({
         error: ORGANIZATIONS_FETCH_FAILED.MESSAGE,
       });
@@ -57,12 +56,9 @@ export const OrganizationController = {
       }
 
       const users = organization?.users.map((user) => user.id);
+      const userId = req.user?.id;
 
-      if (
-        req.user?.role === 'ADMIN' ||
-        req.user?.orgAdmin === id ||
-        users?.includes(req.user?.id!)
-      ) {
+      if (req.user?.role === 'ADMIN' || req.user?.orgAdmin === id || users?.includes(userId!)) {
         res.status(200).json({ organization });
         return;
       }
@@ -71,7 +67,7 @@ export const OrganizationController = {
         error: ORGANIZATION_FETCH_FORBIDDEN.MESSAGE,
       });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_FETCH_FAILED.STATUS).json({
         error: ORGANIZATION_FETCH_FAILED.MESSAGE,
       });
@@ -89,7 +85,7 @@ export const OrganizationController = {
         return;
       }
       res.status(200).json({ organizations });
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_SEARCH_FAILED.STATUS).json({
         error: ORGANIZATION_SEARCH_FAILED.MESSAGE,
       });
@@ -101,7 +97,7 @@ export const OrganizationController = {
       const data: CreateOrganizationType = req.body;
       const organization = await OrganizationService.create(data);
       res.status(201).json(organization);
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_CREATE_FAILED.STATUS).json({
         error: ORGANIZATION_CREATE_FAILED.MESSAGE,
       });
@@ -123,7 +119,7 @@ export const OrganizationController = {
         error: ORGANIZATION_UPDATE_FAILED.MESSAGE,
       });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_UPDATE_FAILED.STATUS).json({
         error: ORGANIZATION_UPDATE_FAILED.MESSAGE,
       });
@@ -143,7 +139,7 @@ export const OrganizationController = {
         error: ORGANIZATION_ADMIN_UPDATE_FAILED.MESSAGE,
       });
       return;
-    } catch (error: any) {
+    } catch {
       res
         .status(ORGANIZATION_ADMIN_UPDATE_FAILED.STATUS)
         .json({ error: ORGANIZATION_ADMIN_UPDATE_FAILED.MESSAGE });
@@ -156,7 +152,7 @@ export const OrganizationController = {
       const { id } = req.params;
       await OrganizationService.delete(id!);
       res.status(204).json({ message: 'Organization deleted successfully' });
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_DELETE_FAILED.STATUS).json({
         error: ORGANIZATION_DELETE_FAILED.MESSAGE,
       });
@@ -170,7 +166,7 @@ export const OrganizationController = {
       const { userIds }: OrganizationUserUpdateType = req.body;
       const organization = await OrganizationService.addUsers(id!, userIds);
       res.status(200).json({ organization });
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_USERS_ADD_FAILED.STATUS).json({
         error: ORGANIZATION_USERS_ADD_FAILED.MESSAGE,
       });
@@ -183,7 +179,7 @@ export const OrganizationController = {
       const { userIds }: OrganizationUserUpdateType = req.body;
       const organization = await OrganizationService.removeUsers(id!, userIds);
       res.status(200).json({ organization });
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_USERS_REMOVE_FAILED.STATUS).json({
         error: ORGANIZATION_USERS_REMOVE_FAILED.MESSAGE,
       });
@@ -202,7 +198,7 @@ export const OrganizationController = {
         error: ORGANIZATION_USERS_FETCH_FAILED.MESSAGE,
       });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_USERS_FETCH_FAILED.STATUS).json({
         error: ORGANIZATION_USERS_FETCH_FAILED.MESSAGE,
       });
@@ -215,9 +211,9 @@ export const OrganizationController = {
       const { id } = req.params;
       const { courseIds }: OrganizationCourseUpdateType = req.body;
       const organization = await OrganizationService.addCourses(id!, courseIds);
-      res.status(200).json({ courses: organization.courses });
+      res.status(200).json({ organization });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_COURSES_ADD_FAILED.STATUS).json({
         error: ORGANIZATION_COURSES_ADD_FAILED.MESSAGE,
       });
@@ -229,9 +225,9 @@ export const OrganizationController = {
       const { id } = req.params;
       const { courseIds }: OrganizationCourseUpdateType = req.body;
       const organization = await OrganizationService.removeCourses(id!, courseIds);
-      res.status(200).json({ courses: organization.courses });
+      res.status(200).json({ organization });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_COURSES_REMOVE_FAILED.STATUS).json({
         error: ORGANIZATION_COURSES_REMOVE_FAILED.MESSAGE,
       });
@@ -251,11 +247,12 @@ export const OrganizationController = {
       }
 
       const users = organization?.users.map((user) => user.id);
+      const userId = req.user?.id;
 
       if (
         req.user?.role === 'ADMIN' ||
         req.user?.orgAdmin === organization.id ||
-        users?.includes(req.user?.id!)
+        users?.includes(userId!)
       ) {
         const courses = await OrganizationService.findAllCourses(id!);
         res.status(200).json({ courses });
@@ -265,7 +262,7 @@ export const OrganizationController = {
         error: ORGANIZATION_COURSE_ACCESS_FORBIDDEN.MESSAGE,
       });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(ORGANIZATION_COURSES_FETCH_FAILED.STATUS).json({
         error: ORGANIZATION_COURSES_FETCH_FAILED.MESSAGE,
       });
