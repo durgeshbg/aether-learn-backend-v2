@@ -51,6 +51,8 @@ router.post('/', orgAdminMiddleware, validate(CreateUserSchema), UserController.
 
 router.get('/non-organization-users', adminMiddleware, UserController.findNonOrganizationUsers);
 
+router.get('/bookmarked-modules', UserController.findBookMarkedModules);
+
 router.get(
   '/:id',
   validateParams(UserIdParamSchema),

@@ -234,6 +234,30 @@ export const UserService = {
     });
   },
 
+  findBookMarkedModules: async (userId: string) => {
+    return prisma.user.findFirst({
+      where: { id: userId },
+      select: {
+        bookmarkedModules: {
+          select: {
+            moduleId: true,
+            module: {
+              select: {
+                title: true,
+                lessonId: true,
+                lesson: {
+                  select: {
+                    courseId: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  },
+
   findById: async (id: string, filter?: UserFilterQueryType['filter']) => {
     const userSelectWithFilter = {
       ...userSelect,

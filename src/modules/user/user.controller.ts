@@ -56,6 +56,18 @@ export const UserController = {
     }
   },
 
+  findBookMarkedModules: async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      const user = await UserService.findBookMarkedModules(userId!);
+      res.status(200).json({ bookmarks: user?.bookmarkedModules || [] });
+      return;
+    } catch {
+      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
+      return;
+    }
+  },
+
   findById: async (req: Request, res: Response) => {
     try {
       const { id } = req.params as UserIdParamType;

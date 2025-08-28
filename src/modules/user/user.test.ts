@@ -2,7 +2,6 @@ import { setupTests, type UserOrgAdmin, staticData } from '../../utils/test-util
 import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
-import type { Application } from 'express';
 import {
   PrismaClient,
   type Course,
@@ -14,6 +13,7 @@ import { UserErrors } from './user.errors';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { Role } from '../../generated/prisma';
+import type { Application } from 'express';
 
 const url = '/api/v1/users';
 
@@ -470,6 +470,33 @@ describe('User', async () => {
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body).toHaveProperty('error', FORBIDDEN.MESSAGE);
+    });
+  });
+
+  describe('GET: /bookmarked-modules', () => {
+    test('Should not fetch bookmarked modules without auth', async () => {
+      const response = await supertest(app).get(`${url}/bookmarked-modules`);
+      expect(response.status).toBe(UNAUTHORIZED.STATUS);
+      expect(response.body).toHaveProperty('error', UNAUTHORIZED.MESSAGE);
+    });
+    test('Should fetch bookmarked modules with auth', async () => {
+      await supertest(app)
+        .put(`${url}/bookmark-module`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({
+          moduleId: module.id,
+          bookmark: true,
+        });
+
+      const response = await supertest(app)
+        .get(`${url}/bookmarked-modules`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.bookmarks).toBeInstanceOf(Array);
+      expect(response.body.bookmarks[0]).toHaveProperty('moduleId', module.id);
+      expect(response.body.bookmarks[0].module).toHaveProperty('title', module.title);
+      expect(response.body.bookmarks[0].module).toHaveProperty('lessonId', lesson.id);
+      expect(response.body.bookmarks[0].module.lesson).toHaveProperty('courseId', course.id);
     });
   });
 
