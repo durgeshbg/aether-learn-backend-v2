@@ -1,5 +1,5 @@
 import { PrismaClient, Role } from '../../generated/prisma';
-import type { CourseCreateType, CourseUpdateType } from './course.schema';
+import type { CourseCreateType, CourseFeedbackType, CourseUpdateType } from './course.schema';
 
 const prisma = new PrismaClient();
 
@@ -101,6 +101,12 @@ export const CourseService = {
             },
           },
         },
+        include: {
+          courseFeedback: {
+            where: { userId },
+            select: { id: true },
+          },
+        },
       });
 
       if (!course) return null;
@@ -108,8 +114,24 @@ export const CourseService = {
       const enrollment = await prisma.enrolledCourseProgress.findUnique({
         where: { userId_courseId: { userId, courseId: id } },
       });
-      return { ...course, enrolled: !!enrollment };
+
+      const feedbackSubmitted = course.courseFeedback.length > 0;
+
+      delete course?.courseFeedback;
+
+      return {
+        ...course,
+        enrolled: !!enrollment,
+        feedbackSubmitted,
+      };
     }
+  },
+
+  getFeedbacks(courseId: string) {
+    return prisma.courseFeedback.findMany({
+      where: { courseId },
+      include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+    });
   },
 
   async create(courseData: CourseCreateType) {
@@ -120,6 +142,37 @@ export const CourseService = {
         thumbnailUrl: courseData.thumbnailUrl,
       },
     });
+  },
+
+  async createFeedback(courseId: string, userId: string, feedbackData: CourseFeedbackType) {
+    const existingFeedback = await prisma.courseFeedback.findUnique({
+      where: { userId_courseId: { userId, courseId } },
+    });
+    if (existingFeedback) {
+      return null;
+    }
+    const feedback = await prisma.courseFeedback.create({
+      data: {
+        courseId,
+        userId,
+        rating: feedbackData.rating,
+        comment: feedbackData.comment,
+      },
+    });
+
+    await prisma.course.update({
+      where: { id: courseId },
+      data: {
+        rating: await prisma.courseFeedback
+          .aggregate({
+            where: { courseId },
+            _avg: { rating: true },
+          })
+          .then((res) => res._avg.rating || 0),
+      },
+    });
+
+    return feedback;
   },
 
   async update(id: string, courseData: CourseUpdateType) {

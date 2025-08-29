@@ -23,4 +23,12 @@ export const CourseErrors = {
     STATUS: 500,
     MESSAGE: 'Failed to delete course',
   },
+  COURSE_FEEDBACK_SUBMITTED_ALREADY: {
+    STATUS: 400,
+    MESSAGE: 'Course feedback already submitted by the user',
+  },
+  COUERSE_FEEDBACK_SUBMISSION_FAILED: {
+    STATUS: 500,
+    MESSAGE: 'Failed to submit course feedback',
+  },
 };

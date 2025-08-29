@@ -22,6 +22,11 @@ export const CourseOrganizationIDQueryRequiredSchema = z.object({
   organizationId: z.string().cuid('Invalid organization ID format'),
 });
 
+export const CourseFeedbackSchema = z.object({
+  rating: z.number().min(1).max(5),
+  comment: z.string().optional(),
+});
+
 export type CourseCreateType = z.infer<typeof CourseCreateSchema>;
 export type CourseUpdateType = z.infer<typeof CourseUpdateSchema>;
 export type CourseIdParamType = z.infer<typeof CourseIdParamSchema>;
@@ -29,3 +34,4 @@ export type CourseOrganizationIDQueryType = z.infer<typeof CourseOrganizationIDQ
 export type CourseOrganizationIDQueryRequiredType = z.infer<
   typeof CourseOrganizationIDQueryRequiredSchema
 >;
+export type CourseFeedbackType = z.infer<typeof CourseFeedbackSchema>;

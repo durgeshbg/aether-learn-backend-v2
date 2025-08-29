@@ -3,6 +3,7 @@ import { CourseService } from './course.service';
 import { CourseErrors } from './course.errors';
 import type {
   CourseCreateType,
+  CourseFeedbackType,
   CourseOrganizationIDQueryRequiredType,
   CourseOrganizationIDQueryType,
   CourseUpdateType,
@@ -15,6 +16,8 @@ const {
   COURSE_CREATE_FAILED,
   COURSE_UPDATE_FAILED,
   COURSE_DELETE_FAILED,
+  COUERSE_FEEDBACK_SUBMISSION_FAILED,
+  COURSE_FEEDBACK_SUBMITTED_ALREADY,
 } = CourseErrors;
 
 export const CourseController = {
@@ -68,6 +71,18 @@ export const CourseController = {
     }
   },
 
+  getFeedbacks: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const feedbacks = await CourseService.getFeedbacks(id!);
+      res.status(200).json({ feedbacks });
+    } catch {
+      res.status(COURSE_FETCH_FAILED.STATUS).json({
+        error: COURSE_FETCH_FAILED.MESSAGE,
+      });
+    }
+  },
+
   create: async (req: Request, res: Response) => {
     try {
       const courseData: CourseCreateType = req.body;
@@ -76,6 +91,36 @@ export const CourseController = {
     } catch {
       res.status(COURSE_CREATE_FAILED.STATUS).json({
         error: COURSE_CREATE_FAILED.MESSAGE,
+      });
+    }
+  },
+
+  submitFeedback: async (req: Request, res: Response) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user?.id;
+      const feedbackData: CourseFeedbackType = req.body;
+
+      const courseId = await CourseService.findById(id!, userId);
+      if (!courseId) {
+        res.status(COURSE_NOT_FOUND.STATUS).json({
+          error: COURSE_NOT_FOUND.MESSAGE,
+        });
+        return;
+      }
+
+      const submittedFeedback = await CourseService.createFeedback(id!, userId!, feedbackData);
+      if (!submittedFeedback) {
+        res.status(COURSE_FEEDBACK_SUBMITTED_ALREADY.STATUS).json({
+          error: COURSE_FEEDBACK_SUBMITTED_ALREADY.MESSAGE,
+        });
+        return;
+      }
+
+      res.status(201).json({ feedback: submittedFeedback });
+    } catch {
+      res.status(COUERSE_FEEDBACK_SUBMISSION_FAILED.STATUS).json({
+        error: COUERSE_FEEDBACK_SUBMISSION_FAILED.MESSAGE,
       });
     }
   },

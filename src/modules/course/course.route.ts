@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { adminMiddleware, authMiddleware } from '../../middlewares/auth';
 import {
   CourseCreateSchema,
+  CourseFeedbackSchema,
   CourseIdParamSchema,
   CourseOrganizationIDQuerySchema,
   CourseUpdateSchema,
@@ -26,12 +27,26 @@ router.get(
 
 router.get('/:id', validateParams(CourseIdParamSchema), CourseController.findById);
 
+router.get(
+  '/:id/feedbacks',
+  adminMiddleware,
+  validateParams(CourseIdParamSchema),
+  CourseController.getFeedbacks,
+);
+
 router.put(
   '/:id',
   adminMiddleware,
   validateParams(CourseIdParamSchema),
   validate(CourseUpdateSchema),
   CourseController.update,
+);
+
+router.post(
+  '/:id/feedbacks',
+  validateParams(CourseIdParamSchema),
+  validate(CourseFeedbackSchema),
+  CourseController.submitFeedback,
 );
 
 router.delete(
