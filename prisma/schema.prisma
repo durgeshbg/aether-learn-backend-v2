@@ -42,6 +42,8 @@ model User {
 
   bookmarkedModules      BookmarkModule[]
   enrolledCourseProgress EnrolledCourseProgress[]
+  courseFeedbacks        CourseFeedback[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -111,6 +113,7 @@ model Course {
   name         String
   description  String?
   thumbnailUrl String?
+  rating       Float   @default(0.0)
 
   lessons         Lesson[]         @relation("CourseLessons")
   quizzes         Quiz[]           @relation("CourseQuizzes")
@@ -122,8 +125,27 @@ model Course {
   codeAssessmentsCount Int @default(0)
 
   enrolledCourseProgress EnrolledCourseProgress[]
+  courseFeedback         CourseFeedback[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model CourseFeedback {
+  id      String  @id @default(cuid())
+  rating  Int     @default(0)
+  comment String?
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  courseId String
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, courseId])
 }
 
 model Lesson {
