@@ -57,7 +57,7 @@ async function main() {
     },
   });
 
-  await prisma.user.create({
+  const user11 = await prisma.user.create({
     data: {
       email: 'org1admin@mail.com',
       password: hashedPassword,
@@ -371,6 +371,24 @@ async function main() {
       userId: user1.id,
       courseId: course1.id,
       nextModuleId: lesson1.modules[0]?.id || null,
+    },
+  });
+
+  await prisma.courseFeedback.create({
+    data: {
+      userId: user1.id,
+      courseId: course1.id,
+      rating: 5,
+      comment: 'Great course on JavaScript basics!',
+    },
+  });
+
+  await prisma.courseFeedback.create({
+    data: {
+      userId: user11.id,
+      courseId: course1.id,
+      rating: 4,
+      comment: 'Very informative Node.js course.',
     },
   });
 }

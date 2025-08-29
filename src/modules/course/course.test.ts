@@ -278,4 +278,85 @@ describe('Course', async () => {
       expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
   });
+
+  describe('POST: /:id/feedbacks', () => {
+    test('Should not submit feedback with invalid data', async () => {
+      const response = await supertest(app)
+        .post(`${url}/${course.id}/feedbacks`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ rating: 6, comment: '' }); // Invalid rating and empty comment
+      expect(response.status).toBe(INVALID_DATA.STATUS);
+      expect(response.body.error).toBe(INVALID_DATA.MESSAGE);
+    });
+
+    test('Should submit feedback for course as user', async () => {
+      const response = await supertest(app)
+        .post(`${url}/${course.id}/feedbacks`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ rating: 4, comment: 'Great course!' });
+      expect(response.status).toBe(201);
+      expect(response.body.feedback).toHaveProperty('id');
+      expect(response.body.feedback.rating).toBe(4);
+    });
+
+    test('Should not submit multiple feedbacks for same course by same user', async () => {
+      // First feedback already submitted in previous test
+      await supertest(app)
+        .post(`${url}/${course.id}/feedbacks`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ rating: 5, comment: 'Excellent!' });
+
+      // Attempt to submit second feedback
+      const response = await supertest(app)
+        .post(`${url}/${course.id}/feedbacks`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ rating: 3, comment: 'Changed my mind.' });
+      expect(response.status).toBe(CourseErrors.COURSE_FEEDBACK_SUBMITTED_ALREADY.STATUS);
+      expect(response.body.error).toBe(CourseErrors.COURSE_FEEDBACK_SUBMITTED_ALREADY.MESSAGE);
+    });
+
+    test('Should not submit feedback for non-existent course', async () => {
+      const response = await supertest(app)
+        .post(`${url}/course1234/feedbacks`)
+        .set('Authorization', `Bearer ${userToken}`)
+        .send({ rating: 4, comment: 'Good' });
+      expect(response.status).toBe(COURSE_NOT_FOUND.STATUS);
+      expect(response.body.error).toBe(COURSE_NOT_FOUND.MESSAGE);
+    });
+
+    test('Should not submit feedback without auth', async () => {
+      const response = await supertest(app)
+        .post(`${url}/${course.id}/feedbacks`)
+        .send({ rating: 4, comment: 'Good' });
+      expect(response.status).toBe(UNAUTHORIZED.STATUS);
+      expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
+    });
+  });
+
+  describe('GET: /:id/feedbacks', () => {
+    test('Should fetch feedbacks for course as admin', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${course.id}/feedbacks`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body.feedbacks).toBeInstanceOf(Array);
+      expect(response.body.feedbacks.length).toBeGreaterThan(0);
+    });
+
+    test('Should not fetch feedbacks for course as user', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${course.id}/feedbacks`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(FORBIDDEN.STATUS);
+      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
+    });
+
+    test('Should not fetch feedbacks for course with invalid ID', async () => {
+      const response = await supertest(app)
+        .get(`${url}/invalid-id/feedbacks`)
+        .set('Authorization', `Bearer ${adminToken}`);
+      expect(response.status).toBe(INVALID_PARAMS.STATUS);
+      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
+    });
+  });
 });
