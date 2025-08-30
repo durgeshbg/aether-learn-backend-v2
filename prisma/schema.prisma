@@ -40,6 +40,9 @@ model User {
   quizResults   QuizResult[]   @relation("UserResult")
   codeSolutions CodeSolution[] @relation("UserCodeSolutions")
 
+  streakCount  Int       @default(0)
+  lastActiveAt DateTime?
+
   bookmarkedModules      BookmarkModule[]
   enrolledCourseProgress EnrolledCourseProgress[]
   courseFeedbacks        CourseFeedback[]

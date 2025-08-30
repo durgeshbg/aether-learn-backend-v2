@@ -19,6 +19,8 @@ export const userSelect = {
   orgAdminOf: true,
   createdAt: true,
   updatedAt: true,
+  lastActiveAt: true,
+  streakCount: true,
 };
 
 export const UserService = {
@@ -169,6 +171,8 @@ export const UserService = {
 
     const mode = parsedBody.complete ? 'connect' : 'disconnect';
 
+    await UserService.refreshUserStreak(id);
+
     return prisma.enrolledCourseProgress.update({
       where: {
         userId_courseId: {
@@ -198,6 +202,40 @@ export const UserService = {
       where: { id },
       data,
       select: userSelect,
+    });
+  },
+
+  refreshUserStreak: async (id: string) => {
+    const user = await prisma.user.findUnique({ where: { id } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    const lastActiveAt = user.lastActiveAt ? new Date(user.lastActiveAt) : new Date();
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    lastActiveAt.setHours(0, 0, 0, 0);
+    const diffTime = Math.abs(now.getTime() - lastActiveAt.getTime());
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    let newStreakCount = user.streakCount;
+    if (diffDays === 1) {
+      newStreakCount += 1; // Increment streak if last active was yesterday
+    } else if (diffDays > 1) {
+      newStreakCount = 0; // Reset streak if last active was before yesterday
+    }
+    // If diffDays is 0, do nothing (same day activity)
+
+    return await prisma.user.update({
+      where: { id },
+      data: {
+        streakCount: newStreakCount,
+        lastActiveAt: new Date(),
+      },
+      select: {
+        streakCount: true,
+        lastActiveAt: true,
+      },
     });
   },
 
@@ -261,8 +299,8 @@ export const UserService = {
   findById: async (id: string, filter?: UserFilterQueryType['filter']) => {
     const userSelectWithFilter = {
       ...userSelect,
-      codeSolutions: filter === 'code-solutions' ? true : undefined,
-      quizResults: filter == 'quiz-results' ? true : undefined,
+      codeSolutions: filter === 'code-solutions',
+      quizResults: filter == 'quiz-results',
     };
 
     return await prisma.user.findUnique({

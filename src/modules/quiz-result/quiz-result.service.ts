@@ -1,4 +1,5 @@
 import { PrismaClient } from '../../generated/prisma';
+import { UserService } from '../user/user.service';
 
 const prisma = new PrismaClient();
 
@@ -93,6 +94,8 @@ export const QuizResultService = {
         },
       },
     });
+
+    await UserService.refreshUserStreak(userId);
 
     return quizResult;
   },

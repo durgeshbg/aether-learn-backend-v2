@@ -1,4 +1,5 @@
 import { PrismaClient } from '../../generated/prisma';
+import { UserService } from '../user/user.service';
 import type {
   CodeSolutionCreateType,
   CodeSolutionScoreUpdateType,
@@ -141,6 +142,8 @@ export const CodeSolutionService = {
         },
       },
     });
+
+    await UserService.refreshUserStreak(userId);
 
     return codeSolution;
   },
