@@ -30,7 +30,7 @@ export const LessonController = {
         lessons,
       });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(LESSONS_FETCH_FAILED.STATUS).json({
         error: LESSONS_FETCH_FAILED.MESSAGE,
       });
@@ -57,7 +57,7 @@ export const LessonController = {
 
       res.status(200).json({ lesson });
       return;
-    } catch (error: any) {
+    } catch {
       res.status(LESSON_FETCH_FAILED.STATUS).json({
         error: LESSON_FETCH_FAILED.MESSAGE,
       });
@@ -69,7 +69,7 @@ export const LessonController = {
       const lessonData: LessonCreateType = req.body;
       const lesson = await LessonService.create(courseId, lessonData);
       res.status(201).json(lesson);
-    } catch (error: any) {
+    } catch {
       res.status(LESSON_CREATE_FAILED.STATUS).json({
         error: LESSON_CREATE_FAILED.MESSAGE,
       });
@@ -87,7 +87,7 @@ export const LessonController = {
         return;
       }
       res.status(200).json(updatedLesson);
-    } catch (error: any) {
+    } catch {
       res.status(LESSON_UPDATE_FAILED.STATUS).json({
         error: LESSON_UPDATE_FAILED.MESSAGE,
       });
@@ -104,7 +104,7 @@ export const LessonController = {
         return;
       }
       res.status(204).send();
-    } catch (error: any) {
+    } catch {
       res.status(LESSON_DELETE_FAILED.STATUS).json({
         error: LESSON_DELETE_FAILED.MESSAGE,
       });

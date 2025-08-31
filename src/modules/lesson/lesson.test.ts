@@ -3,7 +3,13 @@ import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import { PrismaClient, type Course, type Lesson, type Organization } from '../../generated/prisma';
+import {
+  DifficultyLevel,
+  PrismaClient,
+  type Course,
+  type Lesson,
+  type Organization,
+} from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { LessonErrors } from './lesson.errors';
@@ -124,10 +130,14 @@ describe('Lesson', async () => {
           title: 'Test Lesson',
           content: 'Lesson content',
           courseId: course.id,
+          objectives: ['Objective 1', 'Objective 2'],
+          difficulty: DifficultyLevel.BEGINNER,
         });
       expect(response.status).toBe(201);
       expect(response.body).toHaveProperty('id');
       expect(response.body.title).toBe('Test Lesson');
+      expect(response.body.objectives).toBeInstanceOf(Array);
+      expect(response.body.difficulty).toBe('BEGINNER');
 
       // Verify lesson count incremented in course
       const response2 = await supertest(app)
@@ -277,6 +287,7 @@ describe('Lesson', async () => {
         .send({
           title: 'To Delete',
           content: 'content',
+          difficulty: DifficultyLevel.BEGINNER,
         });
       const delId = create.body.id;
       const response = await supertest(app)

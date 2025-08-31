@@ -1,5 +1,5 @@
 import { execSync } from 'child_process';
-import { PrismaClient, Role, type User } from '../generated/prisma';
+import { DifficultyLevel, PrismaClient, Role, type User } from '../generated/prisma';
 import { hash } from 'bcrypt-ts';
 import { LANG_KEYS, LANGUAGES_MAP } from '../laguages';
 import jwt from 'jsonwebtoken';
@@ -172,6 +172,8 @@ export async function setupTests() {
       data: {
         title,
         content: 'This is a sample lesson content.',
+        difficulty: DifficultyLevel.BEGINNER,
+        objectives: ['Objective 1', 'Objective 2'],
         courseId,
       },
     });

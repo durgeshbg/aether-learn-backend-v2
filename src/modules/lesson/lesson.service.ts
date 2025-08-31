@@ -86,6 +86,8 @@ export const LessonService = {
       data: {
         title: lessonData.title,
         content: lessonData.content,
+        difficulty: lessonData.difficulty,
+        objectives: lessonData.objectives,
         courseId,
       },
       include: {
@@ -109,6 +111,8 @@ export const LessonService = {
       data: {
         title: lessonData.title,
         content: lessonData.content,
+        difficulty: lessonData.difficulty,
+        objectives: lessonData.objectives,
       },
       include: {
         course: true,

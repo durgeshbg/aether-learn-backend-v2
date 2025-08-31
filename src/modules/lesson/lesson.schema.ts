@@ -1,13 +1,28 @@
 import { z } from 'zod';
+import { DifficultyLevel } from '../../generated/prisma';
 
 export const LessonCreateSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
+  difficulty: z.enum(
+    [DifficultyLevel.BEGINNER, DifficultyLevel.INTERMEDIATE, DifficultyLevel.ADVANCED],
+    {
+      required_error: 'Difficulty level is required',
+      invalid_type_error: 'Invalid difficulty level',
+    },
+  ),
+  objectives: z.array(z.string()).optional(),
 });
 
 export const LessonUpdateSchema = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   content: z.string().min(1, 'Content is required').optional(),
+  difficulty: z
+    .enum([DifficultyLevel.BEGINNER, DifficultyLevel.INTERMEDIATE, DifficultyLevel.ADVANCED], {
+      invalid_type_error: 'Invalid difficulty level',
+    })
+    .optional(),
+  objectives: z.array(z.string()).optional(),
 });
 
 export const LessonIdParamsSchema = z.object({
