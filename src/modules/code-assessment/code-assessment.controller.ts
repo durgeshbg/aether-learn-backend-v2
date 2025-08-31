@@ -31,7 +31,7 @@ export const CodeAssessmentController = {
         userRole,
       );
       res.status(200).json({ codeAssessments });
-    } catch (error: any) {
+    } catch {
       res.status(CODE_ASSESSMENTS_FETCH_FAILED.STATUS).json({
         error: CODE_ASSESSMENTS_FETCH_FAILED.MESSAGE,
       });
@@ -58,7 +58,7 @@ export const CodeAssessmentController = {
         return;
       }
       res.status(200).json({ codeAssessment });
-    } catch (error: any) {
+    } catch {
       res.status(CODE_ASSESSMENT_FETCH_FAILED.STATUS).json({
         error: CODE_ASSESSMENT_FETCH_FAILED.MESSAGE,
       });
@@ -71,7 +71,7 @@ export const CodeAssessmentController = {
       const codeAssessmentData: CodeAssessmentCreateType = req.body;
       const codeAssessment = await CodeAssessmentService.create(courseId, codeAssessmentData);
       res.status(201).json({ codeAssessment });
-    } catch (error: any) {
+    } catch {
       res.status(CODE_ASSESSMENT_CREATE_FAILED.STATUS).json({
         error: CODE_ASSESSMENT_CREATE_FAILED.MESSAGE,
       });
@@ -94,7 +94,7 @@ export const CodeAssessmentController = {
         return;
       }
       res.status(200).json({ codeAssessment: updatedCodeAssessment });
-    } catch (error: any) {
+    } catch {
       res.status(CODE_ASSESSMENT_UPDATE_FAILED.STATUS).json({
         error: CODE_ASSESSMENT_UPDATE_FAILED.MESSAGE,
       });
@@ -112,7 +112,7 @@ export const CodeAssessmentController = {
         return;
       }
       res.status(204).send();
-    } catch (error: any) {
+    } catch {
       res.status(CODE_ASSESSMENT_DELETE_FAILED.STATUS).json({
         error: CODE_ASSESSMENT_DELETE_FAILED.MESSAGE,
       });

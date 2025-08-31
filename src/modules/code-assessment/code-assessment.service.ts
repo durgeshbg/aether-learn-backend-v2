@@ -93,11 +93,7 @@ export const CodeAssessmentService = {
   async create(courseId: string, codeAssessmentData: CodeAssessmentCreateType) {
     const codeAssessment = await prisma.codeAssessment.create({
       data: {
-        title: codeAssessmentData.title,
-        description: codeAssessmentData.description,
-        instructions: codeAssessmentData.instructions,
-        starterCode: codeAssessmentData.starterCode,
-        languageId: codeAssessmentData.languageId,
+        ...codeAssessmentData,
         courseId,
       },
       include: {
@@ -121,11 +117,7 @@ export const CodeAssessmentService = {
     return await prisma.codeAssessment.update({
       where: { id, courseId },
       data: {
-        title: codeAssessmentData.title,
-        description: codeAssessmentData.description,
-        instructions: codeAssessmentData.instructions,
-        starterCode: codeAssessmentData.starterCode,
-        languageId: codeAssessmentData.languageId,
+        ...codeAssessmentData,
       },
       include: {
         course: true,

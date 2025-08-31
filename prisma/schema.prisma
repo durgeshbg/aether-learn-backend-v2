@@ -202,6 +202,10 @@ model Quiz {
   title       String
   description String?
 
+  difficulty      DifficultyLevel @default(BEGINNER)
+  durationMinutes Int             @default(0)
+  passPercentage  Int             @default(70)
+
   courseId String
   course   Course @relation("CourseQuizzes", fields: [courseId], references: [id], onDelete: Cascade)
 
@@ -251,6 +255,9 @@ model CodeAssessment {
   instructions String
   starterCode  String
   languageId   Int
+
+  difficulty      DifficultyLevel @default(BEGINNER)
+  durationMinutes Int             @default(0)
 
   courseId String
   course   Course @relation("CourseCodeAssessments", fields: [courseId], references: [id], onDelete: Cascade)

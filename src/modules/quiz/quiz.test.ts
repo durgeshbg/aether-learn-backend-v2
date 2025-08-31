@@ -3,7 +3,13 @@ import { describe, test, beforeAll, afterAll, expect } from 'bun:test';
 import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
-import { PrismaClient, type Course, type Organization, type Quiz } from '../../generated/prisma';
+import {
+  DifficultyLevel,
+  PrismaClient,
+  type Course,
+  type Organization,
+  type Quiz,
+} from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { Role } from '../../generated/prisma';
@@ -127,6 +133,7 @@ describe('Quiz', async () => {
         .send({
           title: 'Test Quiz',
           description: 'This is a test quiz',
+          difficulty: DifficultyLevel.BEGINNER,
         });
       expect(response.status).toBe(201);
       expect(response.body.quiz).toHaveProperty('id');
@@ -299,6 +306,7 @@ describe('Quiz', async () => {
         .send({
           title: 'To Delete',
           description: 'This is a test quiz',
+          difficulty: DifficultyLevel.BEGINNER,
         });
       const delId = create.body.quiz.id;
       const response = await supertest(app)

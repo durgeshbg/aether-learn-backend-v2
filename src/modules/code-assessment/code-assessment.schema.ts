@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { DifficultyLevel } from '../../generated/prisma';
 
 export const CodeAssessmentCreateSchema = z.object({
   title: z.string().min(1, 'Title is required'),
@@ -6,6 +7,14 @@ export const CodeAssessmentCreateSchema = z.object({
   instructions: z.string().min(1, 'Instructions are required'),
   starterCode: z.string().min(1, 'Starter code is required'),
   languageId: z.number().int().positive('Language ID must be a positive integer'),
+  difficulty: z.enum(
+    [DifficultyLevel.BEGINNER, DifficultyLevel.INTERMEDIATE, DifficultyLevel.ADVANCED],
+    {
+      required_error: 'Difficulty level is required',
+      invalid_type_error: 'Invalid difficulty level',
+    },
+  ),
+  durationMinutes: z.number().int().positive('Duration must be a positive integer').optional(),
 });
 
 export const CodeAssessmentUpdateSchema = z.object({
@@ -14,6 +23,12 @@ export const CodeAssessmentUpdateSchema = z.object({
   instructions: z.string().min(1, 'Instructions are required').optional(),
   starterCode: z.string().min(1, 'Starter code is required').optional(),
   languageId: z.number().int().positive('Language ID must be a positive integer').optional(),
+  difficulty: z
+    .enum([DifficultyLevel.BEGINNER, DifficultyLevel.INTERMEDIATE, DifficultyLevel.ADVANCED], {
+      invalid_type_error: 'Invalid difficulty level',
+    })
+    .optional(),
+  durationMinutes: z.number().int().positive('Duration must be a positive integer').optional(),
 });
 
 export const CodeAssessmentIdParamsSchema = z.object({

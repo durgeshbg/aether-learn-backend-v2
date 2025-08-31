@@ -4,6 +4,7 @@ import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
 import {
+  DifficultyLevel,
   PrismaClient,
   type CodeAssessment,
   type Course,
@@ -147,6 +148,7 @@ describe('CodeAssessment', async () => {
           instructions: 'Do this',
           starterCode: 'print("Hello")',
           languageId: 1,
+          difficulty: DifficultyLevel.BEGINNER,
         });
       expect(response.status).toBe(201);
       expect(response.body.codeAssessment).toHaveProperty('id');
@@ -324,6 +326,7 @@ describe('CodeAssessment', async () => {
           instructions: 'Do this',
           starterCode: 'print("Hello")',
           languageId: 1,
+          difficulty: DifficultyLevel.BEGINNER,
         });
       const delId = create.body.codeAssessment.id;
       const response = await supertest(app)

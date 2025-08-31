@@ -26,7 +26,7 @@ export const QuizController = {
       const userRole = req.user?.role;
       const quizzes = await QuizService.findAll(courseId, uesrId, orgAdmin, userRole);
       res.status(200).json({ quizzes });
-    } catch (error: any) {
+    } catch {
       res.status(QUIZZES_FETCH_FAILED.STATUS).json({
         error: QUIZZES_FETCH_FAILED.MESSAGE,
       });
@@ -47,7 +47,7 @@ export const QuizController = {
         return;
       }
       res.status(200).json({ quiz });
-    } catch (error: any) {
+    } catch {
       res.status(QUIZ_FETCH_FAILED.STATUS).json({
         error: QUIZ_FETCH_FAILED.MESSAGE,
       });
@@ -60,7 +60,7 @@ export const QuizController = {
       const quizData: QuizCreateType = req.body;
       const quiz = await QuizService.create(courseId, quizData);
       res.status(201).json({ quiz });
-    } catch (error: any) {
+    } catch {
       res.status(QUIZ_CREATE_FAILED.STATUS).json({
         error: QUIZ_CREATE_FAILED.MESSAGE,
       });
@@ -79,7 +79,7 @@ export const QuizController = {
         return;
       }
       res.status(200).json({ quiz: updatedQuiz });
-    } catch (error: any) {
+    } catch {
       res.status(QUIZ_UPDATE_FAILED.STATUS).json({
         error: QUIZ_UPDATE_FAILED.MESSAGE,
       });
@@ -97,7 +97,7 @@ export const QuizController = {
         return;
       }
       res.status(204).send();
-    } catch (error: any) {
+    } catch {
       res.status(QUIZ_DELETE_FAILED.STATUS).json({
         error: QUIZ_DELETE_FAILED.MESSAGE,
       });

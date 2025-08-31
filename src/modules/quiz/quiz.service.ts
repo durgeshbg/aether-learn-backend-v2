@@ -95,8 +95,7 @@ export const QuizService = {
   async create(courseId: string, quizData: QuizCreateType) {
     const quiz = await prisma.quiz.create({
       data: {
-        title: quizData.title,
-        description: quizData.description,
+        ...quizData,
         courseId,
       },
       include: {
@@ -118,8 +117,7 @@ export const QuizService = {
     return await prisma.quiz.update({
       where: { id, courseId },
       data: {
-        title: quizData.title,
-        description: quizData.description,
+        ...quizData,
       },
       include: {
         course: true,
