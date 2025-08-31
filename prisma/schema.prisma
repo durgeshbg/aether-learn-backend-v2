@@ -182,6 +182,10 @@ model Module {
   code       String?
   languageId Int
 
+  difficulty      DifficultyLevel @default(BEGINNER)
+  objectives      String[]
+  durationMinutes Int             @default(0)
+
   lessonId String
   lesson   Lesson @relation("LessonModules", fields: [lessonId], references: [id], onDelete: Cascade)
 

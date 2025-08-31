@@ -4,6 +4,7 @@ import setupApp from '../../utils/setupApp';
 import supertest from 'supertest';
 import type { Application } from 'express';
 import {
+  DifficultyLevel,
   PrismaClient,
   type Course,
   type Lesson,
@@ -95,7 +96,7 @@ describe('Module', async () => {
 
     test('Should fecth all modules in lesson for user in organization', async () => {
       // add user2 to the organization
-      const a = await supertest(app)
+      await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
@@ -134,6 +135,7 @@ describe('Module', async () => {
           title: 'Test Module',
           content: 'Some Content',
           languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id,
+          difficulty: DifficultyLevel.BEGINNER,
         });
       expect(response.status).toBe(201);
       expect(response.body.module).toHaveProperty('id');
@@ -164,13 +166,14 @@ describe('Module', async () => {
     test('Should not create module with invalid lesson id', async () => {
       const response = await supertest(app)
         .post(
-          `/api/v1/courses/cmch6sat2000gxqxenh7e3yi7/lessons/cmch6sat2000gxqxenh7e3yi7/modules`, // Mack dummy cuids
+          `/api/v1/courses/cmch6sat2000gxqxenh7e3yi7/lessons/cmch6sat2000gxqxenh7e3yi7/modules`, // mock dummy cuids
         )
         .set('Authorization', `Bearer ${adminToken}`)
         .send({
           title: 'Test Module',
           content: 'Some Content',
           languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id,
+          difficulty: DifficultyLevel.BEGINNER,
         });
       expect(response.status).toBe(MODULE_CREATE_FAILED.STATUS);
       expect(response.body.error).toBe(MODULE_CREATE_FAILED.MESSAGE);
@@ -206,7 +209,7 @@ describe('Module', async () => {
 
     test('Should fetch module by ID for user in organization', async () => {
       // add user2 to the organization
-      const a = await supertest(app)
+      await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
