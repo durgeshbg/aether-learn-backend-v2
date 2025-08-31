@@ -42,6 +42,9 @@ export const QuizResultController = {
     const { quizId, courseId } = req.params as QuizResultQuizIdParamsType;
     const userId = req.user?.id;
     const quizResultData: QuizResultCreateType = req.body;
+    const responses: string[] = quizResultData.answers.map(
+      (answer) => `${answer.questionId}:${answer.answer}`,
+    );
     try {
       const questions = await QuestionService.findAll(quizId, courseId, userId);
       let score = 0;
@@ -51,7 +54,13 @@ export const QuizResultController = {
           score += 1;
         }
       });
-      const newQuizResult = await QuizResultService.create(quizId, userId!, courseId, score);
+      const newQuizResult = await QuizResultService.create(
+        quizId,
+        userId!,
+        courseId,
+        score,
+        responses,
+      );
       res.status(201).json({ quizResult: newQuizResult });
     } catch {
       res

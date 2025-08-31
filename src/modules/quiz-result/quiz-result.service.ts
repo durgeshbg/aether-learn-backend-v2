@@ -61,12 +61,19 @@ export const QuizResultService = {
     return user?.organization?.courses[0]?.quizzes[0]?.quizResults || [];
   },
 
-  create: async (quizId: string, userId: string, courseId: string, score: number = 0) => {
+  create: async (
+    quizId: string,
+    userId: string,
+    courseId: string,
+    score: number = 0,
+    responses: string[],
+  ) => {
     const quizResult = await prisma.quizResult.create({
       data: {
         quizId,
         userId,
         score,
+        responses,
       },
       select: {
         id: true,

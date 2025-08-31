@@ -4,12 +4,14 @@ export const TestCaseCreateSchema = z.object({
   input: z.string().min(1, 'Input is required'),
   expected: z.string().min(1, 'Expected output is required'),
   description: z.string().optional(),
+  weight: z.number().min(1, 'Weight must be at least 1').optional(),
 });
 
 export const TestCaseUpdateSchema = z.object({
   input: z.string().min(1, 'Input is required').optional(),
   expected: z.string().min(1, 'Expected output is required').optional(),
   description: z.string().optional(),
+  weight: z.number().min(1, 'Weight must be at least 1').optional(),
 });
 
 export const TestCaseIdParamsSchema = z.object({
