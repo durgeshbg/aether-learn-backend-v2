@@ -10,7 +10,7 @@
     "db:migrate": "bunx prisma migrate dev --schema=./prisma/schema.prisma",
     "db:generate": "bunx prisma generate --schema=./prisma/schema.prisma",
     "db:studio": "bunx prisma studio --schema=./prisma/schema.prisma",
-    "db:seed": "bun run src/scripts/seed.ts",
+    "db:seed": "bun run src/scripts/seed/index.ts",
     "lint": "bunx eslint src/**/*.ts",
     "lint:fix": "bunx eslint src/**/*.ts --fix",
     "format": "bunx prettier --write src/**/*.ts",
