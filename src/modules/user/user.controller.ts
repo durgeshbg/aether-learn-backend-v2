@@ -179,7 +179,9 @@ export const UserController = {
       if (enroll) {
         res.status(200).json({ enrollmentData });
       } else {
-        res.status(204).json();
+        res.status(204).json({
+          message: 'User unenrolled from course successfully',
+        });
       }
 
       return;
@@ -199,7 +201,9 @@ export const UserController = {
       if (bookmark) {
         res.status(200).json({ bookmark: userBookmark });
       } else {
-        res.status(204).json();
+        res.status(204).json({
+          message: 'Module removed from bookmarks successfully',
+        });
       }
       return;
     } catch {
