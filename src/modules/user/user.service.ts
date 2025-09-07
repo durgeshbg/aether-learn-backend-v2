@@ -16,6 +16,20 @@ export const userSelect: Prisma.UserSelect = {
   role: true,
   firstName: true,
   lastName: true,
+  orgAdminOf: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+};
+
+export const userSelectWithDetails: Prisma.UserSelect = {
+  id: true,
+  email: true,
+  role: true,
+  firstName: true,
+  lastName: true,
   organization: {
     select: organizationSelect,
   },
@@ -91,7 +105,7 @@ export const UserService = {
         organizationId: data.organizationId,
         orgAdminOf: connectIfOrgAdmin,
       },
-      select: userSelect,
+      select: userSelectWithDetails,
     });
   },
 
@@ -251,7 +265,7 @@ export const UserService = {
     return await prisma.user.update({
       where: { id },
       data,
-      select: userSelect,
+      select: userSelectWithDetails,
     });
   },
 
@@ -293,7 +307,7 @@ export const UserService = {
     return await prisma.user.update({
       where: { id },
       data: { role },
-      select: userSelect,
+      select: userSelectWithDetails,
     });
   },
 
@@ -301,7 +315,7 @@ export const UserService = {
     return await prisma.user.update({
       where: { id: userId },
       data: { organizationId },
-      select: userSelect,
+      select: userSelectWithDetails,
     });
   },
 
@@ -338,7 +352,7 @@ export const UserService = {
     return await prisma.user.findUnique({
       where: { id },
       select: {
-        ...userSelect,
+        ...userSelectWithDetails,
         codeSolutions: filter === 'code-solutions',
         quizResults: filter == 'quiz-results',
       },
