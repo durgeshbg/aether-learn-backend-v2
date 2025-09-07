@@ -1,7 +1,24 @@
-import { PrismaClient, Role } from '../../generated/prisma';
+import { PrismaClient, Prisma, Role } from '../../generated/prisma';
 import type { TestCaseCreateType, TestCaseUpdateType } from './test-case.schema';
 
 const prisma = new PrismaClient();
+
+export const testCaseSelect: Prisma.TestCaseSelect = {
+  id: true,
+  description: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const testCaseSelectWithContent: Prisma.TestCaseSelect = {
+  id: true,
+  input: true,
+  description: true,
+  expected: true,
+  weight: true,
+  createdAt: true,
+  updatedAt: true,
+};
 
 export const TestCaseService = {
   async findAll(
@@ -19,6 +36,7 @@ export const TestCaseService = {
             courseId,
           },
         },
+        select: testCaseSelect,
       });
     }
 
@@ -35,6 +53,7 @@ export const TestCaseService = {
             },
           },
         },
+        select: testCaseSelect,
       });
     }
 
@@ -49,7 +68,7 @@ export const TestCaseService = {
                 codeAssessments: {
                   where: { id: codeAssessmentId },
                   include: {
-                    testCases: true,
+                    testCases: { select: testCaseSelect },
                   },
                 },
               },
@@ -73,6 +92,7 @@ export const TestCaseService = {
     if (userRole === 'ADMIN') {
       return await prisma.testCase.findUnique({
         where: { id, assessmentId: codeAssessmentId },
+        select: testCaseSelectWithContent,
       });
     }
 
@@ -90,6 +110,7 @@ export const TestCaseService = {
             },
           },
         },
+        select: testCaseSelectWithContent,
       });
     }
 
@@ -104,7 +125,9 @@ export const TestCaseService = {
                 codeAssessments: {
                   where: { id: codeAssessmentId },
                   include: {
-                    testCases: true,
+                    testCases: {
+                      select: testCaseSelectWithContent,
+                    },
                   },
                 },
               },
@@ -127,6 +150,7 @@ export const TestCaseService = {
         ...testCaseData,
         assessmentId: codeAssessmentId,
       },
+      select: testCaseSelectWithContent,
     });
   },
 
@@ -134,6 +158,7 @@ export const TestCaseService = {
     return await prisma.testCase.update({
       where: { id, assessmentId: codeAssessmentId },
       data: testCaseData,
+      select: testCaseSelectWithContent,
     });
   },
 

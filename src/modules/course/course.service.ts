@@ -1,7 +1,61 @@
-import { PrismaClient, Role } from '../../generated/prisma';
+import { Prisma, PrismaClient, Role } from '../../generated/prisma';
+import { codeAssessmentSelect } from '../code-assessment/code-assessment.service';
+import { lessonSelect } from '../lesson/lesson.service';
+import { quizSelect } from '../quiz/quiz.service';
 import type { CourseCreateType, CourseFeedbackType, CourseUpdateType } from './course.schema';
 
 const prisma = new PrismaClient();
+
+const courseSelect: Prisma.CourseSelect = {
+  id: true,
+  name: true,
+  thumbnailUrl: true,
+  rating: true,
+  lessonsCount: true,
+  quizzesCount: true,
+  codeAssessmentsCount: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const courseSelectWithContent: Prisma.CourseSelect = {
+  id: true,
+  name: true,
+  description: true,
+  thumbnailUrl: true,
+  rating: true,
+  lessonsCount: true,
+  quizzesCount: true,
+  codeAssessmentsCount: true,
+  lessons: {
+    select: lessonSelect,
+  },
+  quizzes: {
+    select: quizSelect,
+  },
+  codeAssessments: {
+    select: codeAssessmentSelect,
+  },
+  createdAt: true,
+  updatedAt: true,
+};
+
+const courseFeedbackSelect: Prisma.CourseFeedbackSelect = {
+  id: true,
+  rating: true,
+  comment: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const courseFeedbackSelectWithUser: Prisma.CourseFeedbackSelect = {
+  id: true,
+  rating: true,
+  comment: true,
+  user: { select: { id: true, firstName: true, lastName: true, email: true } },
+  createdAt: true,
+  updatedAt: true,
+};
 
 export const CourseService = {
   async findAll(userId?: string, orgAdmin?: string | null, role?: Role, organizationId?: string) {
@@ -15,6 +69,7 @@ export const CourseService = {
               },
             },
           },
+          select: courseSelect,
         }),
       });
     }
@@ -28,6 +83,7 @@ export const CourseService = {
             },
           },
         },
+        select: courseSelect,
       });
     }
 
@@ -44,6 +100,7 @@ export const CourseService = {
             },
           },
         },
+        select: courseSelect,
       });
       const enrollerCourses = await prisma.enrolledCourseProgress.findMany({
         where: {
@@ -71,6 +128,7 @@ export const CourseService = {
           },
         },
       },
+      select: courseSelect,
     });
   },
 
@@ -78,12 +136,14 @@ export const CourseService = {
     if (role === Role.ADMIN) {
       return await prisma.course.findUnique({
         where: { id },
+        select: courseSelectWithContent,
       });
     }
 
     if (orgAdmin) {
       return await prisma.course.findUnique({
         where: { id, organizations: { some: { id: orgAdmin } } },
+        select: courseSelectWithContent,
       });
     }
 
@@ -101,11 +161,9 @@ export const CourseService = {
             },
           },
         },
-        include: {
-          courseFeedback: {
-            where: { userId },
-            select: { id: true },
-          },
+        select: {
+          ...courseSelectWithContent,
+          courseFeedback: { select: courseFeedbackSelect },
         },
       });
 
@@ -127,10 +185,10 @@ export const CourseService = {
     }
   },
 
-  getFeedbacks(courseId: string) {
+  async getFeedbacks(courseId: string) {
     return prisma.courseFeedback.findMany({
       where: { courseId },
-      include: { user: { select: { id: true, firstName: true, lastName: true, email: true } } },
+      select: courseFeedbackSelectWithUser,
     });
   },
 
@@ -141,6 +199,7 @@ export const CourseService = {
         description: courseData.description,
         thumbnailUrl: courseData.thumbnailUrl,
       },
+      select: courseSelectWithContent,
     });
   },
 
@@ -158,6 +217,7 @@ export const CourseService = {
         rating: feedbackData.rating,
         comment: feedbackData.comment,
       },
+      select: courseFeedbackSelect,
     });
 
     await prisma.course.update({
@@ -183,11 +243,7 @@ export const CourseService = {
         description: courseData.description,
         thumbnailUrl: courseData.thumbnailUrl,
       },
-      include: {
-        lessons: true,
-        quizzes: true,
-        codeAssessments: true,
-      },
+      select: courseSelectWithContent,
     });
   },
 

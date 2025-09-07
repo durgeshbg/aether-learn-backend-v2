@@ -4,23 +4,77 @@ import type {
   UserFilterQueryType,
   UserMarkAsCompleteUpdateType,
 } from './user.schema';
-import { PrismaClient, Role } from '../../generated/prisma';
+import { Prisma, PrismaClient, Role } from '../../generated/prisma';
 import { compare } from 'bcrypt-ts';
+import { organizationSelect } from '../organization/organization.service';
 
 const prisma = new PrismaClient();
 
-export const userSelect = {
+export const userSelect: Prisma.UserSelect = {
   id: true,
   email: true,
   role: true,
   firstName: true,
   lastName: true,
-  organization: true,
-  orgAdminOf: true,
+  organization: {
+    select: organizationSelect,
+  },
+  orgAdminOf: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
   createdAt: true,
   updatedAt: true,
   lastActiveAt: true,
   streakCount: true,
+};
+
+const userProgressSelect: Prisma.EnrolledCourseProgressSelect = {
+  id: true,
+  userId: true,
+  course: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  completedAssessments: {
+    select: { id: true, title: true },
+  },
+  completedModules: {
+    select: { id: true, title: true },
+  },
+  completedQuizzes: {
+    select: { id: true, title: true },
+  },
+  nextModuleId: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const bookmarkedModuleSelect: Prisma.BookmarkModuleSelect = {
+  id: true,
+  module: {
+    select: {
+      id: true,
+      title: true,
+      lesson: {
+        select: {
+          id: true,
+          title: true,
+          course: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
+    },
+  },
+  createdAt: true,
 };
 
 export const UserService = {
@@ -102,6 +156,7 @@ export const UserService = {
           userId,
           moduleId,
         },
+        select: bookmarkedModuleSelect,
       });
       return bookmark;
     } else {
@@ -148,6 +203,7 @@ export const UserService = {
           courseId,
           nextModuleId: course.lessons[0]?.modules[0]?.id || null,
         },
+        select: userProgressSelect,
       });
       return enrollment;
     } else {
@@ -187,13 +243,7 @@ export const UserService = {
           },
         },
       },
-      include: {
-        completedModules: {
-          select: {
-            id: true,
-          },
-        },
-      },
+      select: userProgressSelect,
     });
   },
 
@@ -243,6 +293,7 @@ export const UserService = {
     return await prisma.user.update({
       where: { id },
       data: { role },
+      select: userSelect,
     });
   },
 
@@ -277,35 +328,20 @@ export const UserService = {
       where: { id: userId },
       select: {
         bookmarkedModules: {
-          select: {
-            moduleId: true,
-            module: {
-              select: {
-                title: true,
-                lessonId: true,
-                lesson: {
-                  select: {
-                    courseId: true,
-                  },
-                },
-              },
-            },
-          },
+          select: bookmarkedModuleSelect,
         },
       },
     });
   },
 
   findById: async (id: string, filter?: UserFilterQueryType['filter']) => {
-    const userSelectWithFilter = {
-      ...userSelect,
-      codeSolutions: filter === 'code-solutions',
-      quizResults: filter == 'quiz-results',
-    };
-
     return await prisma.user.findUnique({
       where: { id },
-      select: userSelectWithFilter,
+      select: {
+        ...userSelect,
+        codeSolutions: filter === 'code-solutions',
+        quizResults: filter == 'quiz-results',
+      },
     });
   },
 
@@ -324,23 +360,7 @@ export const UserService = {
       include: {
         organization: true,
         enrolledCourseProgress: {
-          include: {
-            completedAssessments: {
-              select: {
-                id: true,
-              },
-            },
-            completedModules: {
-              select: {
-                id: true,
-              },
-            },
-            completedQuizzes: {
-              select: {
-                id: true,
-              },
-            },
-          },
+          select: userProgressSelect,
         },
       },
     });

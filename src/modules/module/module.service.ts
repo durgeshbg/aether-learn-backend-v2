@@ -1,7 +1,27 @@
-import { PrismaClient, Role } from '../../generated/prisma';
+import { Prisma, PrismaClient, Role } from '../../generated/prisma';
 import type { ModuleCreateType, ModuleUpdateType } from './module.schema';
 
 const prisma = new PrismaClient();
+
+export const moduleSelect: Prisma.ModuleSelect = {
+  id: true,
+  title: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const moduleSelectWithContent: Prisma.ModuleSelect = {
+  id: true,
+  title: true,
+  languageId: true,
+  difficulty: true,
+  content: true,
+  objectives: true,
+  code: true,
+  durationMinutes: true,
+  createdAt: true,
+  updatedAt: true,
+};
 
 export const ModuleService = {
   findAll: async (
@@ -26,6 +46,7 @@ export const ModuleService = {
             },
           },
         },
+        select: moduleSelect,
       });
     }
 
@@ -46,7 +67,7 @@ export const ModuleService = {
                     id: lessonId,
                   },
                   include: {
-                    modules: true,
+                    modules: { select: moduleSelect },
                   },
                 },
               },
@@ -61,6 +82,7 @@ export const ModuleService = {
   create: async (lessonId: string, moduleData: ModuleCreateType) => {
     return await prisma.module.create({
       data: { ...moduleData, lessonId },
+      select: moduleSelectWithContent,
     });
   },
   findById: async (
@@ -74,6 +96,7 @@ export const ModuleService = {
     if (role === Role.ADMIN) {
       return await prisma.module.findUnique({
         where: { id, lessonId },
+        select: moduleSelectWithContent,
       });
     }
 
@@ -89,6 +112,7 @@ export const ModuleService = {
             },
           },
         },
+        select: moduleSelectWithContent,
       });
     }
 
@@ -102,7 +126,7 @@ export const ModuleService = {
               include: {
                 lessons: {
                   where: { id: lessonId },
-                  include: { modules: true },
+                  include: { modules: { select: moduleSelectWithContent } },
                 },
               },
             },
@@ -125,6 +149,7 @@ export const ModuleService = {
     return await prisma.module.update({
       where: { id, lessonId },
       data: moduleData,
+      select: moduleSelectWithContent,
     });
   },
   delete: async (id: string, lessonId: string) => {

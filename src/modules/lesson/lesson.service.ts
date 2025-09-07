@@ -1,13 +1,41 @@
-import { PrismaClient, Role } from '../../generated/prisma';
+import { Prisma, PrismaClient, Role } from '../../generated/prisma';
+import { moduleSelect } from '../module/module.service';
 import type { LessonCreateType, LessonUpdateType } from './lesson.schema';
 
 const prisma = new PrismaClient();
+
+export const lessonSelect: Prisma.LessonSelect = {
+  id: true,
+  title: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const lessonSelectWithContent: Prisma.LessonSelect = {
+  id: true,
+  title: true,
+  difficulty: true,
+  content: true,
+  objectives: true,
+  modules: {
+    select: moduleSelect,
+  },
+  createdAt: true,
+  updatedAt: true,
+};
 
 export const LessonService = {
   async findAll(courseId: string, userId?: string, orgAdmin?: string | null, role?: string) {
     if (role === 'ADMIN') {
       return await prisma.lesson.findMany({
         where: { courseId },
+        select: {
+          id: true,
+          title: true,
+          difficulty: true,
+          createdAt: true,
+          updatedAt: true,
+        },
       });
     }
     if (orgAdmin) {
@@ -19,6 +47,7 @@ export const LessonService = {
             },
           },
         },
+        select: lessonSelect,
       });
     }
     const user = await prisma.user.findFirst({
@@ -29,7 +58,7 @@ export const LessonService = {
             courses: {
               where: { id: courseId },
               include: {
-                lessons: true,
+                lessons: { select: lessonSelect },
               },
             },
           },
@@ -49,6 +78,7 @@ export const LessonService = {
     if (role === 'ADMIN') {
       return await prisma.lesson.findUnique({
         where: { id, courseId },
+        select: lessonSelectWithContent,
       });
     }
     if (orgAdmin) {
@@ -61,6 +91,7 @@ export const LessonService = {
             },
           },
         },
+        select: lessonSelectWithContent,
       });
     }
     const user = await prisma.user.findFirst({
@@ -71,7 +102,7 @@ export const LessonService = {
             courses: {
               where: { id: courseId },
               include: {
-                lessons: true,
+                lessons: { select: lessonSelectWithContent },
               },
             },
           },
@@ -90,9 +121,7 @@ export const LessonService = {
         objectives: lessonData.objectives,
         courseId,
       },
-      include: {
-        course: true,
-      },
+      select: lessonSelectWithContent,
     });
 
     await prisma.course.update({
@@ -114,9 +143,7 @@ export const LessonService = {
         difficulty: lessonData.difficulty,
         objectives: lessonData.objectives,
       },
-      include: {
-        course: true,
-      },
+      select: lessonSelectWithContent,
     });
   },
 

@@ -1,7 +1,25 @@
-import { PrismaClient, Role } from '../../generated/prisma';
+import { Prisma, PrismaClient, Role } from '../../generated/prisma';
 import type { QuestionCreateType, QuestionUpdateType } from './question.schema';
 
 const prisma = new PrismaClient();
+
+export const questionSelect: Prisma.QuestionSelect = {
+  id: true,
+  text: true,
+  options: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const questionSelectWithAnswer: Prisma.QuestionSelect = {
+  id: true,
+  text: true,
+  options: true,
+  answer: true,
+  explanation: true,
+  createdAt: true,
+  updatedAt: true,
+};
 
 export const QuestionService = {
   findAll: async (
@@ -19,6 +37,7 @@ export const QuestionService = {
             courseId,
           },
         },
+        select: questionSelectWithAnswer,
       });
     }
 
@@ -35,6 +54,7 @@ export const QuestionService = {
             },
           },
         },
+        select: questionSelect,
       });
     }
 
@@ -49,7 +69,7 @@ export const QuestionService = {
                 quizzes: {
                   where: { id: quizId },
                   include: {
-                    questions: true,
+                    questions: { select: questionSelect },
                   },
                 },
               },
@@ -65,6 +85,7 @@ export const QuestionService = {
   create: async (quizId: string, questionData: QuestionCreateType) => {
     return await prisma.question.create({
       data: { ...questionData, quizId },
+      select: questionSelect,
     });
   },
 
@@ -79,6 +100,7 @@ export const QuestionService = {
     if (role === 'ADMIN') {
       return await prisma.question.findUnique({
         where: { id, quizId },
+        select: questionSelectWithAnswer,
       });
     }
 
@@ -96,6 +118,7 @@ export const QuestionService = {
             },
           },
         },
+        select: questionSelect,
       });
     }
 
@@ -110,7 +133,7 @@ export const QuestionService = {
                 quizzes: {
                   where: { id: quizId },
                   include: {
-                    questions: true,
+                    questions: { select: questionSelect },
                   },
                 },
               },
@@ -131,6 +154,7 @@ export const QuestionService = {
     return await prisma.question.update({
       where: { id, quizId },
       data: questionData,
+      select: questionSelectWithAnswer,
     });
   },
 

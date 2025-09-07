@@ -1,16 +1,36 @@
-import { PrismaClient } from '../../generated/prisma';
+import { Prisma, PrismaClient } from '../../generated/prisma';
+import { questionSelect } from '../question/question.service';
 import type { QuizCreateType, QuizUpdateType } from './quiz.schema';
 
 const prisma = new PrismaClient();
+
+export const quizSelect: Prisma.QuizSelect = {
+  id: true,
+  title: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const quizSelectWithQuestion: Prisma.QuizSelect = {
+  id: true,
+  title: true,
+  description: true,
+  difficulty: true,
+  durationMinutes: true,
+  passPercentage: true,
+  questions: {
+    select: questionSelect,
+  },
+  createdAt: true,
+  updatedAt: true,
+};
 
 export const QuizService = {
   async findAll(courseId: string, userId?: string, orgAdmin?: string | null, role?: string) {
     if (role === 'ADMIN') {
       return await prisma.quiz.findMany({
         where: { courseId },
-        include: {
-          course: true,
-        },
+        select: quizSelect,
       });
     }
 
@@ -23,6 +43,7 @@ export const QuizService = {
             },
           },
         },
+        select: quizSelect,
       });
     }
 
@@ -34,7 +55,7 @@ export const QuizService = {
             courses: {
               where: { id: courseId },
               include: {
-                quizzes: true,
+                quizzes: { select: quizSelect },
               },
             },
           },
@@ -55,9 +76,7 @@ export const QuizService = {
     if (role === 'ADMIN') {
       return await prisma.quiz.findUnique({
         where: { id, courseId },
-        include: {
-          course: true,
-        },
+        select: quizSelectWithQuestion,
       });
     }
 
@@ -71,6 +90,7 @@ export const QuizService = {
             },
           },
         },
+        select: quizSelectWithQuestion,
       });
     }
 
@@ -82,7 +102,9 @@ export const QuizService = {
             courses: {
               where: { id: courseId },
               include: {
-                quizzes: true,
+                quizzes: {
+                  select: quizSelectWithQuestion,
+                },
               },
             },
           },
@@ -98,9 +120,7 @@ export const QuizService = {
         ...quizData,
         courseId,
       },
-      include: {
-        course: true,
-      },
+      select: quizSelectWithQuestion,
     });
 
     await prisma.course.update({
@@ -119,9 +139,7 @@ export const QuizService = {
       data: {
         ...quizData,
       },
-      include: {
-        course: true,
-      },
+      select: quizSelectWithQuestion,
     });
   },
 

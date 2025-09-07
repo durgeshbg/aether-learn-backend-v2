@@ -1,13 +1,38 @@
-import { PrismaClient } from '../../generated/prisma';
+import { Prisma, PrismaClient } from '../../generated/prisma';
+import { testCaseSelect } from '../test-case/test-case.service';
 import type { CodeAssessmentCreateType, CodeAssessmentUpdateType } from './code-assessment.schema';
 
 const prisma = new PrismaClient();
+
+export const codeAssessmentSelect: Prisma.CodeAssessmentSelect = {
+  id: true,
+  title: true,
+  createdAt: true,
+  updatedAt: true,
+};
+
+const codeAssessmentSelectWithTestCases: Prisma.CodeAssessmentSelect = {
+  id: true,
+  title: true,
+  description: true,
+  durationMinutes: true,
+  instructions: true,
+  languageId: true,
+  starterCode: true,
+  testCases: {
+    select: testCaseSelect,
+  },
+  difficulty: true,
+  createdAt: true,
+  updatedAt: true,
+};
 
 export const CodeAssessmentService = {
   async findAll(courseId: string, userId?: string, orgAdmin?: string | null, role?: string) {
     if (role === 'ADMIN') {
       return await prisma.codeAssessment.findMany({
         where: { courseId },
+        select: codeAssessmentSelect,
       });
     }
 
@@ -20,6 +45,7 @@ export const CodeAssessmentService = {
             },
           },
         },
+        select: codeAssessmentSelect,
       });
     }
 
@@ -31,7 +57,7 @@ export const CodeAssessmentService = {
             courses: {
               where: { id: courseId },
               include: {
-                codeAssessments: true,
+                codeAssessments: { select: codeAssessmentSelect },
               },
             },
           },
@@ -52,6 +78,7 @@ export const CodeAssessmentService = {
     if (role === 'ADMIN') {
       return await prisma.codeAssessment.findFirst({
         where: { id, courseId },
+        select: codeAssessmentSelectWithTestCases,
       });
     }
 
@@ -65,6 +92,7 @@ export const CodeAssessmentService = {
             },
           },
         },
+        select: codeAssessmentSelectWithTestCases,
       });
     }
 
@@ -76,7 +104,9 @@ export const CodeAssessmentService = {
             courses: {
               where: { id: courseId },
               include: {
-                codeAssessments: true,
+                codeAssessments: {
+                  select: codeAssessmentSelectWithTestCases,
+                },
               },
             },
           },
@@ -96,9 +126,7 @@ export const CodeAssessmentService = {
         ...codeAssessmentData,
         courseId,
       },
-      include: {
-        course: true,
-      },
+      select: codeAssessmentSelectWithTestCases,
     });
 
     await prisma.course.update({
@@ -119,9 +147,7 @@ export const CodeAssessmentService = {
       data: {
         ...codeAssessmentData,
       },
-      include: {
-        course: true,
-      },
+      select: codeAssessmentSelectWithTestCases,
     });
   },
 
