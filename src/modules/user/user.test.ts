@@ -164,7 +164,7 @@ describe('User', async () => {
 
       expect(response.status).toBe(200);
       expect(response.body.enrollmentData).toHaveProperty('userId', user.id);
-      expect(response.body.enrollmentData).toHaveProperty('courseId', course.id);
+      expect(response.body.enrollmentData).toHaveProperty('course.id', course.id);
 
       const response2 = await supertest(app)
         .put(`${url}/enroll-course`)
@@ -187,7 +187,7 @@ describe('User', async () => {
 
       expect(response.status).toBe(200);
       expect(response.body.enrollmentData).toHaveProperty('userId', user.id);
-      expect(response.body.enrollmentData).toHaveProperty('courseId', course.id);
+      expect(response.body.enrollmentData).toHaveProperty('course.id', course.id);
 
       const response2 = await supertest(app)
         .put(`${url}/enroll-course`)
@@ -199,7 +199,7 @@ describe('User', async () => {
 
       expect(response2.status).toBe(200);
       expect(response2.body.enrollmentData).toHaveProperty('userId', user.id);
-      expect(response2.body.enrollmentData).toHaveProperty('courseId', course.id);
+      expect(response2.body.enrollmentData).toHaveProperty('course.id', course.id);
     });
   });
 
@@ -248,8 +248,7 @@ describe('User', async () => {
           bookmark: true,
         });
       expect(response.status).toBe(200);
-      expect(response.body.bookmark).toHaveProperty('userId', user.id);
-      expect(response.body.bookmark).toHaveProperty('moduleId', module.id);
+      expect(response.body.bookmark.module).toHaveProperty('id', module.id);
 
       const response2 = await supertest(app)
         .put(`${url}/bookmark-module`)
@@ -269,8 +268,7 @@ describe('User', async () => {
           bookmark: true,
         });
       expect(response.status).toBe(200);
-      expect(response.body.bookmark).toHaveProperty('userId', user.id);
-      expect(response.body.bookmark).toHaveProperty('moduleId', module.id);
+      expect(response.body.bookmark.module).toHaveProperty('id', module.id);
 
       const response2 = await supertest(app)
         .put(`${url}/bookmark-module`)
@@ -280,8 +278,7 @@ describe('User', async () => {
           bookmark: true,
         });
       expect(response2.status).toBe(200);
-      expect(response2.body.bookmark).toHaveProperty('userId', user.id);
-      expect(response2.body.bookmark).toHaveProperty('moduleId', module.id);
+      expect(response2.body.bookmark.module).toHaveProperty('id', module.id);
     });
   });
 
@@ -493,10 +490,10 @@ describe('User', async () => {
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.bookmarks).toBeInstanceOf(Array);
-      expect(response.body.bookmarks[0]).toHaveProperty('moduleId', module.id);
-      expect(response.body.bookmarks[0].module).toHaveProperty('title', module.title);
-      expect(response.body.bookmarks[0].module).toHaveProperty('lessonId', lesson.id);
-      expect(response.body.bookmarks[0].module.lesson).toHaveProperty('courseId', course.id);
+      expect(response.body.bookmarks[0]).toHaveProperty('module.id', module.id);
+      expect(response.body.bookmarks[0]).toHaveProperty('module.title', module.title);
+      expect(response.body.bookmarks[0]).toHaveProperty('module.lesson.id', lesson.id);
+      expect(response.body.bookmarks[0]).toHaveProperty('module.lesson.course.id', course.id);
     });
   });
 

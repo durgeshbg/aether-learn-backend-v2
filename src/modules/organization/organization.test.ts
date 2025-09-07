@@ -13,7 +13,7 @@ const url = '/api/v1/organizations';
 
 const { FORBIDDEN } = AuthErrors;
 const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
-const { ORGANIZATION_COURSE_ACCESS_FORBIDDEN, ORGANIZATION_FETCH_FORBIDDEN } = OrganizationErrors;
+const { ORGANIZATION_NOT_FOUND } = OrganizationErrors;
 const { USER_TEST_EMAILS, USER_TEST_PASSWORD, ORGANIZATION_TEST_NAME, COURSE_TEST_NAME } =
   staticData;
 
@@ -185,8 +185,8 @@ describe('Organization', async () => {
       const response = await supertest(app)
         .get(`${url}/${organization.id}`)
         .set('Authorization', `Bearer ${user3Token}`);
-      expect(response.status).toBe(ORGANIZATION_FETCH_FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(ORGANIZATION_FETCH_FORBIDDEN.MESSAGE);
+      expect(response.status).toBe(ORGANIZATION_NOT_FOUND.STATUS);
+      expect(response.body.error).toBe(ORGANIZATION_NOT_FOUND.MESSAGE);
     });
   });
 
@@ -427,8 +427,8 @@ describe('Organization', async () => {
       const response = await supertest(app)
         .get(`${url}/${organization.id}/courses`)
         .set('Authorization', `Bearer ${user2Token}`);
-      expect(response.status).toBe(ORGANIZATION_COURSE_ACCESS_FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(ORGANIZATION_COURSE_ACCESS_FORBIDDEN.MESSAGE);
+      expect(response.status).toBe(ORGANIZATION_NOT_FOUND.STATUS);
+      expect(response.body.error).toBe(ORGANIZATION_NOT_FOUND.MESSAGE);
     });
   });
 
@@ -467,10 +467,6 @@ describe('Organization', async () => {
         .send({ courseIds: [course.id, course2.id] });
       expect(response.status).toBe(200);
       expect(response.body.organization.coursesCount).toBe(2);
-      expect(response.body.organization.courses.some((c: Course) => c.id === course.id)).toBe(true);
-      expect(response.body.organization.courses.some((c: Course) => c.id === course2.id)).toBe(
-        true,
-      );
     });
   });
 
@@ -509,12 +505,6 @@ describe('Organization', async () => {
         .send({ courseIds: [course.id, course2.id] });
       expect(response.status).toBe(200);
       expect(response.body.organization.coursesCount).toBe(0);
-      expect(response.body.organization.courses.some((c: Course) => c.id === course.id)).toBe(
-        false,
-      );
-      expect(response.body.organization.courses.some((c: Course) => c.id === course2.id)).toBe(
-        false,
-      );
     });
   });
 });

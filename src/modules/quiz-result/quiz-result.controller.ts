@@ -7,6 +7,7 @@ import type {
   QuizResultIdParamsType,
 } from './quiz-result.schema';
 import { QuestionService } from '../question/question.service';
+import { Role } from '../../generated/prisma';
 
 const {
   QUIZ_RESULT_NOT_FOUND,
@@ -46,7 +47,13 @@ export const QuizResultController = {
       (answer) => `${answer.questionId}:${answer.answer}`,
     );
     try {
-      const questions = await QuestionService.findAll(quizId, courseId, userId);
+      const questions = await QuestionService.findAll(
+        quizId,
+        courseId,
+        userId,
+        undefined,
+        Role.ADMIN,
+      );
       let score = 0;
       quizResultData.answers.forEach((answer) => {
         const question = questions.find((q) => q.id === answer.questionId);

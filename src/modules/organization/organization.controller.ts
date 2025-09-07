@@ -15,7 +15,6 @@ const {
   ORGANIZATIONS_FETCH_FAILED,
   ORGANIZATION_NOT_FOUND,
   ORGANIZATION_FETCH_FAILED,
-  ORGANIZATION_FETCH_FORBIDDEN,
   ORGANIZATIONS_NOT_FOUND,
   ORGANIZATION_SEARCH_FAILED,
   ORGANIZATION_CREATE_FAILED,
@@ -25,7 +24,6 @@ const {
   ORGANIZATION_USERS_ADD_FAILED,
   ORGANIZATION_USERS_REMOVE_FAILED,
   ORGANIZATION_COURSES_FETCH_FAILED,
-  ORGANIZATION_COURSE_ACCESS_FORBIDDEN,
   ORGANIZATION_COURSES_ADD_FAILED,
   ORGANIZATION_COURSES_REMOVE_FAILED,
   ORGANIZATION_ADMIN_UPDATE_FAILED,
@@ -46,7 +44,10 @@ export const OrganizationController = {
   findById: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const organization = await OrganizationService.findById(id!);
+      const role = req.user?.role;
+      const orgAdmin = req.user?.orgAdmin;
+      const userId = req.user?.id;
+      const organization = await OrganizationService.findById(id!, role!, orgAdmin!, userId!);
 
       if (!organization) {
         res.status(ORGANIZATION_NOT_FOUND.STATUS).json({
@@ -55,17 +56,7 @@ export const OrganizationController = {
         return;
       }
 
-      const users = organization?.users.map((user) => user.id);
-      const userId = req.user?.id;
-
-      if (req.user?.role === 'ADMIN' || req.user?.orgAdmin === id || users?.includes(userId!)) {
-        res.status(200).json({ organization });
-        return;
-      }
-
-      res.status(ORGANIZATION_FETCH_FORBIDDEN.STATUS).json({
-        error: ORGANIZATION_FETCH_FORBIDDEN.MESSAGE,
-      });
+      res.status(200).json({ organization });
       return;
     } catch {
       res.status(ORGANIZATION_FETCH_FAILED.STATUS).json({
@@ -237,7 +228,10 @@ export const OrganizationController = {
   findAllCourses: async (req: Request, res: Response) => {
     try {
       const { id } = req.params;
-      const organization = await OrganizationService.findById(id!);
+      const role = req.user?.role;
+      const orgAdmin = req.user?.orgAdmin;
+      const userId = req.user?.id;
+      const organization = await OrganizationService.findById(id!, role!, orgAdmin!, userId!);
 
       if (!organization) {
         res.status(ORGANIZATION_NOT_FOUND.STATUS).json({
@@ -246,21 +240,8 @@ export const OrganizationController = {
         return;
       }
 
-      const users = organization?.users.map((user) => user.id);
-      const userId = req.user?.id;
-
-      if (
-        req.user?.role === 'ADMIN' ||
-        req.user?.orgAdmin === organization.id ||
-        users?.includes(userId!)
-      ) {
-        const courses = await OrganizationService.findAllCourses(id!);
-        res.status(200).json({ courses });
-        return;
-      }
-      res.status(ORGANIZATION_COURSE_ACCESS_FORBIDDEN.STATUS).json({
-        error: ORGANIZATION_COURSE_ACCESS_FORBIDDEN.MESSAGE,
-      });
+      const courses = await OrganizationService.findAllCourses(id!);
+      res.status(200).json({ courses });
       return;
     } catch {
       res.status(ORGANIZATION_COURSES_FETCH_FAILED.STATUS).json({

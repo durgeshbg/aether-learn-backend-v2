@@ -11,10 +11,6 @@ export const OrganizationErrors = {
     STATUS: 400,
     MESSAGE: 'Failed to fetch organization',
   },
-  ORGANIZATION_FETCH_FORBIDDEN: {
-    STATUS: 403,
-    MESSAGE: 'You do not have access to this organization',
-  },
   ORGANIZATIONS_NOT_FOUND: {
     STATUS: 404,
     MESSAGE: 'No organizations found',
@@ -64,9 +60,5 @@ export const OrganizationErrors = {
   ORGANIZATION_COURSES_REMOVE_FAILED: {
     STATUS: 400,
     MESSAGE: 'Failed to remove courses from organization',
-  },
-  ORGANIZATION_COURSE_ACCESS_FORBIDDEN: {
-    STATUS: 403,
-    MESSAGE: 'You do not have access to this course',
   },
 };
