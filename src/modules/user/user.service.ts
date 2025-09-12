@@ -359,6 +359,36 @@ export const UserService = {
     });
   },
 
+  getDashboardData: async (userId?: string, orgAmdin?: string, role?: Role) => {
+    if (role === Role.ADMIN) {
+      const organizationsCount = await prisma.organization.count();
+      const usersCount = await prisma.user.count();
+      const coursesCount = await prisma.course.count();
+      return { organizationsCount, usersCount, coursesCount };
+    }
+    if (orgAmdin) {
+      const usersCount = await prisma.user.count({
+        where: { organizationId: orgAmdin },
+      });
+      const coursesCount = await prisma.course.count({
+        where: {
+          organizations: {
+            some: {
+              id: orgAmdin,
+            },
+          },
+        },
+      });
+      return { usersCount, coursesCount };
+    }
+    if (userId) {
+      const enrolledCoursesCount = await prisma.enrolledCourseProgress.count({
+        where: { userId },
+      });
+      return { enrolledCoursesCount };
+    }
+  },
+
   findByEmail: async (email: string) => {
     return await prisma.user.findUnique({
       where: { email },

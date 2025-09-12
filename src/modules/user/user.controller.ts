@@ -96,6 +96,21 @@ export const UserController = {
     }
   },
 
+  getDashboardData: async (req: Request, res: Response) => {
+    try {
+      const userId = req.user?.id;
+      const role = req.user?.role;
+      const orgAdmin = req.user?.orgAdmin;
+      const dashboardData = await UserService.getDashboardData(userId, orgAdmin!, role);
+
+      res.status(200).json({ dashboardData });
+      return;
+    } catch {
+      res.status(SERVER_ERROR.STATUS).json({ error: SERVER_ERROR.MESSAGE });
+      return;
+    }
+  },
+
   findUserProgress: async (req: Request, res: Response) => {
     try {
       const userId = req.params?.id;
