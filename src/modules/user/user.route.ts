@@ -53,7 +53,7 @@ router.get('/non-organization-users', adminMiddleware, UserController.findNonOrg
 
 router.get('/bookmarked-modules', UserController.findBookMarkedModules);
 
-router.get('/dashboard', UserController.getDashboardData);
+router.get('/dashboard-stats', UserController.getDashboardStats);
 
 router.get(
   '/:id',

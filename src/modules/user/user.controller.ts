@@ -96,12 +96,12 @@ export const UserController = {
     }
   },
 
-  getDashboardData: async (req: Request, res: Response) => {
+  getDashboardStats: async (req: Request, res: Response) => {
     try {
       const userId = req.user?.id;
       const role = req.user?.role;
       const orgAdmin = req.user?.orgAdmin;
-      const dashboardData = await UserService.getDashboardData(userId, orgAdmin!, role);
+      const dashboardData = await UserService.getDashboardStats(userId, orgAdmin!, role);
 
       res.status(200).json({ dashboardData });
       return;

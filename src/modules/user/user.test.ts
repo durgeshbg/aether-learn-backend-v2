@@ -497,7 +497,7 @@ describe('User', async () => {
     });
   });
 
-  describe('GET: /dashboard', () => {
+  describe('GET: /dashboard-stats', () => {
     test('Should not fetch dashboard data without auth', async () => {
       const response = await supertest(app).get(`${url}/dashboard`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
@@ -505,14 +505,14 @@ describe('User', async () => {
     });
     test('Should fetch correct data for user', async () => {
       const response = await supertest(app)
-        .get(`${url}/dashboard`)
+        .get(`${url}/dashboard-stats`)
         .set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
       expect(response.body.dashboardData).toHaveProperty('enrolledCoursesCount', 0);
     });
     test('Should fetch correct data for admin', async () => {
       const response = await supertest(app)
-        .get(`${url}/dashboard`)
+        .get(`${url}/dashboard-stats`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
       expect(response.body.dashboardData).toHaveProperty('usersCount', 6); // 4 + 2 created in POST tests
@@ -521,7 +521,7 @@ describe('User', async () => {
     });
     test('Should fetch correct data for org admin', async () => {
       const response = await supertest(app)
-        .get(`${url}/dashboard`)
+        .get(`${url}/dashboard-stats`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.dashboardData).toHaveProperty('usersCount', 3); // 2 + 1 created in POST tests

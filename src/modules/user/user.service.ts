@@ -359,7 +359,7 @@ export const UserService = {
     });
   },
 
-  getDashboardData: async (userId?: string, orgAmdin?: string, role?: Role) => {
+  getDashboardStats: async (userId?: string, orgAmdin?: string, role?: Role) => {
     if (role === Role.ADMIN) {
       const organizationsCount = await prisma.organization.count();
       const usersCount = await prisma.user.count();
