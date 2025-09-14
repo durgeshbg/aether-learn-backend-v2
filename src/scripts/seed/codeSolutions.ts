@@ -1,10 +1,12 @@
 import {
   CodeSolutionStatus,
+  Prisma,
   PrismaClient,
   type CodeAssessment,
   type CodeSolution,
   type User,
 } from '../../generated/prisma';
+import type { DefaultArgs } from '../../generated/prisma/runtime/library';
 
 export const seedCodeSolutions = async (
   prisma: PrismaClient,
@@ -25,6 +27,21 @@ export const seedCodeSolutions = async (
     userId: string;
     assessmentId: string;
   }[] = [];
+
+  const enrolledCourseProgressPromises: Prisma.Prisma__EnrolledCourseProgressClient<
+    {
+      id: string;
+      createdAt: Date;
+      updatedAt: Date;
+      courseId: string;
+      userId: string;
+      completionRate: number;
+      nextModuleId: string | null;
+    },
+    never,
+    DefaultArgs,
+    Prisma.PrismaClientOptions
+  >[] = [];
 
   org1Users.forEach((user) => {
     [...course1CodeAssessments, ...course3CodeAssessments].forEach((assessment) => {
@@ -49,6 +66,22 @@ export const seedCodeSolutions = async (
         userId: user.id,
         assessmentId: assessment.id,
       });
+      // Update EnrolledCourseProgress to connect completed assessment
+      enrolledCourseProgressPromises.push(
+        prisma.enrolledCourseProgress.update({
+          where: {
+            userId_courseId: {
+              userId: user.id,
+              courseId: assessment.courseId,
+            },
+          },
+          data: {
+            completedAssessments: {
+              connect: { id: assessment.id },
+            },
+          },
+        }),
+      );
     });
   });
 
@@ -75,11 +108,30 @@ export const seedCodeSolutions = async (
         userId: user.id,
         assessmentId: assessment.id,
       });
+      // Update EnrolledCourseProgress to connect completed assessment
+      enrolledCourseProgressPromises.push(
+        prisma.enrolledCourseProgress.update({
+          where: {
+            userId_courseId: {
+              userId: user.id,
+              courseId: assessment.courseId,
+            },
+          },
+          data: {
+            completedAssessments: {
+              connect: { id: assessment.id },
+            },
+          },
+        }),
+      );
     });
   });
 
   const codeSolutions = await Promise.all(
     codeSolutionsData.map((data) => prisma.codeSolution.create({ data })),
   );
+
+  await Promise.all(enrolledCourseProgressPromises);
+
   return codeSolutions;
 };

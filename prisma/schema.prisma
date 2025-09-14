@@ -60,7 +60,8 @@ model User {
 }
 
 model EnrolledCourseProgress {
-  id String @id @default(cuid())
+  id             String @id @default(cuid())
+  completionRate Float  @default(0.0)
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

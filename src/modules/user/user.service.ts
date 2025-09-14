@@ -45,7 +45,7 @@ export const userSelectWithDetails: Prisma.UserSelect = {
   streakCount: true,
 };
 
-const userProgressSelect: Prisma.EnrolledCourseProgressSelect = {
+export const userProgressSelect: Prisma.EnrolledCourseProgressSelect = {
   id: true,
   userId: true,
   course: {
@@ -54,6 +54,7 @@ const userProgressSelect: Prisma.EnrolledCourseProgressSelect = {
       name: true,
     },
   },
+  completionRate: true,
   completedAssessments: {
     select: { id: true, title: true },
   },
@@ -243,7 +244,7 @@ export const UserService = {
 
     await UserService.refreshUserStreak(id);
 
-    return prisma.enrolledCourseProgress.update({
+    const updatedEnrollmentProgress = await prisma.enrolledCourseProgress.update({
       where: {
         userId_courseId: {
           courseId: parsedBody.courseId,
@@ -259,6 +260,10 @@ export const UserService = {
       },
       select: userProgressSelect,
     });
+
+    await UserService.updateCourseCompletionRate(updatedEnrollmentProgress, parsedBody.courseId);
+
+    return updatedEnrollmentProgress;
   },
 
   updateDetails: async (id: string, data: UserDetailsUpdateType) => {
@@ -407,6 +412,38 @@ export const UserService = {
           select: userProgressSelect,
         },
       },
+    });
+  },
+
+  updateCourseCompletionRate: async (
+    enrolledData: {
+      id: string;
+      completedModules?: { id: string }[];
+      completedAssessments?: { id: string }[];
+      completedQuizzes?: { id: string }[];
+    },
+    courseId: string,
+  ) => {
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+    });
+
+    if (!course) {
+      throw new Error('Course not found');
+    }
+
+    const totalItems = course.modulesCount + course.codeAssessmentsCount + course.quizzesCount;
+
+    const completedItems =
+      (enrolledData.completedModules?.length || 0) +
+      (enrolledData.completedAssessments?.length || 0) +
+      (enrolledData.completedQuizzes?.length || 0);
+    const completionRate = totalItems === 0 ? 0 : (completedItems / totalItems) * 100;
+
+    return await prisma.enrolledCourseProgress.update({
+      where: { id: enrolledData.id },
+      data: { completionRate },
+      select: { completionRate: true },
     });
   },
 };

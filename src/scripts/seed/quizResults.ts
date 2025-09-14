@@ -1,4 +1,6 @@
+import type { DefaultArgs } from '@prisma/client/runtime/library';
 import {
+  Prisma,
   PrismaClient,
   type Question,
   type Quiz,
@@ -25,6 +27,21 @@ export const seedQuizResults = async (
     passed: boolean;
   }[] = [];
 
+  const enrolledCourseProgressPromises: Prisma.Prisma__EnrolledCourseProgressClient<
+    {
+      id: string;
+      createdAt: Date;
+      updatedAt: Date;
+      courseId: string;
+      userId: string;
+      completionRate: number;
+      nextModuleId: string | null;
+    },
+    never,
+    DefaultArgs,
+    Prisma.PrismaClientOptions
+  >[] = [];
+
   org1Users.forEach((user) => {
     [...course1Quizzes, ...course3Quizzes].forEach((quiz) => {
       if (
@@ -48,6 +65,22 @@ export const seedQuizResults = async (
         score: 50,
         passed: false,
       });
+      // Update EnrolledCourseProgress to connect completed quiz
+      enrolledCourseProgressPromises.push(
+        prisma.enrolledCourseProgress.update({
+          where: {
+            userId_courseId: {
+              userId: user.id,
+              courseId: quiz.courseId,
+            },
+          },
+          data: {
+            completedQuizzes: {
+              connect: { id: quiz.id },
+            },
+          },
+        }),
+      );
     });
   });
 
@@ -74,12 +107,30 @@ export const seedQuizResults = async (
         score: 50,
         passed: false,
       });
+      // Update enrolled course progress to include completed quiz
+      enrolledCourseProgressPromises.push(
+        prisma.enrolledCourseProgress.update({
+          where: {
+            userId_courseId: {
+              userId: user.id,
+              courseId: quiz.courseId,
+            },
+          },
+          data: {
+            completedQuizzes: {
+              connect: { id: quiz.id },
+            },
+          },
+        }),
+      );
     });
   });
 
   const quizResults = await Promise.all(
     quizResultsData.map((data) => prisma.quizResult.create({ data })),
   );
+
+  await Promise.all(enrolledCourseProgressPromises);
 
   return quizResults;
 };

@@ -179,6 +179,13 @@ describe('CodeSolution', async () => {
         ),
       ).toBeDefined();
 
+      // Verify if course is completed for user2
+      const response3 = await supertest(app)
+        .get(`/api/v1/users/${user3.id}/progress`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response3.status).toBe(200);
+      expect(response3.body.progress[0].completionRate).toBe(100);
+
       // remove user2 from the organization
       await supertest(app)
         .delete(`/api/v1/organizations/${organization.id}/users`)

@@ -1,5 +1,5 @@
 import { PrismaClient } from '../../generated/prisma';
-import { UserService } from '../user/user.service';
+import { userProgressSelect, UserService } from '../user/user.service';
 import type {
   CodeSolutionCreateType,
   CodeSolutionScoreUpdateType,
@@ -129,7 +129,7 @@ export const CodeSolutionService = {
       },
     });
 
-    await prisma.enrolledCourseProgress.update({
+    const updatedEnrollmentProgress = await prisma.enrolledCourseProgress.update({
       where: {
         userId_courseId: {
           userId,
@@ -141,9 +141,11 @@ export const CodeSolutionService = {
           connect: { id: codeAssessmentId },
         },
       },
+      select: userProgressSelect,
     });
 
     await UserService.refreshUserStreak(userId);
+    await UserService.updateCourseCompletionRate(updatedEnrollmentProgress, courseId);
 
     return codeSolution;
   },

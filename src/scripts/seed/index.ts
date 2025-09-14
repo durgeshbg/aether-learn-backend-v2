@@ -71,6 +71,49 @@ async function main() {
     course3CodeAssessments,
   );
   await seedCourseFeedbacks(prisma, org1users, org2users, courses);
+
+  // Update all enrolled course progress completion percentage
+  const enrollmentsData = await prisma.enrolledCourseProgress.findMany({
+    select: {
+      id: true,
+      courseId: true,
+      completedAssessments: {
+        select: { id: true },
+      },
+      completedModules: {
+        select: { id: true },
+      },
+      completedQuizzes: {
+        select: { id: true },
+      },
+    },
+  });
+  const coursesData = await prisma.course.findMany({
+    select: {
+      id: true,
+      modulesCount: true,
+      quizzesCount: true,
+      codeAssessmentsCount: true,
+    },
+  });
+  await Promise.all(
+    enrollmentsData.map((enrollment) => {
+      const course = coursesData.find((c) => c.id === enrollment.courseId);
+      if (course) {
+        const totalCount =
+          course?.modulesCount + course?.quizzesCount + course?.codeAssessmentsCount;
+        const completedCount =
+          enrollment.completedModules.length +
+          enrollment.completedQuizzes.length +
+          enrollment.completedAssessments.length;
+        const rate = totalCount === 0 ? 0 : (completedCount / totalCount) * 100;
+        return prisma.enrolledCourseProgress.update({
+          where: { id: enrollment.id },
+          data: { completionRate: rate },
+        });
+      }
+    }),
+  );
 }
 
 main()

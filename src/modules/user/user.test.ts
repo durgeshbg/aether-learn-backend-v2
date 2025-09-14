@@ -348,6 +348,12 @@ describe('User', async () => {
       expect(response.body.progress.completedModules.some((m: Module) => m.id === module.id)).toBe(
         true,
       );
+
+      const response3 = await supertest(app)
+        .get(`${url}/${user.id}/progress`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response3.status).toBe(200);
+      expect(response3.body.progress[0].completionRate).toBe(100);
     });
   });
 
