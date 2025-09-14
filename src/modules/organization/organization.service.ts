@@ -43,6 +43,7 @@ const organizationCoursesSelect: Prisma.CourseSelect = {
   rating: true,
   codeAssessmentsCount: true,
   lessonsCount: true,
+  modulesCount: true,
   quizzesCount: true,
   createdAt: true,
   updatedAt: true,

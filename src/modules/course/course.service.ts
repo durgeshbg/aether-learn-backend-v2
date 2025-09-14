@@ -12,6 +12,7 @@ const courseSelect: Prisma.CourseSelect = {
   thumbnailUrl: true,
   rating: true,
   lessonsCount: true,
+  modulesCount: true,
   quizzesCount: true,
   codeAssessmentsCount: true,
   createdAt: true,
@@ -25,6 +26,7 @@ const courseSelectWithContent: Prisma.CourseSelect = {
   thumbnailUrl: true,
   rating: true,
   lessonsCount: true,
+  modulesCount: true,
   quizzesCount: true,
   codeAssessmentsCount: true,
   lessons: {

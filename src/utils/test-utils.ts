@@ -179,11 +179,26 @@ export async function setupTests() {
     });
   };
 
-  const seedModule = async (prisma: PrismaClient, lessonId: string, title: string) => {
+  const seedModule = async (
+    prisma: PrismaClient,
+    courseId: string,
+    lessonId: string,
+    title: string,
+  ) => {
     const languageId = LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id;
     if (!languageId) {
       throw new Error('Language JAVASCRIPT_NODE_18 not found in LANGUAGES_MAP');
     }
+
+    await prisma.course.update({
+      where: {
+        id: courseId,
+      },
+      data: {
+        modulesCount: { increment: 1 },
+      },
+    });
+
     return await prisma.module.create({
       data: {
         languageId,

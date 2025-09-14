@@ -67,8 +67,13 @@ describe('User', async () => {
     noAccessCourse = await testDB.seedCourse(prisma, 'No Access Course');
     lesson = await testDB.seedLesson(prisma, 'Test Lesson', course.id);
     noAccessLesson = await testDB.seedLesson(prisma, 'No Access Lesson', noAccessCourse.id);
-    module = await testDB.seedModule(prisma, lesson.id, 'Test Module');
-    noAccessModule = await testDB.seedModule(prisma, noAccessLesson.id, 'No Access Module');
+    module = await testDB.seedModule(prisma, course.id, lesson.id, 'Test Module');
+    noAccessModule = await testDB.seedModule(
+      prisma,
+      noAccessCourse.id,
+      noAccessLesson.id,
+      'No Access Module',
+    );
     user3 = await testDB.seedUser(
       prisma,
       USER_TEST_EMAILS.user3,

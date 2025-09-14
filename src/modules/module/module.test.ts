@@ -62,7 +62,7 @@ describe('Module', async () => {
     organization = await testDB.seedOrganization(prisma, ORGANIZATION_TEST_NAME, user.id);
     course = await testDB.seedCourse(prisma, COURSE_TEST_NAME, organization.id);
     lesson = await testDB.seedLesson(prisma, LESSON_TEST_TITLE, course.id);
-    module = await testDB.seedModule(prisma, lesson.id, staticData.MODULE_TEST_TITLE);
+    module = await testDB.seedModule(prisma, course.id, lesson.id, staticData.MODULE_TEST_TITLE);
 
     url += `/${course.id}/lessons/${lesson.id}/modules`;
 
@@ -139,6 +139,14 @@ describe('Module', async () => {
         });
       expect(response.status).toBe(201);
       expect(response.body.module).toHaveProperty('id');
+
+      const response2 = await supertest(app)
+        .get(`/api/v1/courses/${course.id}`)
+        .set({
+          Authorization: `Bearer ${adminToken}`,
+        });
+      expect(response.status).toBe(201);
+      expect(response2.body.course.modulesCount).toBe(2);
     });
 
     test('Should not create module as user', async () => {

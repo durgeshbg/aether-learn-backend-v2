@@ -470,18 +470,21 @@ export const seedLessonsModules = async (
     where: { id: courses[0]!.id! },
     data: {
       lessonsCount: 2,
+      modulesCount: 6,
     },
   });
   await prisma.course.update({
     where: { id: courses[1]!.id! },
     data: {
       lessonsCount: 2,
+      modulesCount: 6,
     },
   });
   await prisma.course.update({
     where: { id: courses[2]!.id! },
     data: {
       lessonsCount: 2,
+      modulesCount: 6,
     },
   });
 

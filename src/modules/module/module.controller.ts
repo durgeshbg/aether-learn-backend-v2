@@ -39,7 +39,7 @@ export const ModuleController = {
     const { courseId, lessonId } = req.params as CourseLessonModuleIdParamsType;
     const moduleData: ModuleCreateType = req.body;
     try {
-      const newModule = await ModuleService.create(lessonId, moduleData);
+      const newModule = await ModuleService.create(courseId, lessonId, moduleData);
       res.status(201).json({ module: newModule });
     } catch {
       res.status(MODULE_CREATE_FAILED.STATUS).json({ error: MODULE_CREATE_FAILED.MESSAGE });

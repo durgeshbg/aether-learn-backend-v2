@@ -79,11 +79,19 @@ export const ModuleService = {
 
     return user?.organization?.courses[0]?.lessons[0]?.modules || [];
   },
-  create: async (lessonId: string, moduleData: ModuleCreateType) => {
-    return await prisma.module.create({
+  create: async (courseId: string, lessonId: string, moduleData: ModuleCreateType) => {
+    const module = prisma.module.create({
       data: { ...moduleData, lessonId },
       select: moduleSelectWithContent,
     });
+    const courseUpdate = prisma.course.update({
+      where: { id: courseId },
+      data: { modulesCount: { increment: 1 } },
+    });
+
+    await prisma.$transaction([module, courseUpdate]);
+
+    return module;
   },
   findById: async (
     id: string,

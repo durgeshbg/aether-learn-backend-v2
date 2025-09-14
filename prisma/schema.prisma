@@ -130,6 +130,7 @@ model Course {
   organizations   Organization[]
 
   lessonsCount         Int @default(0)
+  modulesCount         Int @default(0)
   quizzesCount         Int @default(0)
   codeAssessmentsCount Int @default(0)
 
