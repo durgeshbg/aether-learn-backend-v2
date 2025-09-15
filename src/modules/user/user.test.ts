@@ -537,6 +537,34 @@ describe('User', async () => {
       expect(response.status).toBe(200);
       expect(response.body.dashboardData).toHaveProperty('usersCount', 3); // 2 + 1 created in POST tests
       expect(response.body.dashboardData).toHaveProperty('coursesCount', 1);
+
+      // Top 5 completed Courses
+      expect(response.body.dashboardData.top5CompletedCourses).toBeInstanceOf(Array);
+      expect(response.body.dashboardData.top5CompletedCourses[0]).toHaveProperty('id');
+      expect(response.body.dashboardData.top5CompletedCourses[0]).toHaveProperty('name');
+      expect(response.body.dashboardData.top5CompletedCourses[0]).toHaveProperty(
+        'totalEnrollments',
+      );
+      expect(response.body.dashboardData.top5CompletedCourses[0]).toHaveProperty(
+        'averageCompletionRate',
+      );
+
+      // Recently Enrolled Courses
+      expect(response.body.dashboardData.recentlyUpdatedCourses).toBeInstanceOf(Array);
+      expect(response.body.dashboardData.recentlyUpdatedCourses[0]).toHaveProperty('id');
+      expect(response.body.dashboardData.recentlyUpdatedCourses[0]).toHaveProperty('course');
+      expect(response.body.dashboardData.recentlyUpdatedCourses[0].course).toHaveProperty('id');
+      expect(response.body.dashboardData.recentlyUpdatedCourses[0].course).toHaveProperty('name');
+      expect(response.body.dashboardData.recentlyUpdatedCourses[0]).toHaveProperty('user');
+      expect(response.body.dashboardData.recentlyUpdatedCourses[0].user).toHaveProperty('id');
+      expect(response.body.dashboardData.recentlyUpdatedCourses[0].user).toHaveProperty(
+        'firstName',
+      );
+      expect(response.body.dashboardData.recentlyUpdatedCourses[0].user).toHaveProperty('lastName');
+      expect(response.body.dashboardData.recentlyUpdatedCourses[0]).toHaveProperty(
+        'completionRate',
+      );
+      expect(response.body.dashboardData.recentlyUpdatedCourses[0]).toHaveProperty('updatedAt');
     });
   });
 
@@ -606,16 +634,22 @@ describe('User', async () => {
         .get(`${url}/${user.id}/progress`)
         .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
+      expect(response.body.progress).toBeInstanceOf(Array);
       expect(response.body.progress[0]).toHaveProperty('completedModules');
       expect(response.body.progress[0]).toHaveProperty('completedQuizzes');
       expect(response.body.progress[0]).toHaveProperty('completedAssessments');
+      expect(response.body.progress[0]).toHaveProperty('nextModule');
     });
     test('Should fetch user progress if org admin', async () => {
       const response = await supertest(app)
-        .get(`${url}/${user3.id}/progress`)
+        .get(`${url}/${user.id}/progress`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.progress).toBeInstanceOf(Array);
+      expect(response.body.progress[0]).toHaveProperty('completedModules');
+      expect(response.body.progress[0]).toHaveProperty('completedQuizzes');
+      expect(response.body.progress[0]).toHaveProperty('completedAssessments');
+      expect(response.body.progress[0]).toHaveProperty('nextModule');
     });
     test('Should fetch user progress if user himself', async () => {
       const response = await supertest(app)
@@ -623,6 +657,10 @@ describe('User', async () => {
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.progress).toBeInstanceOf(Array);
+      expect(response.body.progress[0]).toHaveProperty('completedModules');
+      expect(response.body.progress[0]).toHaveProperty('completedQuizzes');
+      expect(response.body.progress[0]).toHaveProperty('completedAssessments');
+      expect(response.body.progress[0]).toHaveProperty('nextModule');
     });
     test('Should not fetch user progress by invalid ID', async () => {
       const response = await supertest(app)

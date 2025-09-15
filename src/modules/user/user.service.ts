@@ -69,25 +69,27 @@ export const userProgressSelect: Prisma.EnrolledCourseProgressSelect = {
   updatedAt: true,
 };
 
-const bookmarkedModuleSelect: Prisma.BookmarkModuleSelect = {
+const moduleLinkSelect: Prisma.ModuleSelect = {
   id: true,
-  module: {
+  title: true,
+  lesson: {
     select: {
       id: true,
       title: true,
-      lesson: {
+      course: {
         select: {
           id: true,
-          title: true,
-          course: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
+          name: true,
         },
       },
     },
+  },
+};
+
+const bookmarkedModuleSelect: Prisma.BookmarkModuleSelect = {
+  id: true,
+  module: {
+    select: moduleLinkSelect,
   },
   createdAt: true,
 };
@@ -375,7 +377,8 @@ export const UserService = {
       const usersCount = await prisma.user.count({
         where: { organizationId: orgAmdin },
       });
-      const coursesCount = await prisma.course.count({
+
+      const courses = await prisma.course.findMany({
         where: {
           organizations: {
             some: {
@@ -383,8 +386,56 @@ export const UserService = {
             },
           },
         },
+        select: { id: true, name: true },
       });
-      return { usersCount, coursesCount };
+      const coursesCount = courses.length;
+
+      const top5CompletedCourseIds = await prisma.enrolledCourseProgress.groupBy({
+        by: ['courseId'],
+        _avg: { completionRate: true },
+        _count: { courseId: true },
+        orderBy: { _avg: { completionRate: 'desc' } },
+        where: {
+          course: {
+            organizations: {
+              some: {
+                id: orgAmdin,
+              },
+            },
+          },
+        },
+        take: 5,
+      });
+
+      const top5CompletedCourses = top5CompletedCourseIds.map((course) => {
+        const courseInfo = courses.find((c) => c.id === course.courseId);
+        return {
+          id: course.courseId,
+          name: courseInfo ? courseInfo.name : 'Unknown Course',
+          totalEnrollments: course._count.courseId,
+          averageCompletionRate: course._avg.completionRate || 0,
+        };
+      });
+
+      const recentlyUpdatedCourses = await prisma.enrolledCourseProgress.findMany({
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          course: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+          user: {
+            select: { id: true, firstName: true, lastName: true },
+          },
+          completionRate: true,
+          updatedAt: true,
+        },
+      });
+      return { usersCount, coursesCount, top5CompletedCourses, recentlyUpdatedCourses };
     }
     if (userId) {
       const enrolledCoursesCount = await prisma.enrolledCourseProgress.count({
@@ -401,8 +452,8 @@ export const UserService = {
     });
   },
 
-  findUserProgress: (userId: string) => {
-    return prisma.user.findFirst({
+  findUserProgress: async (userId: string) => {
+    const user = await prisma.user.findFirst({
       where: {
         id: userId,
       },
@@ -410,9 +461,27 @@ export const UserService = {
         organization: true,
         enrolledCourseProgress: {
           select: userProgressSelect,
+          orderBy: { updatedAt: 'desc' },
         },
       },
     });
+
+    const progress = await Promise.all(
+      user?.enrolledCourseProgress.map(async (p) => {
+        let nextModule = null;
+        if (p.nextModuleId) {
+          nextModule = await prisma.module.findUnique({
+            where: { id: p.nextModuleId },
+            select: moduleLinkSelect,
+          });
+        }
+        return {
+          ...p,
+          nextModule,
+        };
+      }) || [],
+    );
+    return { user, progress };
   },
 
   updateCourseCompletionRate: async (

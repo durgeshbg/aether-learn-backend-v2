@@ -114,14 +114,14 @@ export const UserController = {
   findUserProgress: async (req: Request, res: Response) => {
     try {
       const userId = req.params?.id;
-      const user = await UserService.findUserProgress(userId!);
+      const { user, progress } = await UserService.findUserProgress(userId!);
 
       if (
         req.user?.role === Role.ADMIN ||
         req.user?.orgAdmin === user?.organization?.id ||
         userId === req.user?.id
       ) {
-        res.status(200).json({ progress: user?.enrolledCourseProgress || [] });
+        res.status(200).json({ progress: progress || [] });
         return;
       }
 
