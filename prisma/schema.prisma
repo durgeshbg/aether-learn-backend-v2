@@ -119,11 +119,12 @@ model Organization {
 }
 
 model Course {
-  id           String  @id @default(cuid())
+  id           String          @id @default(cuid())
   name         String
   description  String?
   thumbnailUrl String?
-  rating       Float   @default(0.0)
+  rating       Float           @default(0.0)
+  difficulty   DifficultyLevel @default(BEGINNER)
 
   lessons         Lesson[]         @relation("CourseLessons")
   quizzes         Quiz[]           @relation("CourseQuizzes")

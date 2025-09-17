@@ -1,4 +1,9 @@
-import { PrismaClient, type Course, type Organization } from '../../generated/prisma';
+import {
+  DifficultyLevel,
+  PrismaClient,
+  type Course,
+  type Organization,
+} from '../../generated/prisma';
 
 export const seedCourses = async (
   prisma: PrismaClient,
@@ -19,6 +24,7 @@ export const seedCourses = async (
           connect: { id: orgs[0]?.id },
         },
         rating: 4.5,
+        difficulty: DifficultyLevel.BEGINNER,
       },
     }),
     prisma.course.create({
@@ -30,6 +36,7 @@ export const seedCourses = async (
           connect: { id: orgs[1]?.id },
         },
         rating: 4.7,
+        difficulty: DifficultyLevel.ADVANCED,
       },
     }),
     prisma.course.create({
@@ -41,6 +48,7 @@ export const seedCourses = async (
           connect: { id: orgs[0]?.id },
         },
         rating: 4.8,
+        difficulty: DifficultyLevel.INTERMEDIATE,
       },
     }),
   ]);
