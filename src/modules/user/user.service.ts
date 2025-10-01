@@ -22,6 +22,15 @@ export const userSelect: Prisma.UserSelect = {
       name: true,
     },
   },
+  organization: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+  year: true,
+  branch: true,
+  uniqueId: true,
 };
 
 export const userSelectWithDetails: Prisma.UserSelect = {
@@ -39,6 +48,9 @@ export const userSelectWithDetails: Prisma.UserSelect = {
       name: true,
     },
   },
+  year: true,
+  branch: true,
+  uniqueId: true,
   createdAt: true,
   updatedAt: true,
   lastActiveAt: true,
@@ -107,6 +119,9 @@ export const UserService = {
         role: data.role,
         organizationId: data.organizationId,
         orgAdminOf: connectIfOrgAdmin,
+        branch: data.branch,
+        uniqueId: data.uniqueId,
+        year: data.year,
       },
       select: userSelectWithDetails,
     });

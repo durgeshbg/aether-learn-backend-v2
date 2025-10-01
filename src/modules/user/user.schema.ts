@@ -8,6 +8,9 @@ export const CreateUserSchema = z.object({
   lastName: z.string().min(1, 'Last name is required'),
   organizationId: z.string().cuid('Invalid organization ID format').optional(),
   orgAdmin: z.boolean().optional().default(false),
+  branch: z.string().optional(),
+  uniqueId: z.string().optional(),
+  year: z.number().int().min(1900).max(2100).optional(),
   role: z
     .enum([Role.ADMIN, Role.USER], {
       errorMap: () => ({
@@ -22,6 +25,9 @@ export const UserDetailsUpdateSchema = z.object({
   firstName: z.string().min(1, 'First name is required').optional(),
   lastName: z.string().min(1, 'Last name is required').optional(),
   email: z.string().email().optional(),
+  branch: z.string().optional(),
+  uniqueId: z.string().optional(),
+  year: z.number().int().min(1900).max(2100).optional(),
   password: z.string().min(8, 'Password must be at least 8 characters long').optional(),
 });
 

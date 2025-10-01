@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 export const moduleSelect: Prisma.ModuleSelect = {
   id: true,
   title: true,
+  durationMinutes: true,
   createdAt: true,
   updatedAt: true,
 };
@@ -39,7 +40,9 @@ export const ModuleService = {
       return await prisma.module.findMany({
         where: {
           lesson: {
+            id: lessonId,
             course: {
+              id: courseId,
               organizations: {
                 some: { id: orgAdmin },
               },

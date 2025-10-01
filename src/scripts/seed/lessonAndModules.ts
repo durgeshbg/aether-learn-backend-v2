@@ -49,6 +49,7 @@ export const seedLessonsModules = async (
                 'Identify hoisting behavior of var',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 10,
             },
             {
               title: 'Const Basics',
@@ -61,6 +62,7 @@ export const seedLessonsModules = async (
                 'Write variable declarations using const',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 70,
             },
             {
               title: 'Variable Hoisting',
@@ -73,6 +75,7 @@ export const seedLessonsModules = async (
                 'Understand temporal dead zone with let and const',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 55,
             },
           ],
         },
@@ -107,6 +110,7 @@ export const seedLessonsModules = async (
                 'Identify callback hell and its issues',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 15,
             },
             {
               title: 'Promises',
@@ -123,6 +127,7 @@ export const seedLessonsModules = async (
                 'Handle errors with .catch()',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 45,
             },
             {
               title: 'Async/Await',
@@ -138,6 +143,7 @@ export const seedLessonsModules = async (
                 'Write cleaner asynchronous code',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 60,
             },
           ],
         },
@@ -173,6 +179,7 @@ export const seedLessonsModules = async (
                 'Understand the request-response cycle',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 20,
             },
             {
               title: 'Routing in Express',
@@ -187,6 +194,7 @@ export const seedLessonsModules = async (
                 'Send responses to the client',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 30,
             },
             {
               title: 'Middleware in Express',
@@ -202,6 +210,7 @@ export const seedLessonsModules = async (
                 'Use third-party middleware in Express',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 40,
             },
           ],
         },
@@ -232,6 +241,7 @@ export const seedLessonsModules = async (
                 'Understand basic MongoDB concepts',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 25,
             },
             {
               title: 'Connecting with Mongoose',
@@ -245,6 +255,7 @@ export const seedLessonsModules = async (
                 'Handle connection events and errors',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 35,
             },
             {
               title: 'CRUD Operations',
@@ -259,6 +270,7 @@ export const seedLessonsModules = async (
                 'Use Mongoose queries to interact with the database',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              durationMinutes: 50,
             },
           ],
         },
@@ -294,6 +306,7 @@ export const seedLessonsModules = async (
                 'Understand list indexing and slicing',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              durationMinutes: 15,
             },
             {
               title: 'Tuples in Python',
@@ -307,6 +320,7 @@ export const seedLessonsModules = async (
                 'Access tuple elements using indexing',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              durationMinutes: 20,
             },
             {
               title: 'Dictionaries in Python',
@@ -320,6 +334,7 @@ export const seedLessonsModules = async (
                 'Understand dictionary methods and operations',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              durationMinutes: 30,
             },
           ],
         },
@@ -352,6 +367,7 @@ export const seedLessonsModules = async (
                 'Understand the structure of DataFrames',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              durationMinutes: 25,
             },
             {
               title: 'Data Manipulation with Pandas',
@@ -366,6 +382,7 @@ export const seedLessonsModules = async (
                 'Group data and perform aggregations',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              durationMinutes: 40,
             },
             {
               title: 'Basic Data Analysis',
@@ -379,6 +396,7 @@ export const seedLessonsModules = async (
                 'Interpret analysis results',
               ],
               languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              durationMinutes: 50,
             },
           ],
         },

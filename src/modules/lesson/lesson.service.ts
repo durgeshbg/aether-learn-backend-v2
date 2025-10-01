@@ -42,6 +42,7 @@ export const LessonService = {
       return await prisma.lesson.findMany({
         where: {
           course: {
+            id: courseId,
             organizations: {
               some: { id: orgAdmin },
             },
@@ -86,6 +87,7 @@ export const LessonService = {
         where: {
           id,
           course: {
+            id: courseId,
             organizations: {
               some: { id: orgAdmin },
             },
