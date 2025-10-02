@@ -212,6 +212,7 @@ model Quiz {
   difficulty      DifficultyLevel @default(BEGINNER)
   durationMinutes Int             @default(0)
   passPercentage  Int             @default(70)
+  maxAttempts     Int             @default(3)
 
   courseId String
   course   Course @relation("CourseQuizzes", fields: [courseId], references: [id], onDelete: Cascade)

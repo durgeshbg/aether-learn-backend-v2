@@ -8,6 +8,7 @@ import type {
 } from './quiz-result.schema';
 import { QuestionService } from '../question/question.service';
 import { Role } from '../../generated/prisma';
+import { QuizService } from '../quiz/quiz.service';
 
 const {
   QUIZ_RESULT_NOT_FOUND,
@@ -15,6 +16,7 @@ const {
   QUIZ_RESULT_FETCH_FAILED,
   QUIZ_RESULT_CREATE_FAILED,
   QUIZ_RESULT_DELETE_FAILED,
+  QUIZ_MAX_ATTEMPTS_REACHED,
 } = QuizResultErrors;
 
 export const QuizResultController = {
@@ -41,6 +43,23 @@ export const QuizResultController = {
 
   create: async (req: Request, res: Response) => {
     const { quizId, courseId } = req.params as QuizResultQuizIdParamsType;
+
+    const quiz = await QuizService.findById(quizId, courseId, undefined, undefined, Role.ADMIN);
+    const quizResults = await QuizResultService.findAll(
+      quizId,
+      courseId,
+      req.user?.id,
+      req.user?.orgAdmin,
+      req.user?.role,
+    );
+
+    if (quiz && quiz?.maxAttempts <= quizResults.length) {
+      res
+        .status(QUIZ_MAX_ATTEMPTS_REACHED.STATUS)
+        .json({ error: QUIZ_MAX_ATTEMPTS_REACHED.MESSAGE });
+      return;
+    }
+
     const userId = req.user?.id;
     const quizResultData: QuizResultCreateType = req.body;
     const responses: string[] = quizResultData.answers.map(
@@ -54,6 +73,7 @@ export const QuizResultController = {
         undefined,
         Role.ADMIN,
       );
+
       let score = 0;
       quizResultData.answers.forEach((answer) => {
         const question = questions.find((q) => q.id === answer.questionId);

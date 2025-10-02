@@ -19,4 +19,8 @@ export const QuizResultErrors = {
     STATUS: 500,
     MESSAGE: 'Failed to delete quiz result',
   },
+  QUIZ_MAX_ATTEMPTS_REACHED: {
+    STATUS: 400,
+    MESSAGE: 'Maximum number of attempts reached',
+  },
 };

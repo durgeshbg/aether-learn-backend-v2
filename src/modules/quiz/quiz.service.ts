@@ -18,6 +18,7 @@ const quizSelectWithQuestion: Prisma.QuizSelect = {
   difficulty: true,
   durationMinutes: true,
   passPercentage: true,
+  maxAttempts: true,
   questions: {
     select: questionSelect,
   },

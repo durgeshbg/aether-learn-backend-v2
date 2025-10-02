@@ -14,11 +14,13 @@ import {
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { Role } from '../../generated/prisma';
+import { QuizResultErrors } from './quiz-result.errors';
 
 let url = '/api/v1/quizzes';
 
 const { UNAUTHORIZED, FORBIDDEN } = AuthErrors;
 const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
+const { QUIZ_MAX_ATTEMPTS_REACHED } = QuizResultErrors;
 
 const {
   USER_TEST_EMAILS,
@@ -149,7 +151,7 @@ describe('QuizResult', async () => {
         .set('Authorization', `Bearer ${user2Token}`)
         .send({ courseId: course.id });
 
-      // Create a question for the quiz
+      // Create a quiz result for user2
       const response = await supertest(app)
         .post(url)
         .set('Authorization', `Bearer ${user2Token}`)
@@ -159,6 +161,64 @@ describe('QuizResult', async () => {
       expect(response.status).toBe(201);
       expect(response.body.quizResult).toHaveProperty('id');
       expect(response.body.quizResult.score).toBe(100);
+
+      // Verify if quiz is completed for user2
+      const response2 = await supertest(app)
+        .get(`/api/v1/users/${user2.id}/progress`)
+        .set('Authorization', `Bearer ${user2Token}`);
+
+      expect(response2.status).toBe(200);
+      expect(response2.body.progress[0].completedQuizzes.some((q: Quiz) => q.id === quiz.id)).toBe(
+        true,
+      );
+
+      // Verify if course is completed for user2
+      const response3 = await supertest(app)
+        .get(`/api/v1/users/${user2.id}/progress`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response3.status).toBe(200);
+      expect(response3.body.progress[0].completionRate).toBe(100);
+
+      // remove user2 from the organization
+      await supertest(app)
+        .delete(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ userIds: [user2.id] });
+    });
+
+    test('Should not create a quiz results more than the default max attempts of a quiz', async () => {
+      // add user2 to the organization
+      await supertest(app)
+        .put(`/api/v1/organizations/${organization.id}/users`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ userIds: [user2.id] });
+
+      // Enroll user2 to the course
+      await supertest(app)
+        .put('/api/v1/users/enroll-course')
+        .set('Authorization', `Bearer ${user2Token}`)
+        .send({ courseId: course.id });
+
+      // Create three quiz results for user2 (max attempts reached) 1 seeded + 1 in POST test
+      const res = await supertest(app)
+        .post(url)
+        .set('Authorization', `Bearer ${user2Token}`)
+        .send({
+          answers: [{ questionId: question.id, answer: QUESTION_TEST_ANSWER }],
+        });
+      expect(res.status).toBe(201);
+      expect(res.body.quizResult).toHaveProperty('id');
+      expect(res.body.quizResult.score).toBe(100);
+
+      // Create fourth quiz result for user2 (should fail)
+      const response = await supertest(app)
+        .post(url)
+        .set('Authorization', `Bearer ${user2Token}`)
+        .send({
+          answers: [{ questionId: question.id, answer: QUESTION_TEST_ANSWER }],
+        });
+      expect(response.status).toBe(QUIZ_MAX_ATTEMPTS_REACHED.STATUS);
+      expect(response.body.error).toBe(QUIZ_MAX_ATTEMPTS_REACHED.MESSAGE);
 
       // Verify if quiz is completed for user2
       const response2 = await supertest(app)
