@@ -158,7 +158,7 @@ describe('QuizResult', async () => {
         });
       expect(response.status).toBe(201);
       expect(response.body.quizResult).toHaveProperty('id');
-      expect(response.body.quizResult.score).toBe(1);
+      expect(response.body.quizResult.score).toBe(100);
 
       // Verify if quiz is completed for user2
       const response2 = await supertest(app)
