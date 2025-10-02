@@ -58,7 +58,7 @@ export const QuizResultController = {
       quizResultData.answers.forEach((answer) => {
         const question = questions.find((q) => q.id === answer.questionId);
         if (question && question.answer === answer.answer) {
-          score += 1;
+          score += 1 * (100 / questions.length);
         }
       });
       const newQuizResult = await QuizResultService.create(
