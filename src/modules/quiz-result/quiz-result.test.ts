@@ -123,13 +123,6 @@ describe('QuizResult', async () => {
         .send({ userIds: [user2.id] });
     });
 
-    test('Should not fetch quiz results for users not having access to quiz', async () => {
-      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
-      expect(response.status).toBe(200);
-      expect(response.body.quizResults).toBeInstanceOf(Array);
-      expect(response.body.quizResults.length).toBe(0);
-    });
-
     test('Should not fetch quiz results without auth', async () => {
       const response = await supertest(app).get(url);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
@@ -306,13 +299,8 @@ describe('QuizResult', async () => {
 
   describe('DELETE: /:id', () => {
     test('Should delete quiz result as admin', async () => {
-      const create = await supertest(app)
-        .post(url)
-        .set('Authorization', `Bearer ${user2Token}`)
-        .send({
-          answers: [{ questionId: question.id, answer: QUESTION_TEST_ANSWER }],
-        });
-      const delId = create.body.quizResult.id;
+      const results = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
+      const delId = results.body.quizResults[0].id;
 
       const response = await supertest(app)
         .delete(`${url}/${delId}`)

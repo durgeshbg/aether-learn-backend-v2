@@ -8,6 +8,15 @@ import {
   type User,
 } from '../../generated/prisma';
 
+const seedResponses = (questions: Question[], alternate = false) => {
+  return questions.map((q, index) => {
+    if (alternate && index % 2 === 0) {
+      return `${q.id}:${(q.answer + q.options.length) % 4}:0`; // Wrong answer
+    }
+    return `${q.id}:${q.answer}:1`; // Correct answer
+  });
+};
+
 export const seedQuizResults = async (
   prisma: PrismaClient,
   org1Users: User[],
@@ -54,14 +63,14 @@ export const seedQuizResults = async (
       quizResultsData.push({
         userId: user.id,
         quizId: quiz.id,
-        responses: quiz.questions.map((q) => `${q.id}:${q.answer}`),
+        responses: seedResponses(quiz.questions),
         score: 100,
         passed: true,
       });
       quizResultsData.push({
         userId: user.id,
         quizId: quiz.id,
-        responses: quiz.questions.map((q) => `${q.id}:2`), // Atleast one answer is 2
+        responses: seedResponses(quiz.questions, true), // Atleast one answer is wrong
         score: 50,
         passed: false,
       });
@@ -96,14 +105,14 @@ export const seedQuizResults = async (
       quizResultsData.push({
         userId: user.id,
         quizId: quiz.id,
-        responses: quiz.questions.map((q) => `${q.id}:${q.answer}`),
+        responses: seedResponses(quiz.questions),
         score: 100,
         passed: true,
       });
       quizResultsData.push({
         userId: user.id,
         quizId: quiz.id,
-        responses: quiz.questions.map((q) => `${q.id}:1`), // Atleast one answer is 1
+        responses: seedResponses(quiz.questions, true), // Atleast one answer is wrong
         score: 50,
         passed: false,
       });

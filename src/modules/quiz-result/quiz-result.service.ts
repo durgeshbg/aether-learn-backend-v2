@@ -1,7 +1,36 @@
-import { PrismaClient } from '../../generated/prisma';
+import { Prisma, PrismaClient } from '../../generated/prisma';
 import { userProgressSelect, UserService } from '../user/user.service';
 
 const prisma = new PrismaClient();
+
+const quizResultSelect: Prisma.QuizResultSelect = {
+  id: true,
+  quiz: {
+    select: { id: true, title: true },
+  },
+  score: true,
+  passed: true,
+  createdAt: true,
+};
+
+const quizResultWithResponseSelect: Prisma.QuizResultSelect = {
+  ...quizResultSelect,
+  responses: true,
+  // user: {
+  //   select: {
+  //     id: true,
+  //     firstName: true,
+  //     lastName: true,
+  //     email: true,
+  //   },
+  // },
+  // quiz: {
+  //   select: {
+  //     id: true,
+  //     title: true,
+  //   },
+  // },
+};
 
 export const QuizResultService = {
   findAll: async (
@@ -19,6 +48,7 @@ export const QuizResultService = {
             courseId,
           },
         },
+        select: quizResultSelect,
       });
     }
 
@@ -35,30 +65,16 @@ export const QuizResultService = {
             },
           },
         },
+        select: quizResultSelect,
       });
     }
 
-    const user = await prisma.user.findFirst({
-      where: { id: userId },
-      include: {
-        organization: {
-          include: {
-            courses: {
-              where: { quizzes: { some: { id: quizId } } },
-              include: {
-                quizzes: {
-                  include: {
-                    quizResults: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
+    const quizResults = await prisma.quizResult.findMany({
+      where: { userId, quiz: { id: quizId, courseId } },
+      select: quizResultSelect,
     });
 
-    return user?.organization?.courses[0]?.quizzes[0]?.quizResults || [];
+    return quizResults;
   },
 
   create: async (
@@ -75,17 +91,7 @@ export const QuizResultService = {
         score,
         responses,
       },
-      select: {
-        id: true,
-        score: true,
-        user: true,
-        quiz: {
-          select: {
-            id: true,
-            title: true,
-          },
-        },
-      },
+      select: quizResultSelect,
     });
 
     const updatedEnrollmentProgress = await prisma.enrolledCourseProgress.update({
@@ -120,6 +126,7 @@ export const QuizResultService = {
     if (role === 'ADMIN') {
       return await prisma.quizResult.findUnique({
         where: { id, quizId },
+        select: quizResultWithResponseSelect,
       });
     }
 
@@ -137,11 +144,13 @@ export const QuizResultService = {
             },
           },
         },
+        select: quizResultWithResponseSelect,
       });
     }
 
     return await prisma.quizResult.findFirst({
       where: { id, userId, quiz: { id: quizId, courseId } },
+      select: quizResultWithResponseSelect,
     });
   },
 
