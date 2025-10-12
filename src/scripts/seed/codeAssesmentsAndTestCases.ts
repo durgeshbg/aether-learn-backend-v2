@@ -4,7 +4,7 @@ import {
   type Course,
   type CodeAssessment,
 } from '../../generated/prisma';
-import { LANG_KEYS, LANGUAGES_MAP } from '../../laguages';
+import { LANG_KEYS, LANGUAGES_MAP } from '../../languages';
 
 export const seedCodeAssessmentsAndTestCases = async (
   prisma: PrismaClient,
@@ -28,7 +28,7 @@ export const seedCodeAssessmentsAndTestCases = async (
         instructions:
           'Write a program that prints numbers from 1 to 100. For multiples of 3 print “Fizz”, for multiples of 5 “Buzz”, and for both “FizzBuzz”.',
         starterCode: 'function fizzBuzz() {\n  // your code\n}',
-        languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]!.id,
+        languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
         difficulty: DifficultyLevel.BEGINNER,
         durationMinutes: 30,
         courseId: courses[0]!.id,
@@ -63,7 +63,7 @@ export const seedCodeAssessmentsAndTestCases = async (
         description: 'Calculate the sum of an array of numbers',
         instructions: 'Write a function that takes an array of numbers and returns their sum.',
         starterCode: 'function arraySum(arr) {\n  // your code\n}',
-        languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]!.id,
+        languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
         difficulty: DifficultyLevel.BEGINNER,
         durationMinutes: 20,
         courseId: courses[0]!.id,
@@ -101,7 +101,7 @@ export const seedCodeAssessmentsAndTestCases = async (
         description: 'Check if a string is a palindrome',
         instructions: 'Write a function that checks if a given string is a palindrome.',
         starterCode: 'function isPalindrome(str) {\n  // your code\n}',
-        languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]!.id,
+        languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
         difficulty: DifficultyLevel.INTERMEDIATE,
         durationMinutes: 30,
         courseId: courses[1]!.id,
@@ -136,7 +136,7 @@ export const seedCodeAssessmentsAndTestCases = async (
         description: 'Generate Fibonacci sequence up to n terms',
         instructions: 'Write a function that returns the Fibonacci sequence up to n terms.',
         starterCode: 'function fibonacci(n) {\n  // your code\n}',
-        languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]!.id,
+        languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
         difficulty: DifficultyLevel.INTERMEDIATE,
         durationMinutes: 25,
         courseId: courses[1]!.id,
@@ -174,7 +174,7 @@ export const seedCodeAssessmentsAndTestCases = async (
         description: 'Check if a number is prime',
         instructions: 'Write a function that checks if a given number is prime.',
         starterCode: 'def is_prime(n):\n    # your code',
-        languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8]!.id,
+        languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
         difficulty: DifficultyLevel.BEGINNER,
         durationMinutes: 20,
         courseId: courses[2]!.id,
@@ -209,7 +209,7 @@ export const seedCodeAssessmentsAndTestCases = async (
         description: 'Calculate the factorial of a number',
         instructions: 'Write a function that returns the factorial of a given number.',
         starterCode: 'def factorial(n):\n    # your code',
-        languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8]!.id,
+        languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
         difficulty: DifficultyLevel.BEGINNER,
         durationMinutes: 20,
         courseId: courses[2]!.id,

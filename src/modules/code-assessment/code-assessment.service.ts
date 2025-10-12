@@ -19,6 +19,7 @@ const codeAssessmentSelectWithTestCases: Prisma.CodeAssessmentSelect = {
   instructions: true,
   languageId: true,
   starterCode: true,
+  courseId: true,
   testCases: {
     select: testCaseSelect,
   },

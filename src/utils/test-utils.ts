@@ -1,7 +1,7 @@
 import { execSync } from 'child_process';
 import { DifficultyLevel, PrismaClient, Role, type User } from '../generated/prisma';
 import { hash } from 'bcrypt-ts';
-import { LANG_KEYS, LANGUAGES_MAP } from '../laguages';
+import { LANG_KEYS, LANGUAGES_MAP } from '../languages';
 import jwt from 'jsonwebtoken';
 
 export type UserOrgAdmin = User & {
@@ -34,7 +34,7 @@ export const staticData = {
   CODE_ASSESSMENT_TEST_DESCRIPTION: 'Write a function to return the sum of two numbers.',
   CODE_ASSESSMENT_TEST_INSTRUCTIONS: 'Implement the function in the starter code.',
   CODE_ASSESSMENT_TEST_STARTER_CODE: 'function sum(a, b) {\n  return a + b;\n}',
-  CODE_ASSESSMENT_TEST_LANGUAGE_ID: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id,
+  CODE_ASSESSMENT_TEST_LANGUAGE_ID: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)?.value,
 
   TEST_CASE_TEST_DESCRIPTION: 'Test case for sum function',
   TEST_CASE_TEST_INPUT: '1, 2',
@@ -185,7 +185,7 @@ export async function setupTests() {
     lessonId: string,
     title: string,
   ) => {
-    const languageId = LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id;
+    const languageId = LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)?.value;
     if (!languageId) {
       throw new Error('Language JAVASCRIPT_NODE_18 not found in LANGUAGES_MAP');
     }

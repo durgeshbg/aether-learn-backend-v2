@@ -14,7 +14,7 @@ import {
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { ModuleErrors } from './module.errors';
-import { LANGUAGES_MAP, LANG_KEYS } from '../../laguages';
+import { LANGUAGES_MAP, LANG_KEYS } from '../../languages';
 import { Role } from '../../generated/prisma';
 
 let url = '/api/v1/courses';
@@ -134,7 +134,7 @@ describe('Module', async () => {
         .send({
           title: 'Test Module',
           content: 'Some Content',
-          languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id,
+          languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)?.value,
           difficulty: DifficultyLevel.BEGINNER,
         });
       expect(response.status).toBe(201);
@@ -156,7 +156,7 @@ describe('Module', async () => {
         .send({
           title: 'Test Module',
           content: 'Some Content',
-          languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id,
+          languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)?.value,
         });
       expect(response.status).toBe(FORBIDDEN.STATUS);
       expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
@@ -180,7 +180,7 @@ describe('Module', async () => {
         .send({
           title: 'Test Module',
           content: 'Some Content',
-          languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id,
+          languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)?.value,
           difficulty: DifficultyLevel.BEGINNER,
         });
       expect(response.status).toBe(MODULE_CREATE_FAILED.STATUS);
@@ -188,11 +188,13 @@ describe('Module', async () => {
     });
 
     test('Should not create module without auth', async () => {
-      const response = await supertest(app).post(url).send({
-        title: 'Test',
-        content: 'Some Content',
-        languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18]?.id,
-      });
+      const response = await supertest(app)
+        .post(url)
+        .send({
+          title: 'Test',
+          content: 'Some Content',
+          languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)?.value,
+        });
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });

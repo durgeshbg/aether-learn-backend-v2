@@ -6,7 +6,7 @@ import {
   type Module,
   type User,
 } from '../../generated/prisma';
-import { LANG_KEYS, LANGUAGES_MAP } from '../../laguages';
+import { LANG_KEYS, LANGUAGES_MAP } from '../../languages';
 
 export const seedLessonsModules = async (
   prisma: PrismaClient,
@@ -48,7 +48,7 @@ export const seedLessonsModules = async (
                 'Learn function scope with var',
                 'Identify hoisting behavior of var',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 10,
             },
             {
@@ -61,7 +61,7 @@ export const seedLessonsModules = async (
                 'Learn when to use const vs let',
                 'Write variable declarations using const',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 70,
             },
             {
@@ -74,7 +74,7 @@ export const seedLessonsModules = async (
                 'Demonstrate hoisting with var declarations',
                 'Understand temporal dead zone with let and const',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 55,
             },
           ],
@@ -109,7 +109,7 @@ export const seedLessonsModules = async (
                 'Handle asynchronous operations with callbacks',
                 'Identify callback hell and its issues',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 15,
             },
             {
@@ -126,7 +126,7 @@ export const seedLessonsModules = async (
                 'Learn to create and consume Promises',
                 'Handle errors with .catch()',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 45,
             },
             {
@@ -142,7 +142,7 @@ export const seedLessonsModules = async (
                 'Use await to handle Promises',
                 'Write cleaner asynchronous code',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 60,
             },
           ],
@@ -178,7 +178,7 @@ export const seedLessonsModules = async (
                 'Set up a basic Express server',
                 'Understand the request-response cycle',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 20,
             },
             {
@@ -193,7 +193,7 @@ export const seedLessonsModules = async (
                 'Handle query parameters and route parameters',
                 'Send responses to the client',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 30,
             },
             {
@@ -209,7 +209,7 @@ export const seedLessonsModules = async (
                 'Create custom middleware functions',
                 'Use third-party middleware in Express',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 40,
             },
           ],
@@ -240,7 +240,7 @@ export const seedLessonsModules = async (
                 'Start and stop the MongoDB server',
                 'Understand basic MongoDB concepts',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 25,
             },
             {
@@ -254,7 +254,7 @@ export const seedLessonsModules = async (
                 'Connect to a MongoDB database',
                 'Handle connection events and errors',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 35,
             },
             {
@@ -269,7 +269,7 @@ export const seedLessonsModules = async (
                 'Perform create, read, update, and delete operations',
                 'Use Mongoose queries to interact with the database',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.JAVASCRIPT_NODE_18!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 50,
             },
           ],
@@ -305,7 +305,7 @@ export const seedLessonsModules = async (
                 'Perform common list operations (append, remove, etc.)',
                 'Understand list indexing and slicing',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 15,
             },
             {
@@ -319,7 +319,7 @@ export const seedLessonsModules = async (
                 'Understand immutability of tuples',
                 'Access tuple elements using indexing',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 20,
             },
             {
@@ -333,7 +333,7 @@ export const seedLessonsModules = async (
                 'Access and modify dictionary values',
                 'Understand dictionary methods and operations',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 30,
             },
           ],
@@ -366,7 +366,7 @@ export const seedLessonsModules = async (
                 'Create basic DataFrames',
                 'Understand the structure of DataFrames',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 25,
             },
             {
@@ -381,7 +381,7 @@ export const seedLessonsModules = async (
                 'Sort DataFrame values',
                 'Group data and perform aggregations',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 40,
             },
             {
@@ -395,7 +395,7 @@ export const seedLessonsModules = async (
                 'Visualize data using basic plots',
                 'Interpret analysis results',
               ],
-              languageId: LANGUAGES_MAP[LANG_KEYS.PYTHON_3_8!]!.id,
+              languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 50,
             },
           ],

@@ -5,17 +5,10 @@ const prisma = new PrismaClient();
 
 export const testCaseSelect: Prisma.TestCaseSelect = {
   id: true,
-  description: true,
-  createdAt: true,
-  updatedAt: true,
-};
-
-const testCaseSelectWithContent: Prisma.TestCaseSelect = {
-  id: true,
   input: true,
-  description: true,
   expected: true,
   weight: true,
+  description: true,
   createdAt: true,
   updatedAt: true,
 };
@@ -92,7 +85,7 @@ export const TestCaseService = {
     if (userRole === 'ADMIN') {
       return await prisma.testCase.findUnique({
         where: { id, assessmentId: codeAssessmentId },
-        select: testCaseSelectWithContent,
+        select: testCaseSelect,
       });
     }
 
@@ -110,7 +103,7 @@ export const TestCaseService = {
             },
           },
         },
-        select: testCaseSelectWithContent,
+        select: testCaseSelect,
       });
     }
 
@@ -126,7 +119,7 @@ export const TestCaseService = {
                   where: { id: codeAssessmentId },
                   include: {
                     testCases: {
-                      select: testCaseSelectWithContent,
+                      select: testCaseSelect,
                     },
                   },
                 },
@@ -150,7 +143,7 @@ export const TestCaseService = {
         ...testCaseData,
         assessmentId: codeAssessmentId,
       },
-      select: testCaseSelectWithContent,
+      select: testCaseSelect,
     });
   },
 
@@ -158,7 +151,7 @@ export const TestCaseService = {
     return await prisma.testCase.update({
       where: { id, assessmentId: codeAssessmentId },
       data: testCaseData,
-      select: testCaseSelectWithContent,
+      select: testCaseSelect,
     });
   },
 
