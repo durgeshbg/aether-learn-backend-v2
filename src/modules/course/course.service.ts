@@ -1,10 +1,9 @@
-import { Prisma, PrismaClient, Role } from '../../generated/prisma';
+import { Prisma, Role } from '../../generated/prisma';
+import { prisma } from '../../lib/prisma';
 import { codeAssessmentSelect } from '../code-assessment/code-assessment.service';
 import { lessonSelect } from '../lesson/lesson.service';
 import { quizSelect } from '../quiz/quiz.service';
 import type { CourseCreateType, CourseFeedbackType, CourseUpdateType } from './course.schema';
-
-const prisma = new PrismaClient();
 
 const courseSelect: Prisma.CourseSelect = {
   id: true,

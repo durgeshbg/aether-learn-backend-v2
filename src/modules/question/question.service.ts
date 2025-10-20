@@ -1,7 +1,6 @@
-import { Prisma, PrismaClient, Role } from '../../generated/prisma';
+import { Prisma, Role } from '../../generated/prisma';
+import { prisma } from '../../lib/prisma';
 import type { QuestionCreateType, QuestionUpdateType } from './question.schema';
-
-const prisma = new PrismaClient();
 
 export const questionSelect: Prisma.QuestionSelect = {
   id: true,

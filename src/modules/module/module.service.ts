@@ -1,7 +1,6 @@
-import { Prisma, PrismaClient, Role } from '../../generated/prisma';
+import { Prisma, Role } from '../../generated/prisma';
+import { prisma } from '../../lib/prisma';
 import type { ModuleCreateType, ModuleUpdateType } from './module.schema';
-
-const prisma = new PrismaClient();
 
 export const moduleSelect: Prisma.ModuleSelect = {
   id: true,

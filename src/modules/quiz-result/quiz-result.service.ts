@@ -1,7 +1,6 @@
-import { Prisma, PrismaClient } from '../../generated/prisma';
+import { Prisma } from '../../generated/prisma';
+import { prisma } from '../../lib/prisma';
 import { userProgressSelect, UserService } from '../user/user.service';
-
-const prisma = new PrismaClient();
 
 const quizResultSelect: Prisma.QuizResultSelect = {
   id: true,

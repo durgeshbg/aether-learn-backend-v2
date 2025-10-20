@@ -1,7 +1,6 @@
-import { PrismaClient, Prisma, Role } from '../../generated/prisma';
+import { Prisma, Role } from '../../generated/prisma';
+import { prisma } from '../../lib/prisma';
 import type { TestCaseCreateType, TestCaseUpdateType } from './test-case.schema';
-
-const prisma = new PrismaClient();
 
 export const testCaseSelect: Prisma.TestCaseSelect = {
   id: true,

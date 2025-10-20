@@ -1,7 +1,6 @@
 import type { CreateOrganizationType, OrganizationUpdateType } from './organization.schema';
-import { Prisma, PrismaClient, Role } from '../../generated/prisma';
-
-const prisma = new PrismaClient();
+import { Prisma, Role } from '../../generated/prisma';
+import { prisma } from '../../lib/prisma';
 
 export const organizationSelect: Prisma.OrganizationSelect = {
   id: true,

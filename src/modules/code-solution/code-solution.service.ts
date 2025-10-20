@@ -1,4 +1,4 @@
-import { PrismaClient } from '../../generated/prisma';
+import { prisma } from '../../lib/prisma';
 import { userProgressSelect, UserService } from '../user/user.service';
 import type {
   CodeSolutionCreateType,
@@ -6,7 +6,6 @@ import type {
   CodeSolutionStatusUpdateType,
 } from './code-solution.schema';
 
-const prisma = new PrismaClient();
 
 export const CodeSolutionService = {
   findAll: async (

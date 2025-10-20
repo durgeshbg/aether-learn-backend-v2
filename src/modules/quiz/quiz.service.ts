@@ -1,8 +1,7 @@
-import { Prisma, PrismaClient } from '../../generated/prisma';
+import { Prisma } from '../../generated/prisma';
+import { prisma } from '../../lib/prisma';
 import { questionSelect } from '../question/question.service';
 import type { QuizCreateType, QuizUpdateType } from './quiz.schema';
-
-const prisma = new PrismaClient();
 
 export const quizSelect: Prisma.QuizSelect = {
   id: true,

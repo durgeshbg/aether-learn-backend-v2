@@ -1,8 +1,7 @@
-import { Prisma, PrismaClient } from '../../generated/prisma';
+import { Prisma } from '../../generated/prisma';
+import { prisma } from '../../lib/prisma';
 import { testCaseSelect } from '../test-case/test-case.service';
 import type { CodeAssessmentCreateType, CodeAssessmentUpdateType } from './code-assessment.schema';
-
-const prisma = new PrismaClient();
 
 export const codeAssessmentSelect: Prisma.CodeAssessmentSelect = {
   id: true,

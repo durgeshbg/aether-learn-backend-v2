@@ -4,11 +4,10 @@ import type {
   UserFilterQueryType,
   UserMarkAsCompleteUpdateType,
 } from './user.schema';
-import { Prisma, PrismaClient, Role } from '../../generated/prisma';
+import { Prisma, Role } from '../../generated/prisma';
 import { compare } from 'bcrypt-ts';
 import { organizationSelect } from '../organization/organization.service';
-
-const prisma = new PrismaClient();
+import { prisma } from '../../lib/prisma';
 
 export const userSelect: Prisma.UserSelect = {
   id: true,
