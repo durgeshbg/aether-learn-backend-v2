@@ -11,12 +11,12 @@ export const CodeSolutionErrors = {
     STATUS: 500,
     MESSAGE: 'Failed to fetch code solution',
   },
-  CODE_SOLUTION_CREATE_FAILED: {
-    STATUS: 500,
-    MESSAGE: 'Failed to create code solution',
+  CODE_SOLUTION_QUEUED: {
+    STATUS: 202,
+    MESSAGE: 'Code solution has been queued for execution',
   },
-  CODE_SOLUTION_UPDATE_FAILED: {
+  CODE_SOLUTION_SUBMISSION_FAILED: {
     STATUS: 500,
-    MESSAGE: 'Failed to update code solution',
+    MESSAGE: 'Failed to submit code solution',
   },
 };
