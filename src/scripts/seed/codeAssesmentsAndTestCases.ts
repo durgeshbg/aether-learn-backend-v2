@@ -26,8 +26,18 @@ export const seedCodeAssessmentsAndTestCases = async (
         title: 'FizzBuzz Challenge',
         description: 'Print numbers 1 to 100, with Fizz/Buzz/FizzBuzz',
         instructions:
-          'Write a program that prints numbers from 1 to 100. For multiples of 3 print “Fizz”, for multiples of 5 “Buzz”, and for both “FizzBuzz”.',
-        starterCode: 'function fizzBuzz() {\n  // your code\n}',
+          'Write a program that prints n numbers. For multiples of 3 print “Fizz”, for multiples of 5 “Buzz”, and for both “FizzBuzz”.',
+        starterCode: 'function fizzBuzz(n) {\n  // your code\n}',
+        runnerCode:
+          "process.stdin.setEncoding('utf8');\n" +
+          "let input = '';\n" +
+          "process.stdin.on('data', chunk => {\n" +
+          '  input += chunk;\n' +
+          '});\n' +
+          "process.stdin.on('end', () => {\n" +
+          '  const result = JSON.parse(input.trim());\n' +
+          '  fizzBuzz(result);\n' +
+          '});',
         languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
         difficulty: DifficultyLevel.BEGINNER,
         durationMinutes: 30,
@@ -63,6 +73,16 @@ export const seedCodeAssessmentsAndTestCases = async (
         description: 'Calculate the sum of an array of numbers',
         instructions: 'Write a function that takes an array of numbers and returns their sum.',
         starterCode: 'function arraySum(arr) {\n  // your code\n}',
+        runnerCode:
+          `process.stdin.setEncoding('utf8');\n` +
+          `  let input = '';\n` +
+          `  process.stdin.on('data', chunk => {\n` +
+          '  input += chunk;\n' +
+          '});\n' +
+          `process.stdin.on('end', () => {\n` +
+          '  const arr = JSON.parse(input.trim());\n' +
+          '  console.log(arraySum(arr));\n' +
+          '});',
         languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
         difficulty: DifficultyLevel.BEGINNER,
         durationMinutes: 20,
@@ -101,6 +121,16 @@ export const seedCodeAssessmentsAndTestCases = async (
         description: 'Check if a string is a palindrome',
         instructions: 'Write a function that checks if a given string is a palindrome.',
         starterCode: 'function isPalindrome(str) {\n  // your code\n}',
+        runnerCode:
+          `process.stdin.setEncoding('utf8');\n` +
+          `let input = '';\n` +
+          `process.stdin.on('data', chunk => {\n` +
+          '  input += chunk;\n' +
+          '});\n' +
+          `process.stdin.on('end', () => {\n` +
+          '  const str = input.trim();\n' +
+          '  console.log(isPalindrome(str));\n' +
+          '});',
         languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
         difficulty: DifficultyLevel.INTERMEDIATE,
         durationMinutes: 30,
@@ -133,9 +163,19 @@ export const seedCodeAssessmentsAndTestCases = async (
     prisma.codeAssessment.create({
       data: {
         title: 'Fibonacci Sequence',
-        description: 'Generate Fibonacci sequence up to n terms',
-        instructions: 'Write a function that returns the Fibonacci sequence up to n terms.',
+        description: 'Generate Fibonacci sequence array up to n terms',
+        instructions: 'Write a function that returns the Fibonacci sequence array up to n terms.',
         starterCode: 'function fibonacci(n) {\n  // your code\n}',
+        runnerCode:
+          `process.stdin.setEncoding('utf8');\n` +
+          `let input = '';\n` +
+          `process.stdin.on('data', chunk => {\n` +
+          '  input += chunk;\n' +
+          '});\n' +
+          `process.stdin.on('end', () => {\n` +
+          '  const n = parseInt(input.trim(), 10);\n' +
+          '  console.log(fibonacci(n).join(","));\n' +
+          '});',
         languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
         difficulty: DifficultyLevel.INTERMEDIATE,
         durationMinutes: 25,
@@ -174,7 +214,8 @@ export const seedCodeAssessmentsAndTestCases = async (
         description: 'Check if a number is prime',
         instructions: 'Write a function that checks if a given number is prime.',
         starterCode: 'def is_prime(n):\n    # your code',
-        languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
+        runnerCode: `input_number = int(input())\nprint(is_prime(input_number))`,
+        languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
         difficulty: DifficultyLevel.BEGINNER,
         durationMinutes: 20,
         courseId: courses[2]!.id,
@@ -209,7 +250,8 @@ export const seedCodeAssessmentsAndTestCases = async (
         description: 'Calculate the factorial of a number',
         instructions: 'Write a function that returns the factorial of a given number.',
         starterCode: 'def factorial(n):\n    # your code',
-        languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
+        runnerCode: `input_number = int(input())\nfactorial_result = factorial(input_number)\nprint(factorial_result)`,
+        languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
         difficulty: DifficultyLevel.BEGINNER,
         durationMinutes: 20,
         courseId: courses[2]!.id,
