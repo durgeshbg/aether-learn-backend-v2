@@ -6,6 +6,7 @@ export const CodeAssessmentCreateSchema = z.object({
   description: z.string().min(1, 'Description is required'),
   instructions: z.string().min(1, 'Instructions are required'),
   starterCode: z.string().min(1, 'Starter code is required'),
+  runnerCode: z.string().min(1, 'Runner code is required'),
   languageId: z.number().int().positive('Language ID must be a positive integer'),
   difficulty: z.enum(
     [DifficultyLevel.BEGINNER, DifficultyLevel.INTERMEDIATE, DifficultyLevel.ADVANCED],
@@ -22,6 +23,7 @@ export const CodeAssessmentUpdateSchema = z.object({
   description: z.string().min(1, 'Description is required').optional(),
   instructions: z.string().min(1, 'Instructions are required').optional(),
   starterCode: z.string().min(1, 'Starter code is required').optional(),
+  runnerCode: z.string().min(1, 'Runner code is required').optional(),
   languageId: z.number().int().positive('Language ID must be a positive integer').optional(),
   difficulty: z
     .enum([DifficultyLevel.BEGINNER, DifficultyLevel.INTERMEDIATE, DifficultyLevel.ADVANCED], {

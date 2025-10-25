@@ -22,6 +22,7 @@ const codeAssessmentSelectWithTestCases: Prisma.CodeAssessmentSelect = {
   testCases: {
     select: testCaseSelect,
   },
+  runnerCode: true,
   difficulty: true,
   createdAt: true,
   updatedAt: true,
