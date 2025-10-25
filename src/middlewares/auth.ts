@@ -33,6 +33,12 @@ export const AuthErrors = {
 export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   const token = req.headers.authorization?.split(' ')[1];
 
+  // Bypass auth for judge0 callbacks
+  if (req?.params?.judge0AuthToken === process.env.JUDGE0_AUTH_TOKEN) {
+    next();
+    return;
+  }
+
   if (!token) {
     res.status(AuthErrors.UNAUTHORIZED.STATUS).json({
       error: AuthErrors.UNAUTHORIZED.MESSAGE,
