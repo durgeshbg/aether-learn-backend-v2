@@ -5,8 +5,8 @@ import quizResultRouter from '../quiz-result';
 
 const router = Router({ mergeParams: true });
 
-router.use('/quizzes', quizRouter);
 router.use('/quizzes/:quizId', questionRouter);
 router.use('/quizzes/:quizId', quizResultRouter);
+router.use('/quizzes', quizRouter);
 
 export default router;

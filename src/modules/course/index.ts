@@ -6,9 +6,9 @@ import express from 'express';
 
 const router = express.Router();
 
-router.use('/courses', courseRouter);
 router.use('/courses/:courseId', lessonRouter);
 router.use('/courses/:courseId', quizRouter);
 router.use('/courses/:courseId', codeAssesmentRouter);
+router.use('/courses', courseRouter);
 
 export default router;

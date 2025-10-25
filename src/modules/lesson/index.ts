@@ -4,7 +4,7 @@ import moduleRouter from '../module';
 
 const router = Router({ mergeParams: true });
 
-router.use('/lessons', lessonRouter);
 router.use('/lessons/:lessonId', moduleRouter);
+router.use('/lessons', lessonRouter);
 
 export default router;
