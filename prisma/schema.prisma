@@ -24,6 +24,28 @@ enum CodeSolutionStatus {
   GRADED
 }
 
+enum CodeSolutionType {
+  SUBMISSION
+  RUN
+}
+
+enum TestCaseResultStatus {
+  IN_QUEUE
+  PROCESSING
+  ACCEPTED
+  WRONG_ANSWER
+  TIME_LIMIT_EXCEEDED
+  COMPILATION_ERROR
+  RUNTIME_ERROR_SIGSEGV
+  RUNTIME_ERROR_SIGXFSZ
+  RUNTIME_ERROR_SIGFPE
+  RUNTIME_ERROR_SIGABRT
+  RUNTIME_ERROR_NZEC
+  RUNTIME_ERROR_OTHER
+  INTERNAL_ERROR
+  EXEC_FORMAT_ERROR
+}
+
 enum DifficultyLevel {
   BEGINNER
   INTERMEDIATE
@@ -265,6 +287,7 @@ model CodeAssessment {
 
   instructions String
   starterCode  String
+  runnerCode   String
   languageId   Int
 
   difficulty      DifficultyLevel @default(BEGINNER)
@@ -294,6 +317,8 @@ model TestCase {
 
   weight Int @default(1)
 
+  testCaseResults TestCaseResult[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -304,12 +329,40 @@ model CodeSolution {
   status CodeSolutionStatus @default(SUBMITTED)
   score  Int                @default(0)
 
+  type CodeSolutionType @default(RUN)
+
   userId String
   user   User   @relation("UserCodeSolutions", fields: [userId], references: [id], onDelete: Cascade)
 
   assessmentId String
   assessment   CodeAssessment @relation("CodeAssessmentSolutions", fields: [assessmentId], references: [id], onDelete: Cascade)
 
+  testCaseResults TestCaseResult[]
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model TestCaseResult {
+  id     String  @id @default(cuid())
+  passed Boolean
+
+  solutionId String
+  solution   CodeSolution @relation(fields: [solutionId], references: [id], onDelete: Cascade)
+
+  testCaseId String
+  testCase   TestCase @relation(fields: [testCaseId], references: [id], onDelete: Cascade)
+
+  stdout String?
+  time   Float?
+  memory Float?
+  stderr String?
+
+  status      TestCaseResultStatus @default(IN_QUEUE)
+  judge0Token String?
+
+  createdAt DateTime @default(now())
+
+  @@unique([solutionId, testCaseId])
+  @@unique([judge0Token])
 }
