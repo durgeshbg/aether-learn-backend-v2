@@ -59,6 +59,8 @@ export const CodeSolutionService = {
           },
         },
         select: codeSolutionSelect,
+        orderBy: { createdAt: 'desc' },
+        take: 10,
       });
     }
 
