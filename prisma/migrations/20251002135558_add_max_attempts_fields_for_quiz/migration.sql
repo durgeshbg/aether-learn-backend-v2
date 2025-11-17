@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Quiz" ADD COLUMN     "maxAttempts" INTEGER NOT NULL DEFAULT 3;
