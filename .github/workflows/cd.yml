@@ -39,8 +39,8 @@ jobs:
       - name: Execute deployment script via SSH
         run: ssh -i ~/.ssh/id_ed25519 ${{ secrets.USERNAME }}@${{ secrets.HOST_IP }} 'bash -s' <<EOF
           echo '${{ secrets.ENV_FILE }}' > .env
-          docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
-          docker stop aether-learn-backend-v2
-          docker rm aether-learn-backend-v2
-          docker run -d --name aether-learn-backend-v2 -p 3000:3000 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+          sudo docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+          sudo docker stop aether-learn-backend-v2
+          sudo docker rm aether-learn-backend-v2
+          sudo docker run -d --name aether-learn-backend-v2 -p 3000:3000 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
           EOF
