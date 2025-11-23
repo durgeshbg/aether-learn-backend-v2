@@ -41,4 +41,4 @@ jobs:
             docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
             docker stop aether-learn-backend-v2
             docker rm aether-learn-backend-v2
-            docker run --name aether-learn-backend-v2 -d -p 3000:3000 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+            docker run --name aether-learn-backend-v2 -d -p 8080:8080 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
