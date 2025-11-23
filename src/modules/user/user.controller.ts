@@ -180,7 +180,8 @@ export const UserController = {
       );
       res.status(200).json({ token });
       return;
-    } catch {
+    } catch (error) {
+      console.error(error);
       res.status(USER_INVALID_CREDENTIALS.STATUS).json({ error: USER_INVALID_CREDENTIALS.MESSAGE });
       return;
     }
