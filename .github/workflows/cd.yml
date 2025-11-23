@@ -35,7 +35,9 @@ jobs:
           instance_name: '${{ secrets.INSTANCE_NAME }}'
           zone: '${{ secrets.REGION }}-${{ secrets.INSTANCE_ZONE }}'
           ssh_private_key: '${{ secrets.SSH_PRIVATE_KEY }}'
-          # command: 'docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest && docker stop aether-learn-backend-v2 && docker rm aether-learn-backend-v2 && docker run -d --name aether-learn-backend-v2 -p 3000:3000 ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest'
-          command: 'echo "Hello world" \
-                   && echo "Hello world" \
-                   && echo "Hello world" \
+          command: |-
+            cat ${{ secrets.ENV_FILE }} > .env
+            docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+            docker stop aether-learn-backend-v2
+            docker rm aether-learn-backend-v2
+            docker run -d --name aether-learn-backend-v2 -p 3000:3000 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
