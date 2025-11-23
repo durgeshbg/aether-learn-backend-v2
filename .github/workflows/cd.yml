@@ -43,4 +43,4 @@ jobs:
           docker stop aether-learn-backend-v2
           docker rm aether-learn-backend-v2
           docker run -d --name aether-learn-backend-v2 -p 3000:3000 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
-        EOF
+          EOF
