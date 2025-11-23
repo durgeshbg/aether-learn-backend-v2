@@ -29,10 +29,18 @@ jobs:
       # - name: Push image
       #   run: docker push ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
 
-      - name: SSH to VM and pull image and restart service
-        uses: 'google-github-actions/ssh-compute@v2'
-        with:
-          instance_name: '${{ secrets.INSTANCE_NAME }}'
-          zone: '${{ secrets.REGION }}-${{ secrets.INSTANCE_ZONE }}'
-          ssh_private_key: '${{ secrets.SSH_PRIVATE_KEY }}'
-          command: 'echo "Hello world"'
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan ${{ secrets.HOST_IP }} >> ~/.ssh/known_hosts
+
+      - name: Execute deployment script via SSH
+        run: ssh -i ~/.ssh/id_ed25519 ${{ secrets.USERNAME }}@${{ secrets.HOST_IP }} 'bash -s' <<EOF
+          echo '${{ secrets.ENV_FILE }}' > .env
+          docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+          docker stop aether-learn-backend-v2
+          docker rm aether-learn-backend-v2
+          docker run -d --name aether-learn-backend-v2 -p 3000:3000 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+        EOF
