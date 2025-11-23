@@ -8,26 +8,26 @@ jobs:
   build-push-artifact:
     runs-on: ubuntu-latest
     steps:
-      - name: 'Checkout'
-        uses: 'actions/checkout@v3'
+      # - name: 'Checkout'
+      #   uses: 'actions/checkout@v3'
 
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v1'
-        with:
-          credentials_json: '${{ secrets.SERVICE_ACCOUNT_KEY }}'
+      # - id: 'auth'
+      #   uses: 'google-github-actions/auth@v1'
+      #   with:
+      #     credentials_json: '${{ secrets.SERVICE_ACCOUNT_KEY }}'
 
-      - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v1'
+      # - name: 'Set up Cloud SDK'
+      #   uses: 'google-github-actions/setup-gcloud@v1'
 
-      - name: 'Docker auth'
-        run: |-
-          gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev --quiet
+      # - name: 'Docker auth'
+      #   run: |-
+      #     gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev --quiet
 
-      - name: Build image
-        run: docker build . --tag ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+      # - name: Build image
+      #   run: docker build . --tag ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
 
-      - name: Push image
-        run: docker push ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+      # - name: Push image
+      #   run: docker push ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
 
       - name: SSH to VM and pull image and restart service
         uses: 'google-github-actions/ssh-compute@v2'
@@ -36,7 +36,7 @@ jobs:
           zone: '${{ secrets.REGION }}-${{ secrets.INSTANCE_ZONE }}'
           ssh_private_key: '${{ secrets.SSH_PRIVATE_KEY }}'
           command: |-
-            cat ${{ secrets.ENV_FILE }} > .env
+            echo '${{ secrets.ENV_FILE }}' > .env
             docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
             docker stop aether-learn-backend-v2
             docker rm aether-learn-backend-v2
