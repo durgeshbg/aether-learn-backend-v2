@@ -29,18 +29,16 @@ jobs:
       # - name: Push image
       #   run: docker push ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
 
-      - name: Set up SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-          ssh-keyscan ${{ secrets.HOST_IP }} >> ~/.ssh/known_hosts
-
-      - name: Execute deployment script via SSH
-        run: ssh -i ~/.ssh/id_ed25519 ${{ secrets.USERNAME }}@${{ secrets.HOST_IP }} bash <<EOF
-          echo '${{ secrets.ENV_FILE }}' > .env
-          sudo docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
-          sudo docker stop aether-learn-backend-v2
-          sudo docker rm aether-learn-backend-v2
-          sudo docker run -d --name aether-learn-backend-v2 -p 3000:3000 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
-          EOF
+      - name: SSH to VM and pull image and restart service
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            echo '${{ secrets.ENV_FILE }}' > .env
+            sudo docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+            sudo docker stop aether-learn-backend-v2
+            sudo docker rm aether-learn-backend-v2
+            sudo docker run --name aether-learn-backend-v2 -d -p 3000:3000 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
