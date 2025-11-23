@@ -19,15 +19,15 @@ jobs:
       - name: 'Set up Cloud SDK'
         uses: 'google-github-actions/setup-gcloud@v1'
 
-      # - name: 'Docker auth'
-      #   run: |-
-      #     gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev --quiet
+      - name: 'Docker auth'
+        run: |-
+          gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev --quiet
 
-      # - name: Build image
-      #   run: docker build . --tag ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+      - name: Build image
+        run: docker build . --tag ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
 
-      # - name: Push image
-      #   run: docker push ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+      - name: Push image
+        run: docker push ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
 
       - name: SSH to VM and pull image and restart service
         uses: appleboy/ssh-action@v1
@@ -38,7 +38,7 @@ jobs:
           port: 22
           script: |
             echo '${{ secrets.ENV_FILE }}' > .env
-            sudo docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+            docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
             sudo docker stop aether-learn-backend-v2
             sudo docker rm aether-learn-backend-v2
             sudo docker run --name aether-learn-backend-v2 -d -p 3000:3000 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
