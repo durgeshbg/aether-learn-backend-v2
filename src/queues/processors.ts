@@ -15,7 +15,7 @@ export default class CodeExecutionProcessor {
         language_id: job.data.languageId,
         stdin: job.data.stdin,
         expected_output: job.data.expectedOutput,
-        callback_url: `http://host.docker.internal:8080/api/v1/courses/${job.data.courseId}/code-assessments/${job.data.codeAssessmentId}/code-solutions/${job.data.codeSolutionId}/test-cases/${job.data.testCaseId}/judge0-submission/${process.env.JUDGE0_AUTH_TOKEN}`,
+        callback_url: `${process.env.JUDGE0_CB_BASE}/api/v1/courses/${job.data.courseId}/code-assessments/${job.data.codeAssessmentId}/code-solutions/${job.data.codeSolutionId}/test-cases/${job.data.testCaseId}/judge0-submission/${process.env.JUDGE0_AUTH_TOKEN}`,
       },
       {
         params: {
