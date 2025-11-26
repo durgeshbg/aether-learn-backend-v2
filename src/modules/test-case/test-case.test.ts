@@ -31,6 +31,7 @@ const {
   CODE_ASSESSMENT_TEST_INSTRUCTIONS,
   CODE_ASSESSMENT_TEST_STARTER_CODE,
   CODE_ASSESSMENT_TEST_LANGUAGE_ID,
+  CODE_ASSESSMENT_TEST_RUNNER_CODE,
   TEST_CASE_TEST_DESCRIPTION,
   TEST_CASE_TEST_EXPECTED,
   TEST_CASE_TEST_INPUT,
@@ -73,6 +74,7 @@ describe('TestCase', async () => {
       CODE_ASSESSMENT_TEST_DESCRIPTION,
       CODE_ASSESSMENT_TEST_INSTRUCTIONS,
       CODE_ASSESSMENT_TEST_STARTER_CODE,
+      CODE_ASSESSMENT_TEST_RUNNER_CODE,
       CODE_ASSESSMENT_TEST_LANGUAGE_ID,
     );
     testCase = await testDB.seedTestCase(
@@ -210,7 +212,7 @@ describe('TestCase', async () => {
 
     test('Should fetch test case by ID as organization user', async () => {
       // add user2 to the organization
-      const a = await supertest(app)
+      await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });

@@ -34,6 +34,7 @@ export const staticData = {
   CODE_ASSESSMENT_TEST_DESCRIPTION: 'Write a function to return the sum of two numbers.',
   CODE_ASSESSMENT_TEST_INSTRUCTIONS: 'Implement the function in the starter code.',
   CODE_ASSESSMENT_TEST_STARTER_CODE: 'function sum(a, b) {\n  return a + b;\n}',
+  CODE_ASSESSMENT_TEST_RUNNER_CODE: 'console.log(sum(1, 2));',
   CODE_ASSESSMENT_TEST_LANGUAGE_ID: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)?.value,
 
   TEST_CASE_TEST_DESCRIPTION: 'Test case for sum function',
@@ -268,6 +269,7 @@ export async function setupTests() {
     description: string,
     instructions: string,
     starterCode: string,
+    runnerCode: string,
     languageId?: number,
   ) => {
     if (!languageId) {
@@ -286,6 +288,7 @@ export async function setupTests() {
         title,
         description,
         instructions,
+        runnerCode,
         starterCode,
         languageId,
         courseId,

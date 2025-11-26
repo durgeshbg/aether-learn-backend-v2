@@ -31,6 +31,7 @@ const {
   CODE_ASSESSMENT_TEST_INSTRUCTIONS,
   CODE_ASSESSMENT_TEST_STARTER_CODE,
   CODE_ASSESSMENT_TEST_LANGUAGE_ID,
+  CODE_ASSESSMENT_TEST_RUNNER_CODE,
 } = staticData;
 
 describe('CodeAssessment', async () => {
@@ -71,6 +72,7 @@ describe('CodeAssessment', async () => {
       CODE_ASSESSMENT_TEST_DESCRIPTION,
       CODE_ASSESSMENT_TEST_INSTRUCTIONS,
       CODE_ASSESSMENT_TEST_STARTER_CODE,
+      CODE_ASSESSMENT_TEST_RUNNER_CODE,
       CODE_ASSESSMENT_TEST_LANGUAGE_ID,
     );
 
@@ -149,6 +151,7 @@ describe('CodeAssessment', async () => {
           starterCode: 'print("Hello")',
           languageId: 1,
           difficulty: DifficultyLevel.BEGINNER,
+          runnerCode: 'console.log("Hello")',
         });
       expect(response.status).toBe(201);
       expect(response.body.codeAssessment).toHaveProperty('id');
@@ -327,6 +330,7 @@ describe('CodeAssessment', async () => {
           starterCode: 'print("Hello")',
           languageId: 1,
           difficulty: DifficultyLevel.BEGINNER,
+          runnerCode: 'console.log("Hello")',
         });
       const delId = create.body.codeAssessment.id;
       const response = await supertest(app)
