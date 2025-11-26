@@ -328,6 +328,29 @@ export async function setupTests() {
     });
   };
 
+  const seedTestCaseResult = async (
+    prisma: PrismaClient,
+    codeSolutionId: string,
+    testCaseId: string,
+    passed: boolean = true,
+    stdout: string | null = null,
+    stderr: string | null = null,
+    time: number = 0,
+    memory: number | null = null,
+  ) => {
+    return await prisma.testCaseResult.create({
+      data: {
+        solutionId: codeSolutionId,
+        testCaseId,
+        passed,
+        stdout,
+        stderr,
+        time,
+        memory,
+      },
+    });
+  };
+
   return {
     cleanDB,
     seedUser,
@@ -342,5 +365,6 @@ export async function setupTests() {
     seedCodeAssessment,
     seedTestCase,
     seedCodeSolution,
+    seedTestCaseResult,
   };
 }

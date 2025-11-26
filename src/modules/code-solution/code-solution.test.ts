@@ -10,15 +10,18 @@ import {
   type Course,
   type CodeAssessment,
   type CodeSolution,
+  type TestCase,
 } from '../../generated/prisma';
 import { ValidationErrors } from '../../middlewares/validate';
 import { AuthErrors } from '../../middlewares/auth';
 import { Role } from '../../generated/prisma';
+import { CodeSolutionErrors } from './code-solution.errors';
 
 let url = '/api/v1/courses';
 
-const { FORBIDDEN, UNAUTHORIZED } = AuthErrors;
+const { UNAUTHORIZED } = AuthErrors;
 const { INVALID_DATA, INVALID_PARAMS } = ValidationErrors;
+const { CODE_SOLUTION_NOT_FOUND, CODE_SOLUTION_QUEUED } = CodeSolutionErrors;
 
 const {
   USER_TEST_EMAILS,
@@ -31,6 +34,10 @@ const {
   CODE_ASSESSMENT_TEST_STARTER_CODE,
   CODE_ASSESSMENT_TEST_LANGUAGE_ID,
   CODE_SOLUTION_TEST_CODE,
+  CODE_ASSESSMENT_TEST_RUNNER_CODE,
+  TEST_CASE_TEST_DESCRIPTION,
+  TEST_CASE_TEST_INPUT,
+  TEST_CASE_TEST_EXPECTED,
 } = staticData;
 
 describe('CodeSolution', async () => {
@@ -51,6 +58,7 @@ describe('CodeSolution', async () => {
   let course: Course;
   let codeAssessment: CodeAssessment;
   let codeSolution: CodeSolution;
+  let testCase: TestCase;
 
   beforeAll(async () => {
     const testDB = await setupTests();
@@ -73,8 +81,34 @@ describe('CodeSolution', async () => {
       CODE_ASSESSMENT_TEST_DESCRIPTION,
       CODE_ASSESSMENT_TEST_INSTRUCTIONS,
       CODE_ASSESSMENT_TEST_STARTER_CODE,
+      CODE_ASSESSMENT_TEST_RUNNER_CODE,
       CODE_ASSESSMENT_TEST_LANGUAGE_ID,
     );
+    testCase = await testDB.seedTestCase(
+      prisma,
+      TEST_CASE_TEST_DESCRIPTION,
+      TEST_CASE_TEST_INPUT,
+      TEST_CASE_TEST_EXPECTED,
+      codeAssessment.id,
+    );
+
+    // Add user2 to the organization so they can create solutions
+    await prisma.organization.update({
+      where: { id: organization.id },
+      data: {
+        users: { connect: { id: user2.id } },
+        usersCount: { increment: 1 },
+      },
+    });
+
+    // Create enrolled course progress for user2
+    await prisma.enrolledCourseProgress.create({
+      data: {
+        userId: user2.id,
+        courseId: course.id,
+      },
+    });
+
     codeSolution = await testDB.seedCodeSolution(
       prisma,
       CODE_SOLUTION_TEST_CODE,
@@ -101,41 +135,34 @@ describe('CodeSolution', async () => {
   });
 
   describe('GET: /', () => {
-    test('Should fetch all code solutions as admin', async () => {
+    test('Should fetch all code solutions for code assessment as admin', async () => {
       const response = await supertest(app).get(url).set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('codeSolutions');
       expect(response.body.codeSolutions).toBeInstanceOf(Array);
-      expect(response.body.codeSolutions.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.codeSolutions.length).toBeGreaterThan(0);
     });
 
-    test('Should fetch all code solutions for assessment as org admin', async () => {
+    test('Should fetch all code solutions for code assessment as organization admin', async () => {
       const response = await supertest(app).get(url).set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('codeSolutions');
       expect(response.body.codeSolutions).toBeInstanceOf(Array);
-      expect(response.body.codeSolutions.length).toBeGreaterThanOrEqual(1);
+      expect(response.body.codeSolutions.length).toBeGreaterThan(0);
     });
 
-    test('Should fetch all code solutions for assessment as user who has access to assessment', async () => {
-      // add user2 to the organization
-      await supertest(app)
-        .put(`/api/v1/organizations/${organization.id}/users`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ userIds: [user2.id] });
+    test('Should fetch all code solutions for code assessment as organization user', async () => {
       const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('codeSolutions');
       expect(response.body.codeSolutions).toBeInstanceOf(Array);
-      expect(response.body.codeSolutions.length).toBe(1);
-
-      // remove user2 from the organization
-      await supertest(app)
-        .delete(`/api/v1/organizations/${organization.id}/users`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ userIds: [user2.id] });
+      expect(response.body.codeSolutions.length).toBeGreaterThan(0);
     });
 
-    test('Should not fetch code solutions for users not having access to assessment', async () => {
-      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user2Token}`);
+    test('Should not fetch code solutions for regular user not part of organization', async () => {
+      const response = await supertest(app).get(url).set('Authorization', `Bearer ${user3Token}`);
       expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('codeSolutions');
       expect(response.body.codeSolutions).toBeInstanceOf(Array);
       expect(response.body.codeSolutions.length).toBe(0);
     });
@@ -147,63 +174,87 @@ describe('CodeSolution', async () => {
     });
   });
 
-  describe('POST: /', () => {
-    test('Should create a new code solution as user', async () => {
-      // add user3 to the organization
-      await supertest(app)
-        .put(`/api/v1/organizations/${organization.id}/users`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ userIds: [user3.id] });
-
-      // enroll user3 in the course
-      await supertest(app)
-        .put('/api/v1/users/enroll-course')
-        .set('Authorization', `Bearer ${user3Token}`)
-        .send({ courseId: course.id });
-
+  describe('POST: /run', () => {
+    test('Should run code solution as organization user', async () => {
       const response = await supertest(app)
-        .post(url)
-        .set('Authorization', `Bearer ${user3Token}`)
-        .send({ code: 'print("Hello")' });
-      expect(response.status).toBe(201);
-      expect(response.body.codeSolution).toHaveProperty('id');
-
-      // Check progress of code assessment is completed.
-      const response2 = await supertest(app)
-        .get(`/api/v1/users/${user3.id}/progress`)
-        .set('Authorization', `Bearer ${user3Token}`);
-      expect(response2.status).toBe(200);
-      expect(
-        response2.body.progress[0].completedAssessments.find(
-          (a: CodeAssessment) => a.id === codeAssessment.id,
-        ),
-      ).toBeDefined();
-
-      // Verify if course is completed for user2
-      const response3 = await supertest(app)
-        .get(`/api/v1/users/${user3.id}/progress`)
-        .set('Authorization', `Bearer ${userToken}`);
-      expect(response3.status).toBe(200);
-      expect(response3.body.progress[0].completionRate).toBe(100);
-
-      // remove user2 from the organization
-      await supertest(app)
-        .delete(`/api/v1/organizations/${organization.id}/users`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ userIds: [user2.id] });
+        .post(`${url}/run`)
+        .set('Authorization', `Bearer ${user2Token}`)
+        .send({ code: CODE_SOLUTION_TEST_CODE });
+      expect(response.status).toBe(CODE_SOLUTION_QUEUED.STATUS);
+      expect(response.body.message).toBe(CODE_SOLUTION_QUEUED.MESSAGE);
+      expect(response.body).toHaveProperty('codeSolutionId');
     });
 
-    test('Should not create code solution with invalid data', async () => {
+    test('Should run code solution as admin', async () => {
+      // Create enrolled course progress for admin
+      await prisma.enrolledCourseProgress.create({
+        data: {
+          userId: admin.id,
+          courseId: course.id,
+        },
+      });
+
       const response = await supertest(app)
-        .post(url)
-        .set('Authorization', `Bearer ${userToken}`)
+        .post(`${url}/run`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ code: CODE_SOLUTION_TEST_CODE });
+      expect(response.status).toBe(CODE_SOLUTION_QUEUED.STATUS);
+      expect(response.body.message).toBe(CODE_SOLUTION_QUEUED.MESSAGE);
+      expect(response.body).toHaveProperty('codeSolutionId');
+    });
+
+    test('Should not run code solution with invalid data', async () => {
+      const response = await supertest(app)
+        .post(`${url}/run`)
+        .set('Authorization', `Bearer ${user2Token}`)
         .send({ code: '' });
       expect(response.status).toBe(INVALID_DATA.STATUS);
       expect(response.body.error).toBe(INVALID_DATA.MESSAGE);
     });
 
-    test('Should not create code solution without auth', async () => {
-      const response = await supertest(app).post(url).send({ code: 'print("Hello")' });
+    test('Should not run code solution without auth', async () => {
+      const response = await supertest(app)
+        .post(`${url}/run`)
+        .send({ code: CODE_SOLUTION_TEST_CODE });
+      expect(response.status).toBe(UNAUTHORIZED.STATUS);
+      expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
+    });
+  });
+
+  describe('POST: /submit', () => {
+    test('Should submit code solution as organization user', async () => {
+      const response = await supertest(app)
+        .post(`${url}/submit`)
+        .set('Authorization', `Bearer ${user2Token}`)
+        .send({ code: CODE_SOLUTION_TEST_CODE });
+      expect(response.status).toBe(CODE_SOLUTION_QUEUED.STATUS);
+      expect(response.body.message).toBe(CODE_SOLUTION_QUEUED.MESSAGE);
+      expect(response.body).toHaveProperty('codeSolutionId');
+    });
+
+    test('Should submit code solution as admin', async () => {
+      const response = await supertest(app)
+        .post(`${url}/submit`)
+        .set('Authorization', `Bearer ${adminToken}`)
+        .send({ code: CODE_SOLUTION_TEST_CODE });
+      expect(response.status).toBe(CODE_SOLUTION_QUEUED.STATUS);
+      expect(response.body.message).toBe(CODE_SOLUTION_QUEUED.MESSAGE);
+      expect(response.body).toHaveProperty('codeSolutionId');
+    });
+
+    test('Should not submit code solution with invalid data', async () => {
+      const response = await supertest(app)
+        .post(`${url}/submit`)
+        .set('Authorization', `Bearer ${user2Token}`)
+        .send({ code: '' });
+      expect(response.status).toBe(INVALID_DATA.STATUS);
+      expect(response.body.error).toBe(INVALID_DATA.MESSAGE);
+    });
+
+    test('Should not submit code solution without auth', async () => {
+      const response = await supertest(app)
+        .post(`${url}/submit`)
+        .send({ code: CODE_SOLUTION_TEST_CODE });
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });
@@ -217,23 +268,36 @@ describe('CodeSolution', async () => {
       expect(response.status).toBe(200);
       expect(response.body.codeSolution).toHaveProperty('id');
       expect(response.body.codeSolution.id).toBe(codeSolution.id);
+      expect(response.body.codeSolution).toHaveProperty('code');
+      expect(response.body.codeSolution).toHaveProperty('testCaseResults');
     });
 
-    test('Should fetch code solution by ID as org admin', async () => {
+    test('Should fetch code solution by ID as organization admin', async () => {
       const response = await supertest(app)
         .get(`${url}/${codeSolution.id}`)
         .set('Authorization', `Bearer ${userToken}`);
       expect(response.status).toBe(200);
       expect(response.body.codeSolution).toHaveProperty('id');
       expect(response.body.codeSolution.id).toBe(codeSolution.id);
+      expect(response.body.codeSolution).toHaveProperty('code');
     });
 
-    test('Should fetch code solution by ID as user who has access to assessment', async () => {
+    test('Should fetch code solution by ID as owner', async () => {
       const response = await supertest(app)
         .get(`${url}/${codeSolution.id}`)
         .set('Authorization', `Bearer ${user2Token}`);
       expect(response.status).toBe(200);
+      expect(response.body.codeSolution).toHaveProperty('id');
       expect(response.body.codeSolution.id).toBe(codeSolution.id);
+      expect(response.body.codeSolution).toHaveProperty('code');
+    });
+
+    test('Should not fetch code solution by ID as regular user not part of organization', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${codeSolution.id}`)
+        .set('Authorization', `Bearer ${user3Token}`);
+      expect(response.status).toBe(CODE_SOLUTION_NOT_FOUND.STATUS);
+      expect(response.body.error).toBe(CODE_SOLUTION_NOT_FOUND.MESSAGE);
     });
 
     test('Should not fetch code solution with invalid ID', async () => {
@@ -251,93 +315,74 @@ describe('CodeSolution', async () => {
     });
   });
 
-  describe('PUT: /:id/score', () => {
-    test('Should update code solution score as admin', async () => {
+  describe('GET: /:id/status', () => {
+    test('Should fetch code solution status as admin', async () => {
       const response = await supertest(app)
-        .put(`${url}/${codeSolution.id}/score`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ score: 90 });
+        .get(`${url}/${codeSolution.id}/status`)
+        .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(200);
-      expect(response.body.codeSolution.score).toBe(90);
+      expect(response.body).toHaveProperty('status');
+      expect(response.body.status).toBe(CodeSolutionStatus.SUBMITTED);
     });
 
-    test('Should not update score as user', async () => {
+    test('Should fetch code solution status as organization admin', async () => {
       const response = await supertest(app)
-        .put(`${url}/${codeSolution.id}/score`)
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({ score: 80 });
-      expect(response.status).toBe(FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
+        .get(`${url}/${codeSolution.id}/status`)
+        .set('Authorization', `Bearer ${userToken}`);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('status');
+      expect(response.body.status).toBe(CodeSolutionStatus.SUBMITTED);
     });
 
-    test('Should not update score with invalid data', async () => {
+    test('Should fetch code solution status as owner', async () => {
       const response = await supertest(app)
-        .put(`${url}/${codeSolution.id}/score`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ score: 200 });
-      expect(response.status).toBe(INVALID_DATA.STATUS);
-      expect(response.body.error).toBe(INVALID_DATA.MESSAGE);
+        .get(`${url}/${codeSolution.id}/status`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('status');
+      expect(response.body.status).toBe(CodeSolutionStatus.SUBMITTED);
     });
 
-    test('Should not update score with invalid ID', async () => {
+    test('Should update status to GRADED when all test case results are complete', async () => {
+      const testDB = await setupTests();
+
+      // Create a new code solution for this test
+      const newCodeSolution = await testDB.seedCodeSolution(
+        prisma,
+        CODE_SOLUTION_TEST_CODE,
+        codeAssessment.id,
+        user2.id,
+      );
+
+      // Create test case result for the test case
+      await testDB.seedTestCaseResult(prisma, newCodeSolution.id, testCase.id, true, '3', null);
+
       const response = await supertest(app)
-        .put(`${url}/invalid-id/score`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ score: 50 });
+        .get(`${url}/${newCodeSolution.id}/status`)
+        .set('Authorization', `Bearer ${user2Token}`);
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('status');
+      expect(response.body.status).toBe(CodeSolutionStatus.GRADED);
+    });
+
+    test('Should not fetch code solution status as regular user not part of organization', async () => {
+      const response = await supertest(app)
+        .get(`${url}/${codeSolution.id}/status`)
+        .set('Authorization', `Bearer ${user3Token}`);
+      expect(response.status).toBe(CODE_SOLUTION_NOT_FOUND.STATUS);
+      expect(response.body.error).toBe(CODE_SOLUTION_NOT_FOUND.MESSAGE);
+    });
+
+    test('Should not fetch code solution status with invalid ID', async () => {
+      const response = await supertest(app)
+        .get(`${url}/invalid-id/status`)
+        .set('Authorization', `Bearer ${adminToken}`);
       expect(response.status).toBe(INVALID_PARAMS.STATUS);
       expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
     });
 
-    test('Should not update score without auth', async () => {
-      const response = await supertest(app)
-        .put(`${url}/${codeSolution.id}/score`)
-        .send({ score: 50 });
-      expect(response.status).toBe(UNAUTHORIZED.STATUS);
-      expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
-    });
-  });
-
-  describe('PUT: /:id/status', () => {
-    test('Should update code solution status as admin', async () => {
-      const response = await supertest(app)
-        .put(`${url}/${codeSolution.id}/status`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ status: CodeSolutionStatus.SUBMITTED });
-      expect(response.status).toBe(200);
-      expect(response.body.codeSolution.status).toBe(CodeSolutionStatus.SUBMITTED);
-    });
-
-    test('Should not update status as user', async () => {
-      const response = await supertest(app)
-        .put(`${url}/${codeSolution.id}/status`)
-        .set('Authorization', `Bearer ${userToken}`)
-        .send({ status: CodeSolutionStatus.SUBMITTED });
-      expect(response.status).toBe(FORBIDDEN.STATUS);
-      expect(response.body.error).toBe(FORBIDDEN.MESSAGE);
-    });
-
-    test('Should not update status with invalid data', async () => {
-      const response = await supertest(app)
-        .put(`${url}/${codeSolution.id}/status`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ status: 'INVALID_STATUS' });
-      expect(response.status).toBe(INVALID_DATA.STATUS);
-      expect(response.body.error).toBe(INVALID_DATA.MESSAGE);
-    });
-
-    test('Should not update status with invalid ID', async () => {
-      const response = await supertest(app)
-        .put(`${url}/invalid-id/status`)
-        .set('Authorization', `Bearer ${adminToken}`)
-        .send({ status: CodeSolutionStatus.SUBMITTED });
-      expect(response.status).toBe(INVALID_PARAMS.STATUS);
-      expect(response.body.error).toBe(INVALID_PARAMS.MESSAGE);
-    });
-
-    test('Should not update status without auth', async () => {
-      const response = await supertest(app)
-        .put(`${url}/${codeSolution.id}/status`)
-        .send({ status: CodeSolutionStatus.SUBMITTED });
+    test('Should not fetch code solution status without auth', async () => {
+      const response = await supertest(app).get(`${url}/${codeSolution.id}/status`);
       expect(response.status).toBe(UNAUTHORIZED.STATUS);
       expect(response.body.error).toBe(UNAUTHORIZED.MESSAGE);
     });

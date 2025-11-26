@@ -117,7 +117,7 @@ describe('TestCase', async () => {
 
     test('Should fetch all test cases for code assessment as organization user', async () => {
       // add user2 to the organization
-      const a = await supertest(app)
+      await supertest(app)
         .put(`/api/v1/organizations/${organization.id}/users`)
         .set('Authorization', `Bearer ${adminToken}`)
         .send({ userIds: [user2.id] });
