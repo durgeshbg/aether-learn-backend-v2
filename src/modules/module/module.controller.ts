@@ -71,7 +71,7 @@ export const ModuleController = {
   },
 
   update: async (req: Request, res: Response) => {
-    const { id, courseId, lessonId } = req.params as ModuleIdParamsType;
+    const { id, lessonId } = req.params as ModuleIdParamsType;
     const moduleData: ModuleUpdateType = req.body;
     try {
       const updatedModule = await ModuleService.update(id, lessonId, moduleData);
@@ -85,7 +85,7 @@ export const ModuleController = {
   },
 
   delete: async (req: Request, res: Response) => {
-    const { id, courseId, lessonId } = req.params as ModuleIdParamsType;
+    const { id, lessonId } = req.params as ModuleIdParamsType;
     try {
       const deletedModule = await ModuleService.delete(id, lessonId);
       if (!deletedModule) {
