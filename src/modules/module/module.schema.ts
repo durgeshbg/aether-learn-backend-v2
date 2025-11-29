@@ -6,7 +6,6 @@ export const ModuleCreateSchema = z.object({
   content: z.string().min(1, 'Content is required'),
   code: z.string().optional(),
   languageId: z.number().int().positive('Language ID must be a positive integer'),
-  objectives: z.array(z.string()).optional(),
   durationMinutes: z.number().int().positive('Duration must be a positive integer').optional(),
   difficulty: z.enum(
     [DifficultyLevel.BEGINNER, DifficultyLevel.INTERMEDIATE, DifficultyLevel.ADVANCED],
@@ -22,7 +21,6 @@ export const ModuleUpdateSchema = z.object({
   content: z.string().min(1, 'Content is required').optional(),
   code: z.string().optional(),
   languageId: z.number().int().positive('Language ID must be a positive integer').optional(),
-  objectives: z.array(z.string()).optional(),
   durationMinutes: z.number().int().positive('Duration must be a positive integer').optional(),
   difficulty: z
     .enum([DifficultyLevel.BEGINNER, DifficultyLevel.INTERMEDIATE, DifficultyLevel.ADVANCED], {

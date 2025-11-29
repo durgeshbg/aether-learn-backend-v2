@@ -43,11 +43,6 @@ export const seedLessonsModules = async (
               content: 'Difference in scope and hoisting.',
               code: 'let x = 10;',
               difficulty: DifficultyLevel.BEGINNER,
-              objectives: [
-                'Understand block scope with let',
-                'Learn function scope with var',
-                'Identify hoisting behavior of var',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 10,
             },
@@ -56,11 +51,6 @@ export const seedLessonsModules = async (
               content: 'Const for constant values.',
               code: 'const PI = 3.14;',
               difficulty: DifficultyLevel.BEGINNER,
-              objectives: [
-                'Understand immutability with const',
-                'Learn when to use const vs let',
-                'Write variable declarations using const',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 70,
             },
@@ -69,11 +59,6 @@ export const seedLessonsModules = async (
               content: 'How hoisting works in JavaScript.',
               code: 'console.log(a); var a = 5; // undefined',
               difficulty: DifficultyLevel.INTERMEDIATE,
-              objectives: [
-                'Explain the concept of hoisting',
-                'Demonstrate hoisting with var declarations',
-                'Understand temporal dead zone with let and const',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 55,
             },
@@ -104,11 +89,6 @@ export const seedLessonsModules = async (
                         }, 1000);
                       }`,
               difficulty: DifficultyLevel.BEGINNER,
-              objectives: [
-                'Understand the callback pattern',
-                'Handle asynchronous operations with callbacks',
-                'Identify callback hell and its issues',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 15,
             },
@@ -121,11 +101,6 @@ export const seedLessonsModules = async (
                       }, 1000);
                      });`,
               difficulty: DifficultyLevel.INTERMEDIATE,
-              objectives: [
-                'Understand the Promise object',
-                'Learn to create and consume Promises',
-                'Handle errors with .catch()',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 45,
             },
@@ -137,11 +112,6 @@ export const seedLessonsModules = async (
                         console.log(data);
                       }`,
               difficulty: DifficultyLevel.INTERMEDIATE,
-              objectives: [
-                'Understand async functions',
-                'Use await to handle Promises',
-                'Write cleaner asynchronous code',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 60,
             },
@@ -173,11 +143,6 @@ export const seedLessonsModules = async (
                       const app = express();
                       app.listen(3000, () => console.log('Server running on port 3000'));`,
               difficulty: DifficultyLevel.BEGINNER,
-              objectives: [
-                'Install Express.js',
-                'Set up a basic Express server',
-                'Understand the request-response cycle',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 20,
             },
@@ -188,11 +153,6 @@ export const seedLessonsModules = async (
                         res.send('Hello World');
                       });`,
               difficulty: DifficultyLevel.BEGINNER,
-              objectives: [
-                'Define routes using app.get, app.post, etc.',
-                'Handle query parameters and route parameters',
-                'Send responses to the client',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 30,
             },
@@ -204,11 +164,6 @@ export const seedLessonsModules = async (
                         next();
                       });`,
               difficulty: DifficultyLevel.INTERMEDIATE,
-              objectives: [
-                'Understand the concept of middleware',
-                'Create custom middleware functions',
-                'Use third-party middleware in Express',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 40,
             },
@@ -235,11 +190,6 @@ export const seedLessonsModules = async (
               content: 'Installing and configuring MongoDB.',
               code: `// No direct code, but instructions to install MongoDB and start the server`,
               difficulty: DifficultyLevel.BEGINNER,
-              objectives: [
-                'Install MongoDB on your machine',
-                'Start and stop the MongoDB server',
-                'Understand basic MongoDB concepts',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 25,
             },
@@ -249,11 +199,6 @@ export const seedLessonsModules = async (
               code: `const mongoose = require('mongoose');
                       mongoose.connect('mongodb://localhost/mydatabase', { useNewUrlParser: true, useUnifiedTopology: true });`,
               difficulty: DifficultyLevel.INTERMEDIATE,
-              objectives: [
-                'Install and set up Mongoose',
-                'Connect to a MongoDB database',
-                'Handle connection events and errors',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 35,
             },
@@ -264,11 +209,6 @@ export const seedLessonsModules = async (
                       const newUser = new User({ name: 'Alice', age: 25 });
                       newUser.save().then(() => console.log('User saved'));`,
               difficulty: DifficultyLevel.INTERMEDIATE,
-              objectives: [
-                'Define Mongoose schemas and models',
-                'Perform create, read, update, and delete operations',
-                'Use Mongoose queries to interact with the database',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.JAVASCRIPT_NODE_12)!.value,
               durationMinutes: 50,
             },
@@ -300,11 +240,6 @@ export const seedLessonsModules = async (
                       my_list.append(4)
                       print(my_list)  # Output: [1, 2, 3, 4]`,
               difficulty: DifficultyLevel.BEGINNER,
-              objectives: [
-                'Create lists in Python',
-                'Perform common list operations (append, remove, etc.)',
-                'Understand list indexing and slicing',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 15,
             },
@@ -314,11 +249,6 @@ export const seedLessonsModules = async (
               code: `my_tuple = (1, 2, 3)
                       print(my_tuple[0])  # Output: 1`,
               difficulty: DifficultyLevel.BEGINNER,
-              objectives: [
-                'Create tuples in Python',
-                'Understand immutability of tuples',
-                'Access tuple elements using indexing',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 20,
             },
@@ -328,11 +258,6 @@ export const seedLessonsModules = async (
               code: `my_dict = {'name': 'Alice', 'age': 25}
                       print(my_dict['name'])  # Output: Alice`,
               difficulty: DifficultyLevel.INTERMEDIATE,
-              objectives: [
-                'Create dictionaries in Python',
-                'Access and modify dictionary values',
-                'Understand dictionary methods and operations',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 30,
             },
@@ -361,11 +286,6 @@ export const seedLessonsModules = async (
                       df = pd.DataFrame({'A': [1, 2], 'B': [3, 4]})
                       print(df)`,
               difficulty: DifficultyLevel.BEGINNER,
-              objectives: [
-                'Install the Pandas library',
-                'Create basic DataFrames',
-                'Understand the structure of DataFrames',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 25,
             },
@@ -376,11 +296,6 @@ export const seedLessonsModules = async (
                       filtered_df = df[df['A'] > 1]
                       print(filtered_df)`,
               difficulty: DifficultyLevel.INTERMEDIATE,
-              objectives: [
-                'Filter DataFrames based on conditions',
-                'Sort DataFrame values',
-                'Group data and perform aggregations',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 40,
             },
@@ -390,11 +305,6 @@ export const seedLessonsModules = async (
               code: `print(df.describe())
                       df.plot(kind='bar')`,
               difficulty: DifficultyLevel.INTERMEDIATE,
-              objectives: [
-                'Generate descriptive statistics of datasets',
-                'Visualize data using basic plots',
-                'Interpret analysis results',
-              ],
               languageId: LANGUAGES_MAP.get(LANG_KEYS.PYTHON_3_8)!.value,
               durationMinutes: 50,
             },

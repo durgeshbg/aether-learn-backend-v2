@@ -128,7 +128,6 @@ CREATE TABLE "Module" (
     "code" TEXT,
     "languageId" INTEGER NOT NULL,
     "difficulty" "DifficultyLevel" NOT NULL DEFAULT 'BEGINNER',
-    "objectives" TEXT[],
     "durationMinutes" INTEGER NOT NULL DEFAULT 0,
     "lessonId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

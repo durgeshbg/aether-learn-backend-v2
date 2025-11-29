@@ -16,7 +16,6 @@ const moduleSelectWithContent: Prisma.ModuleSelect = {
   languageId: true,
   difficulty: true,
   content: true,
-  objectives: true,
   code: true,
   durationMinutes: true,
   createdAt: true,

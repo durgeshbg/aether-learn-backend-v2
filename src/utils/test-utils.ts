@@ -207,7 +207,6 @@ export async function setupTests() {
         content: 'This is a sample module content.',
         lessonId,
         code: 'console.log("Hello, World!");',
-        objectives: ['Understand basics', 'Write simple code'],
         durationMinutes: 30,
         difficulty: DifficultyLevel.BEGINNER,
       },
