@@ -41,4 +41,14 @@ jobs:
             docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
             docker stop aether-learn-backend-v2
             docker rm aether-learn-backend-v2
-            docker run --name aether-learn-backend-v2 --add-host=host.docker.internal:host-gateway -d -p 8080:8080 --env-file .env ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+            docker run --name aether-learn-backend-v2 -d -p 8080:8080 \
+            -e DATABASE_URL="${{ secrets.ENV_DATABASE_URL }}" \
+            -e JWT_SECRET="${{ secrets.ENV_JWT_SECRET }}" \
+            -e JUDGE0_URL="${{ secrets.ENV_JUDGE0_URL }}" \
+            -e JUDGE0_AUTH_TOKEN="${{ secrets.ENV_JUDGE0_AUTH_TOKEN }}" \
+            -e PORT="${{ secrets.ENV_PORT }}" \
+            -e CORS_ORIGIN="${{ secrets.ENV_CORS_ORIGIN }}" \
+            -e REDIS_HOST="${{ secrets.ENV_REDIS_HOST }}" \
+            -e REDIS_PORT="${{ secrets.ENV_REDIS_PORT }}" \
+            -e JUDGE0_CB_BASE="${{ secrets.ENV_JUDGE0_CB_BASE }}" \
+            ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
