@@ -40,44 +40,25 @@ jobs:
           push: true
           tags: ${{ env.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
-      # - id: 'auth'
-      #   uses: 'google-github-actions/auth@v1'
-      #   with:
-      #     credentials_json: '${{ secrets.SERVICE_ACCOUNT_KEY }}'
-
-      # - name: 'Set up Cloud SDK'
-      #   uses: 'google-github-actions/setup-gcloud@v1'
-
-      # - name: 'Docker auth'
-      #   run: |-
-      #     gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev --quiet
-
-      # - name: Build image
-      #   run: docker build . --tag ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
-
-      # - name: Push image
-      #   run: docker push ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
-
-      # - name: SSH to VM and pull image and restart service
-      #   uses: appleboy/ssh-action@v1
-      #   with:
-      #     host: ${{ secrets.HOST_IP }}
-      #     username: ${{ secrets.USERNAME }}
-      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
-      #     port: 22
-      #     script: |
-      #       echo '${{ secrets.ENV_FILE }}' > .env
-      #       docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
-      #       docker stop aether-learn-backend-v2
-      #       docker rm aether-learn-backend-v2
-      #       docker run --name aether-learn-backend-v2 -d -p 8080:8080 \
-      #       -e DATABASE_URL="${{ secrets.ENV_DATABASE_URL }}" \
-      #       -e JWT_SECRET="${{ secrets.ENV_JWT_SECRET }}" \
-      #       -e JUDGE0_URL="${{ secrets.ENV_JUDGE0_URL }}" \
-      #       -e JUDGE0_AUTH_TOKEN="${{ secrets.ENV_JUDGE0_AUTH_TOKEN }}" \
-      #       -e PORT="${{ secrets.ENV_PORT }}" \
-      #       -e CORS_ORIGIN="${{ secrets.ENV_CORS_ORIGIN }}" \
-      #       -e REDIS_HOST="${{ secrets.ENV_REDIS_HOST }}" \
-      #       -e REDIS_PORT="${{ secrets.ENV_REDIS_PORT }}" \
-      #       -e JUDGE0_CB_BASE="${{ secrets.ENV_JUDGE0_CB_BASE }}" \
-      #       ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+      - name: SSH to VM and pull image and restart service
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script: |
+            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+            docker stop aether-learn-backend-v2
+            docker rm aether-learn-backend-v2
+            docker run --name aether-learn-backend-v2 -d -p ${{ secrets.ENV_PORT }}:443 \
+            -e DATABASE_URL="${{ secrets.ENV_DATABASE_URL }}" \
+            -e JWT_SECRET="${{ secrets.ENV_JWT_SECRET }}" \
+            -e JUDGE0_URL="${{ secrets.ENV_JUDGE0_URL }}" \
+            -e JUDGE0_AUTH_TOKEN="${{ secrets.ENV_JUDGE0_AUTH_TOKEN }}" \
+            -e PORT="${{ secrets.ENV_PORT }}" \
+            -e CORS_ORIGIN="${{ secrets.ENV_CORS_ORIGIN }}" \
+            -e REDIS_HOST="${{ secrets.ENV_REDIS_HOST }}" \
+            -e REDIS_PORT="${{ secrets.ENV_REDIS_PORT }}" \
+            -e JUDGE0_CB_BASE="${{ secrets.ENV_JUDGE0_CB_BASE }}" \
+            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
