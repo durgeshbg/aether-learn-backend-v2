@@ -25,7 +25,6 @@ jobs:
         with:
           aws-region: ${{ secrets.AWS_REGION }}
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-ecr
-          role-session-name: GitHubActionsECRDeployment
 
       - name: Login to Amazon ECR
         id: login-ecr
