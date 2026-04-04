@@ -51,7 +51,7 @@ jobs:
             docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
             docker stop aether-learn-backend-v2
             docker rm aether-learn-backend-v2
-            docker run --name aether-learn-backend-v2 -d -p ${{ secrets.ENV_PORT }}:443 \
+            docker run --name aether-learn-backend-v2 -d -p ${{ secrets.ENV_PORT }}:${{ secrets.ENV_PORT }} \
             -e DATABASE_URL="${{ secrets.ENV_DATABASE_URL }}" \
             -e JWT_SECRET="${{ secrets.ENV_JWT_SECRET }}" \
             -e JUDGE0_URL="${{ secrets.ENV_JUDGE0_URL }}" \
@@ -60,5 +60,5 @@ jobs:
             -e CORS_ORIGIN="${{ secrets.ENV_CORS_ORIGIN }}" \
             -e REDIS_HOST="${{ secrets.ENV_REDIS_HOST }}" \
             -e REDIS_PORT="${{ secrets.ENV_REDIS_PORT }}" \
-            -e JUDGE0_CB_BASE="${{ secrets.ENV_JUDGE0_CB_BASE }}" \
+            -e JUDGE0_CB_BASE="${{ secrets.ENV_JUDGE0_CB_BASE }}:${{ secrets.ENV_PORT }}" \
             ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
