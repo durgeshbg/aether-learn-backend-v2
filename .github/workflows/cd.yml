@@ -1,54 +1,84 @@
-name: Build and Push to GCP Artifact Registry
+name: Build and Push to AWS ECR
 
 on:
   push:
     branches: ['main']
 
 jobs:
-  build-push-artifact:
+  build-push-ecr:
+    name: Build and Push to AWS ECR
     runs-on: ubuntu-latest
+    environment: production
+
+    # OIDC authentication requires write permission for id-token
+    permissions:
+      id-token: write
+      contents: read
+
     steps:
       - name: 'Checkout'
         uses: 'actions/checkout@v3'
 
-      - id: 'auth'
-        uses: 'google-github-actions/auth@v1'
+      # Authenticate with AWS using OIDC
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v5
         with:
-          credentials_json: '${{ secrets.SERVICE_ACCOUNT_KEY }}'
+          aws-region: ${{ secrets.AWS_REGION }}
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-ecr
+          role-session-name: GitHubActionsECRDeployment
 
-      - name: 'Set up Cloud SDK'
-        uses: 'google-github-actions/setup-gcloud@v1'
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
 
-      - name: 'Docker auth'
-        run: |-
-          gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev --quiet
-
-      - name: Build image
-        run: docker build . --tag ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
-
-      - name: Push image
-        run: docker push ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
-
-      - name: SSH to VM and pull image and restart service
-        uses: appleboy/ssh-action@v1
+      - name: Build, tag, and push image to Amazon ECR
+        id: build-image
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        uses: docker/build-push-action@v6
         with:
-          host: ${{ secrets.HOST_IP }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            echo '${{ secrets.ENV_FILE }}' > .env
-            docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
-            docker stop aether-learn-backend-v2
-            docker rm aether-learn-backend-v2
-            docker run --name aether-learn-backend-v2 -d -p 8080:8080 \
-            -e DATABASE_URL="${{ secrets.ENV_DATABASE_URL }}" \
-            -e JWT_SECRET="${{ secrets.ENV_JWT_SECRET }}" \
-            -e JUDGE0_URL="${{ secrets.ENV_JUDGE0_URL }}" \
-            -e JUDGE0_AUTH_TOKEN="${{ secrets.ENV_JUDGE0_AUTH_TOKEN }}" \
-            -e PORT="${{ secrets.ENV_PORT }}" \
-            -e CORS_ORIGIN="${{ secrets.ENV_CORS_ORIGIN }}" \
-            -e REDIS_HOST="${{ secrets.ENV_REDIS_HOST }}" \
-            -e REDIS_PORT="${{ secrets.ENV_REDIS_PORT }}" \
-            -e JUDGE0_CB_BASE="${{ secrets.ENV_JUDGE0_CB_BASE }}" \
-            ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+          context: .
+          push: true
+          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+
+      # - id: 'auth'
+      #   uses: 'google-github-actions/auth@v1'
+      #   with:
+      #     credentials_json: '${{ secrets.SERVICE_ACCOUNT_KEY }}'
+
+      # - name: 'Set up Cloud SDK'
+      #   uses: 'google-github-actions/setup-gcloud@v1'
+
+      # - name: 'Docker auth'
+      #   run: |-
+      #     gcloud auth configure-docker ${{ secrets.REGION }}-docker.pkg.dev --quiet
+
+      # - name: Build image
+      #   run: docker build . --tag ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+
+      # - name: Push image
+      #   run: docker push ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+
+      # - name: SSH to VM and pull image and restart service
+      #   uses: appleboy/ssh-action@v1
+      #   with:
+      #     host: ${{ secrets.HOST_IP }}
+      #     username: ${{ secrets.USERNAME }}
+      #     key: ${{ secrets.SSH_PRIVATE_KEY }}
+      #     port: 22
+      #     script: |
+      #       echo '${{ secrets.ENV_FILE }}' > .env
+      #       docker pull ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
+      #       docker stop aether-learn-backend-v2
+      #       docker rm aether-learn-backend-v2
+      #       docker run --name aether-learn-backend-v2 -d -p 8080:8080 \
+      #       -e DATABASE_URL="${{ secrets.ENV_DATABASE_URL }}" \
+      #       -e JWT_SECRET="${{ secrets.ENV_JWT_SECRET }}" \
+      #       -e JUDGE0_URL="${{ secrets.ENV_JUDGE0_URL }}" \
+      #       -e JUDGE0_AUTH_TOKEN="${{ secrets.ENV_JUDGE0_AUTH_TOKEN }}" \
+      #       -e PORT="${{ secrets.ENV_PORT }}" \
+      #       -e CORS_ORIGIN="${{ secrets.ENV_CORS_ORIGIN }}" \
+      #       -e REDIS_HOST="${{ secrets.ENV_REDIS_HOST }}" \
+      #       -e REDIS_PORT="${{ secrets.ENV_REDIS_PORT }}" \
+      #       -e JUDGE0_CB_BASE="${{ secrets.ENV_JUDGE0_CB_BASE }}" \
+      #       ${{ secrets.GAR_LOCATION }}/aether-learn-backend-v2:latest
