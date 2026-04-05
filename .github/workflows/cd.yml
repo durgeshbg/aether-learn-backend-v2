@@ -61,5 +61,5 @@ jobs:
             -e REDIS_HOST="${{ secrets.ENV_REDIS_HOST }}" \
             -e REDIS_PORT="${{ secrets.ENV_REDIS_PORT }}" \
             -e JUDGE0_CB_BASE="${{ secrets.ENV_JUDGE0_CB_BASE }}" \
-            --add-host=host.docker.internal:host-gateway \
+            --net=host \
             ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
