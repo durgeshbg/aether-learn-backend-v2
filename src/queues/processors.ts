@@ -28,6 +28,10 @@ export default class CodeExecutionProcessor {
       },
     );
 
+    const testingCallbackUrl = `${process.env.JUDGE0_CB_BASE}/api/v1/courses/${job.data.courseId}/code-assessments/${job.data.codeAssessmentId}/code-solutions/${job.data.codeSolutionId}/test-cases/${job.data.testCaseId}/judge0-submission/${process.env.JUDGE0_AUTH_TOKEN}`;
+    const { data: testingCallbackData } = await axios.get(testingCallbackUrl);
+    console.log(`Testing callback data: ${JSON.stringify(testingCallbackData)}`);
+
     console.log(`Process job with id ${job.id} from the ${Queues.CODE_EXECUTION} queue`);
 
     return data;
