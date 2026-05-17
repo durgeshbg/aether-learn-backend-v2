@@ -43,4 +43,4 @@ jobs:
             --allow-unauthenticated \
             --timeout=400s \
             --service-account=${{ secrets.GCP_SA_EMAIL }} \
-            --set-env-vars "NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},JWT_SECRET=${{ secrets.JWT_SECRET }},JUDGE0_HOST=${{ secrets.JUDGE0_HOST }},JUDGE0_AUTH_TOKEN=${{ secrets.JUDGE0_AUTH_TOKEN }},JUDGE0_CB_BASE=${{ secrets.JUDGE0_CB_BASE }},PORT=${{ secrets.PORT }},CORS_ORIGIN=${{ secrets.CORS_ORIGIN }},REDIS_URL=${{ secrets.REDIS_URL }}"
+            --set-env-vars "NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},JWT_SECRET=${{ secrets.JWT_SECRET }},JUDGE0_HOST=${{ secrets.JUDGE0_HOST }},JUDGE0_AUTH_TOKEN=${{ secrets.JUDGE0_AUTH_TOKEN }},JUDGE0_CB_BASE=${{ secrets.JUDGE0_CB_BASE }},CORS_ORIGIN=${{ secrets.CORS_ORIGIN }},REDIS_URL=${{ secrets.REDIS_URL }}"
