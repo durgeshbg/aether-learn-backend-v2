@@ -16,8 +16,7 @@ export default class QueueService {
       removeOnFail: false, // this indicates if the job should be removed from the queue if it fails
     },
     connection: {
-      host: process.env.REDIS_HOST,
-      port: parseInt(process.env.REDIS_PORT!),
+      url: process.env.REDIS_URL,
     },
   };
 
@@ -34,8 +33,10 @@ export default class QueueService {
   }
 
   async instantiateQueues() {
-    if (!process.env.REDIS_HOST || !process.env.REDIS_PORT) {
-      throw new Error('REDIS_HOST and REDIS_PORT must be defined in environment variables');
+    if (!process.env.REDIS_URL) {
+      throw new Error(
+        'REDIS_URL environment variable is not set. Please set it to connect to Redis.',
+      );
     }
 
     this.codeExecutionQueue = new Queue(Queues.CODE_EXECUTION, QueueService.QUEUE_OPTIONS);

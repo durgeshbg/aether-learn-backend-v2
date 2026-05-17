@@ -10,7 +10,7 @@ export default class CodeExecutionProcessor {
 
     try {
       const { data } = await axios.post(
-        process.env.JUDGE0_URL + '/submissions',
+        'https://' + process.env.JUDGE0_HOST + '/submissions',
         {
           source_code: job.data.sourceCode,
           language_id: job.data.languageId,
@@ -24,7 +24,8 @@ export default class CodeExecutionProcessor {
           },
           headers: {
             'Content-Type': 'application/json',
-            'X-Auth-Token': process.env.JUDGE0_AUTH_TOKEN || '',
+            'x-rapidapi-key': process.env.JUDGE0_AUTH_TOKEN || '',
+            'x-rapidapi-host': process.env.JUDGE0_HOST || '',
           },
         },
       );

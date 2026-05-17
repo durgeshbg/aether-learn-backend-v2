@@ -1,65 +1,46 @@
-name: Build and Push to AWS ECR
+name: Deploy to cloud run
 
 on:
   push:
-    branches: ['main']
+    branches: [main]
 
 jobs:
-  build-push-ecr:
-    name: Build and Push to AWS ECR
+  login:
     runs-on: ubuntu-latest
-    environment: production
-
-    # OIDC authentication requires write permission for id-token
-    permissions:
-      id-token: write
-      contents: read
-
     steps:
-      - name: 'Checkout'
-        uses: 'actions/checkout@v3'
+      - name: Checkout code
+        uses: actions/checkout@v2
 
-      # Authenticate with AWS using OIDC
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v5
+      - name: 'Gcloud Authentication'
+        uses: 'google-github-actions/auth@v2'
         with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/github-actions-ecr
+          credentials_json: '${{ secrets.GCP_SA_KEY }}'
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v2
-
-      - name: Build, tag, and push image to Amazon ECR
-        id: build-image
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        uses: docker/build-push-action@v6
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
         with:
-          context: .
-          push: true
-          tags: ${{ env.ECR_REGISTRY }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+          service_account_key: ${{ secrets.GCP_SA_KEY }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+          export_default_credentials: true
 
-      - name: SSH to VM and pull image and restart service
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.HOST_IP }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            docker pull ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
-            docker stop aether-learn-backend-v2
-            docker rm aether-learn-backend-v2
-            docker run --name aether-learn-backend-v2 -d -p ${{ secrets.ENV_PORT }}:${{ secrets.ENV_PORT }} \
-            -e DATABASE_URL="${{ secrets.ENV_DATABASE_URL }}" \
-            -e JWT_SECRET="${{ secrets.ENV_JWT_SECRET }}" \
-            -e JUDGE0_URL="${{ secrets.ENV_JUDGE0_URL }}" \
-            -e JUDGE0_AUTH_TOKEN="${{ secrets.ENV_JUDGE0_AUTH_TOKEN }}" \
-            -e PORT="${{ secrets.ENV_PORT }}" \
-            -e CORS_ORIGIN="${{ secrets.ENV_CORS_ORIGIN }}" \
-            -e REDIS_HOST="${{ secrets.ENV_REDIS_HOST }}" \
-            -e REDIS_PORT="${{ secrets.ENV_REDIS_PORT }}" \
-            -e JUDGE0_CB_BASE="${{ secrets.ENV_JUDGE0_CB_BASE }}" \
-            --net=host \
-            ${{ steps.login-ecr.outputs.registry }}/${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Build and push Docker image for aether-learn-backend-v2
+        run: |
+          IMAGE_HTTP="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/aether-learn-backend-v2/aether-learn-backend-v2:${{ github.sha }}"
+          docker build -t "$IMAGE_HTTP" -f Dockerfile .
+          docker push "$IMAGE_HTTP"
+          echo "IMAGE_HTTP=$IMAGE_HTTP" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run (HTTP)
+        run: |
+          gcloud run deploy aether-learn-backend-v2 \
+            --image="$IMAGE_HTTP" \
+            --platform=managed \
+            --region=asia-south1 \
+            --allow-unauthenticated \
+            --timeout=400s \
+            --service-account=${{ secrets.GCP_SA_EMAIL }} \
+            --set-env-vars "NODE_ENV=production,DATABASE_URL=${{ secrets.DATABASE_URL }},JWT_SECRET=${{ secrets.JWT_SECRET }},JUDGE0_HOST=${{ secrets.JUDGE0_HOST }},JUDGE0_AUTH_TOKEN=${{ secrets.JUDGE0_AUTH_TOKEN }},JUDGE0_CB_BASE=${{ secrets.JUDGE0_CB_BASE }},PORT=${{ secrets.PORT }},CORS_ORIGIN=${{ secrets.CORS_ORIGIN }},REDIS_URL=${{ secrets.REDIS_URL }}"
